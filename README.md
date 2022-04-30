@@ -1,3 +1,6 @@
-# tera_applications
+# Teraheap Application
 
-Applications for TeraHeap
+This repo contains all the applications that we use for TeraHeap.
+1. [Spark](./spark/)
+2. [Giraph](./giraph)
+3. [Hadoop](./hadoop)
