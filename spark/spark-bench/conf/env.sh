@@ -18,15 +18,6 @@ MC_LIST="sith4-fast"
 # Use these inputs for fileio
 DATA_HDFS="file:///mnt/datasets/SparkBench"
 
-#DATA_HDFS="file:///mnt/datasets/SparkBench12"
-
-# Use these input files for fast testing
-#DATA_HDFS="file:///mnt/datasets/SparkBenchTests"
-
-#DATA_HDFS="file:///mnt/datasets/SparkBench64"
-
-#DATA_HDFS="file:///mnt/datasets/SparkBench128"
-
 # Local dataset optional
 DATASET_DIR="${DATA_HDFS}/dataset"
 

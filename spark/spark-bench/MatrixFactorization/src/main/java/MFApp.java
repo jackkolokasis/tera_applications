@@ -91,10 +91,6 @@ public class MFApp {
         {
             parsed_data.persist(StorageLevel.OFF_HEAP());
         }
-        else if (storage_level.equals("PMEM_OFF_HEAP"))
-        {
-            parsed_data.persist(StorageLevel.PMEM_OFF_HEAP());
-        }
         else if (storage_level.equals("MEMORY_ONLY"))
         {
             parsed_data.persist(StorageLevel.MEMORY_ONLY());
@@ -126,8 +122,6 @@ public class MFApp {
             userProducts.persist(StorageLevel.MEMORY_AND_DISK());
         }else if (storage_level.equals("OFF_HEAP")) {
             userProducts.persist(StorageLevel.OFF_HEAP());
-        }else if (storage_level.equals("PMEM_OFF_HEAP")) {
-            userProducts.persist(StorageLevel.PMEM_OFF_HEAP());
         }else if (storage_level.equals("MEMORY_ONLY")) {
             userProducts.persist(StorageLevel.MEMORY_ONLY());
         }

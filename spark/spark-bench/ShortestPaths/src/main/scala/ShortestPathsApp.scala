@@ -63,8 +63,6 @@ import org.apache.spark.storage.StorageLevel
       sl = StorageLevel.DISK_ONLY
     else if (storageLevel == "OFF_HEAP")
       sl = StorageLevel.OFF_HEAP
-    else if (storageLevel == "PMEM_OFF_HEAP")
-      sl = StorageLevel.PMEM_OFF_HEAP
 
 	val graph = GraphLoader.edgeListFile(sc, input, true, minEdge, sl, sl)	
 	
