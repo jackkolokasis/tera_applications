@@ -35,6 +35,13 @@ usage() {
 
 prepare_certificates() {
   cp -r ../util/certificates/lib ${JAVA_HOME}/
+
+  # Create the security directory if it does not exist
+  if [! -d "${JAVA_HOME}/lib/security/" ]
+  then 
+    mkdir -p ${JAVA_HOME}/lib/security
+  fi 
+
   cp ../util/certificates/blacklisted.certs ${JAVA_HOME}/lib/security/
   cp ../util/certificates/cacerts ${JAVA_HOME}/lib/security/
   cp ../util/certificates/nss.cfg ${JAVA_HOME}/lib/security/
@@ -45,10 +52,14 @@ prepare_certificates() {
 spark_dependencies() {
   if [ "$SPARK_VERSION" == "spark-2.3.0" ]
   then
-    if [[ -n $(find ~/.m2 -name "nvmUnsafe*") ]]
+    if [ -d "~/.m2" ]
     then
-      rm -rf ~/.m2/repository/NVMUnsafePath
+      if [[ -n $(find ~/.m2 -name "nvmUnsafe*") ]]
+      then
+        rm -rf ~/.m2/repository/NVMUnsafePath
+      fi
     fi
+
     cd ${HUGE_HEAP_REPO}/nvmUnsafe/
     ./build.sh ${COMPILE_OUT} ${SPARK_DIR}
     cd - > /dev/null
