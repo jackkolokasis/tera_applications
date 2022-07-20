@@ -1,25 +1,35 @@
-# Spark with TeraHeap
+# Running Spark with TeraHeap
 
 ## Build
-Before build Spark and Spark-Bench suite you have to move this repository to a
-local disk directory (e.g., /opt).
+Build Spark and Spark-Bench suite you have to move this
+repository to a local disk directory (e.g., /opt).
 
+Setup configuration file config.sh by setting the following variables
+as shown in the table below.
+
+| **Parameters** 	|                   **Description**                   	|
+|:--------------:	|:---------------------------------------------------:	|
+| JAVA_HOME      	| Locate the build directory of the JVM with HugeHeap 	|
+| HUGE_HEAP_REPO 	| Path to the HugeHeap repository                     	|
+| TERA_APPS_REPO 	| Path to the repository of tera_applications         	|
+
+### Build Spark and SparkBench suite
 ```sh
-./build
+./build -a
+```
+### Build only Spark
+```sh
+./build -s
+```
+### Build only SparkBench suite
+```sh
+./build -b
+```
+### Clean All
+```sh
+./build -c
 ```
 
-## Spark Configuration
-Before start running the experiments you have to setup the configuration in
-Spark.
-
-1. Go to spark directory
-```sh
-cd spark-3.2.1/conf
-```
-2. Open workers file and replace "localhost" with the node hostname e.g.,
-   sith4-fast.
-
-3. Open spark-defaults.conf and replace spark://master:7077 with
-   spark://`hostname`:7077.
-
-4. Open spark-env.sh file and setup JAVA_HOME.
+## Run Benchmarks
+To run benchmarks with Spark go to the scripts repository and read the
+README file 
