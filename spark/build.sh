@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 . ./config.sh
 # Check if the last command executed succesfully
 #
@@ -34,10 +33,10 @@ usage() {
 }
 
 prepare_certificates() {
-  cp -r ../util/certificates/lib ${JAVA_HOME}/
+  cp -r ../util/certificates/lib ${JAVA_HOME}/../
 
   # Create the security directory if it does not exist
-  if [! -d "${JAVA_HOME}/lib/security/" ]
+  if [ ! -d "${JAVA_HOME}/lib/security/" ]
   then 
     mkdir -p ${JAVA_HOME}/lib/security
   fi 
