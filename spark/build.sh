@@ -6,7 +6,7 @@
 # if executed succesfully, print SUCCEED
 # if executed with failures, print FAIL and exit
 check () {
-    if [ $1 -ne 0 ]
+    if [ "$1" -ne 0 ]
     then
         echo -e "  $2 \e[40G [\e[31;1mFAIL\e[0m]"
         exit
@@ -33,91 +33,95 @@ usage() {
 }
 
 prepare_certificates() {
-  cp -r ../util/certificates/lib ${JAVA_HOME}/../
+  cp -r ../util/certificates/lib "${JAVA_HOME}"/../
 
   # Create the security directory if it does not exist
   if [ ! -d "${JAVA_HOME}/lib/security/" ]
   then 
-    mkdir -p ${JAVA_HOME}/lib/security
+    mkdir -p "${JAVA_HOME}"/lib/security
   fi 
 
-  cp ../util/certificates/blacklisted.certs ${JAVA_HOME}/lib/security/
-  cp ../util/certificates/cacerts ${JAVA_HOME}/lib/security/
-  cp ../util/certificates/nss.cfg ${JAVA_HOME}/lib/security/
-  cp ../util/certificates/java.policy ${JAVA_HOME}/lib/security/
-  cp ../util/certificates/java.security ${JAVA_HOME}/lib/security/
+  cp ../util/certificates/blacklisted.certs "${JAVA_HOME}"/lib/security/
+  cp ../util/certificates/cacerts "${JAVA_HOME}"/lib/security/
+  cp ../util/certificates/nss.cfg "${JAVA_HOME}"/lib/security/
+  cp ../util/certificates/java.policy "${JAVA_HOME}"/lib/security/
+  cp ../util/certificates/java.security "${JAVA_HOME}"/lib/security/
 }
 
 spark_dependencies() {
   if [ "$SPARK_VERSION" == "spark-2.3.0" ]
   then
-    if [ -d "~/.m2" ]
+    if [ -d "${HOME}/.m2" ]
     then
-      if [[ -n $(find ~/.m2 -name "nvmUnsafe*") ]]
+      if [[ -n $(find "${HOME}"/.m2 -name "nvmUnsafe*") ]]
       then
-        rm -rf ~/.m2/repository/NVMUnsafePath
+        rm -rf "${HOME}"/.m2/repository/NVMUnsafePath
       fi
     fi
 
-    cd ${HUGE_HEAP_REPO}/nvmUnsafe/
-    ./build.sh ${COMPILE_OUT} ${SPARK_DIR}
-    cd - > /dev/null
+    cd "${TERA_HEAP_REPO}"/nvmUnsafe/ || exit
+    ./build.sh "${COMPILE_OUT}" "${SPARK_DIR}"
+    cd - > /dev/null || exit
   fi
 }
 
 build_spark() {
-  cd ${SPARK_DIR} || exit
-  ./compile.sh >> ${COMPILE_OUT} 2>&1
+  cd "${SPARK_DIR}" || exit
+  ./compile.sh >> "${COMPILE_OUT}" 2>&1
   retValue=$?
   message="Build Spark" 
   check ${retValue} "${message}"
-  cd - > /dev/null
+  cd - > /dev/null || exit
 }
 
 benchmark_dependencies() {
-  if [[ ! -n $(find ~/.m2 -name "wikixmlj*") ]]
+  if [[ ! -n $(find "${HOME}"/.m2 -name "wikixmlj*") ]]
   then 
-    git clone  https://github.com/synhershko/wikixmlj.git >> ${COMPILE_OUT} 2>&1
+    git clone  https://github.com/synhershko/wikixmlj.git >> "${COMPILE_OUT}" 2>&1
 
-    cd wikixmlj
-    mvn package -Dmaven.test.skip=true >> {COMPILE_OUT} 2>&1
-    mvn install -Dmaven.test.skip=true >> {COMPILE_OUT} 2>&1
-    cd - >> compile.out 2>&1
+    cd wikixmlj || exit
+    mvn package -Dmaven.test.skip=true >> "${COMPILE_OUT}" 2>&1
+    mvn install -Dmaven.test.skip=true >> "${COMPILE_OUT}" 2>&1
+    cd - >> "${COMPILE_OUT}" 2>&1 || exit
 
-    rm -rf ./wikixmlj >> ${COMPILE_OUT} 2>&1
+    rm -rf ./wikixmlj >> "${COMPILE_OUT}" 2>&1
   fi
 }
 
 build_benchmarks() {
-  ./spark-bench/bin/build-all.sh >> ${COMPILE_OUT} 2>&1
+  ./spark-bench/bin/build-all.sh >> "${COMPILE_OUT}" 2>&1
   retValue=$?
   message="Build Spark Benchmarks" 
   check ${retValue} "${message}"
 }
 
 clean_all() {
-  cd ${SPARK_DIR}
-  ./build/mvn clean >> ${COMPILE_OUT} 2>&1
+  cd "${SPARK_DIR}" || exit
+  ./build/mvn clean >> "${COMPILE_OUT}" 2>&1
   
   retValue=$?
   message="Clean Spark" 
   check ${retValue} "${message}"
 
-  cd - >> ${COMPILE_OUT} 2>&1
+  cd - >> "${COMPILE_OUT}" 2>&1 || exit
 
-  cd ./spark-bench
-  mvn clean >> ${COMPILE_OUT} 2>&1
+  cd ./spark-bench || exit
+  mvn clean >> "${COMPILE_OUT}" 2>&1
 
   retValue=$?
   message="Clean SparkBench suite" 
   check ${retValue} "${message}"
 
-  cd - >> ${COMPILE_OUT} 2>&1
+  cd - >> "${COMPILE_OUT}" 2>&1 || exit
 }
 
 # Check for the input arguments
 while getopts "asbch" opt
 do
+  echo "-----------------------------------"
+  echo "Compilation output messages are here: ${COMPILE_OUT}"
+  echo "-----------------------------------"
+  echo 
   case "${opt}" in
     a)
       prepare_certificates
