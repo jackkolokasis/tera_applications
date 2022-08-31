@@ -10,7 +10,7 @@ as shown in the table below.
 | **Parameters** 	|                   **Description**                   	|
 |:--------------:	|:---------------------------------------------------:	|
 | JAVA_HOME      	| Locate the build directory of the JVM with HugeHeap 	|
-| HUGE_HEAP_REPO 	| Path to the HugeHeap repository                     	|
+| TERA_HEAP_REPO 	| Path to the HugeHeap repository                     	|
 | TERA_APPS_REPO 	| Path to the repository of tera_applications         	|
 
 ### Build Spark and SparkBench suite
@@ -32,4 +32,4 @@ as shown in the table below.
 
 ## Run Benchmarks
 To run benchmarks with Spark go to the scripts repository and read the
-README file 
+README file. 
