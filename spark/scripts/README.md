@@ -4,7 +4,7 @@
 Setup the following variables in the conf.sh file.
 
 | **Variable**            | **Description**                                                      |
-|:----------------------:	|:-------------------------------------------------------------------: |
+|----------------------	  |-------------------------------------------------------------------   |
 | DATA_SIZE               | Select to run with small datasets (up to 2GB) or large datasets      |
 | MY_JAVA_HOME            | Path to TeraHeap building directory                                  |
 | DATA_HDFS               | Path to the directory with the datasets                              |
