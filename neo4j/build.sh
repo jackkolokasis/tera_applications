@@ -66,7 +66,7 @@ build_neo4j() {
 
   cd "${NEO4J_DIR}" || exit
 
-  ./compile.sh >> "${COMPILE_OUT}" 2>&1
+  mvn -DskipTests clean install >> "${COMPILE_OUT}" 2>&1
   retValue=$?
   message="Build Neo4j" 
   check ${retValue} "${message}"
