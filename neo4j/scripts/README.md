@@ -88,10 +88,10 @@ wcc_140g_14g_th_12:28:23-18-09-2022/
             ├── system.csv
             └── teraHeap.txt
 ```
-The main files that the output results directory are the following:
+The main files in the output results directory are the following:
 
-| ** File **    | ** Description **                                               |
-|:----------:   |:-----------------:                                              |
+|  File         | Description                                                     |
+|:----------:   |:-------------:                                                  |
 |result.csv     | Shows time breakdown (e.g., total time, gc time)                |
 |diskstat.csv   | Contains read/write statistics for each storage device          |
 |statistics.csv | Contains statistics for TeraHeap (e.g., number of objects in H2)|
