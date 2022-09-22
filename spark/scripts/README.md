@@ -27,15 +27,27 @@ Setup the following variables in the conf.sh file.
 
 You need to have "sudo" access in the server.
 
+## Change JVM Option Flags
+If you want to add/remove jvm flags for Spark executor please edit the
+spark-defaults.conf files under ./configs/native and
+./configs/teraheap
+
+
 ## Run experiments with enable TeraHeap
 ```sh
-./run.sh -n 1 -o "pr" -t
+./run.sh -n 1 -o <path/to/result/directory> -t
 ```
 ## Run experiments with native (serialization/deserialization)
 ```sh
-./run.sh -n 1 -o "pr" -s
+./run.sh -n 1 -o <path/to/result/directory> -s
 ```
-## Help message
+
+## Kill all background processes
+```sh
+./run.sh -k 
+```
+
+## Other options
 ```sh
 ./run.sh -h
 ```
