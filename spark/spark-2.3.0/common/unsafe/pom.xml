@@ -21,7 +21,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.apache.spark</groupId>
-    <artifactId>spark-parent_2.11</artifactId>
+    <artifactId>spark-parent_2.12</artifactId>
     <version>2.3.0</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
@@ -97,6 +97,7 @@
       <plugin>
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>
+        <version>3.3.2</version>
         <configuration>
           <javacArgs combine.children="append">
             <!-- This option is needed to suppress warnings from sun.misc.Unsafe usage -->
