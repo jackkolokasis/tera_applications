@@ -40,10 +40,12 @@ update_slave_file() {
 update_spark_env() {
   # Update JAVA_HOME
   sed -i '/JAVA_HOME/c\JAVA_HOME='"${MY_JAVA_HOME}" spark-env.sh
+  SPARK_WORKER_MEMORY=$(( H1_SIZE * NUM_EXECUTORS ))
+  SPARK_WORKER_CORES=$(( EXEC_CORES * NUM_EXECUTORS ))
   # Change the worker cores
-  sed -i '/SPARK_WORKER_CORES/c\SPARK_WORKER_CORES='"${EXEC_CORES}" spark-env.sh
+  sed -i '/SPARK_WORKER_CORES/c\SPARK_WORKER_CORES='"${SPARK_WORKER_CORES}" spark-env.sh
   # Change the worker memory
-  sed -i '/SPARK_WORKER_MEMORY/c\SPARK_WORKER_MEMORY='"${H1_SIZE}"'g' spark-env.sh
+  sed -i '/SPARK_WORKER_MEMORY/c\SPARK_WORKER_MEMORY='"${SPARK_WORKER_MEMORY}"'g' spark-env.sh
   # Change the worker memory
   sed -i '/SPARK_LOCAL_DIRS/c\SPARK_LOCAL_DIRS='"${MNT_SHFL}" spark-env.sh
   # Change the master IP
