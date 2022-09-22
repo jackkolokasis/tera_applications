@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-// scalastyle:off println
 package org.apache.spark.util.io
 
 import java.io.OutputStream
@@ -63,7 +62,6 @@ private[spark] class ChunkedByteBufferOutputStream(
 
   override def write(b: Int): Unit = {
     require(!closed, "cannot write to a closed ChunkedByteBufferOutputStream")
-    // println("ChunkedByteBufferOutputStream::write(b)")
     allocateNewChunkIfNeeded()
     chunks(lastChunkIndex).put(b.toByte)
     position += 1
@@ -72,7 +70,6 @@ private[spark] class ChunkedByteBufferOutputStream(
 
   override def write(bytes: Array[Byte], off: Int, len: Int): Unit = {
     require(!closed, "cannot write to a closed ChunkedByteBufferOutputStream")
-    // println("ChunkedByteBufferOutputStream::write(bytes: Array[Byte], off: Int, len: Int)")
     var written = 0
     while (written < len) {
       allocateNewChunkIfNeeded()
@@ -86,7 +83,6 @@ private[spark] class ChunkedByteBufferOutputStream(
 
   @inline
   private def allocateNewChunkIfNeeded(): Unit = {
-    // println("ChunkedByteBufferOutputStream::allocateNewChunkIfNeeded")
     if (position == chunkSize) {
       chunks += allocator(chunkSize)
       lastChunkIndex += 1
@@ -97,7 +93,6 @@ private[spark] class ChunkedByteBufferOutputStream(
   def toChunkedByteBuffer: ChunkedByteBuffer = {
     require(closed, "cannot call toChunkedByteBuffer() unless close() has been called")
     require(!toChunkedByteBufferWasCalled, "toChunkedByteBuffer() can only be called once")
-    // println("ChunkedByteBufferOutputStream::toChunkedByteBuffer")
     toChunkedByteBufferWasCalled = true
     if (lastChunkIndex == -1) {
       new ChunkedByteBuffer(Array.empty[ByteBuffer])
@@ -126,4 +121,3 @@ private[spark] class ChunkedByteBufferOutputStream(
     }
   }
 }
-// scalastyle:on println

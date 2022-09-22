@@ -11,12 +11,17 @@ STORAGE_LEVEL=$4
 
 function timestamp()                                                            
 {
-    local sec=$(date +%s)
-    local nanosec=$(date +%N)
+    local sec
+    local nanosec
+    local tmp
+    local msec
 
-    local tmp=$(expr $sec \* 1000)
-    local msec=$(expr $nanosec / 1000000)
-    echo $(expr $tmp + $msec)
+    sec=$(date +%s)
+    nanosec=$(date +%N)
+
+    tmp=$(( sec * 1000 ))
+    msec=$(( nanosec / 1000000 ))
+    echo $(( tmp + msec ))
 }                                                                               
 
 start_time=$(timestamp)
@@ -31,10 +36,10 @@ start_time=$(timestamp)
 	--numPartitions 512 \
 	--numFeatures 54686452 \
     /mnt/datasets/kdd12 \
-	${STORAGE_LEVEL}
+	"${STORAGE_LEVEL}"
 
 end_time=$(timestamp)                                                           
 
-duration=`echo "scale=6;($end_time-$start_time)/1000"|bc`                       
+duration=$(echo "scale=6;($end_time-$start_time)/1000" | bc)
 
-echo ",,${duration}" >> ${RUN_DIR}/total_time.txt
+echo ",,${duration}" >> "${RUN_DIR}"/total_time.txt

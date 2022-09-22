@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-// scalastyle:off println
 package org.apache.spark.util.io
 
 import java.io.InputStream
@@ -230,4 +229,3 @@ private[spark] class ChunkedByteBufferInputStream(
     currentChunk = null
   }
 }
-// scalastyle:on println

@@ -275,7 +275,18 @@
         </property>
       </activation>
     </profile>
-
-
+    <profile>
+      <id>spark3.3.0</id>
+      <properties>
+        <env>spark3.3.0</env>
+        <spark.version>3.3.0</spark.version>
+        <spark.bin.version>3.3.0</spark.bin.version>
+      </properties>
+      <activation>
+        <property>
+          <name>spark3.3.0</name>
+        </property>
+      </activation>
+    </profile>
   </profiles>
 </project>

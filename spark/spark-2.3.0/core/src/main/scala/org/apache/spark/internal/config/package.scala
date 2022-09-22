@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// scalastyle:off
 
 package org.apache.spark.internal
 
@@ -111,83 +110,19 @@ package object config {
     .bytesConf(ByteUnit.BYTE)
     .checkValue(_ >= 0, "The off-heap memory size must not be negative")
     .createWithDefault(0)
-
-  /**
-   * Jack Kolokasis (02/10/18)
-   *
-   * Create Config builders for the PMEM_OFFHEAP_ENABLED
-   */
-  private[spark] val PMEM_OFFHEAP_ENABLED = ConfigBuilder("spark.pmem.offHeap.enabled")
-    .doc("If true, Spark will attempt to use persistent off-heap memory for certain operations. " +
-      "If persistent off-heap memory use is enabled, " +
-      "then spark.memory.pmem.offHeap.size must be positive.")
-    .withAlternative("spark.unsafe.pmem.offHeap")
+  
+  private[spark] val TERAHEAP_ENABLED = ConfigBuilder("spark.teraheap.enabled")
+    .doc("If true, Spark will attempt to use TeraHeap memory for certain operations. " +
+      "If TeraHeap heap memory use is enabled, " +
+      "then spark.teraheap.heap.size must be positive.")
     .booleanConf
     .createWithDefault(false)
 
-  /**
-   * Jack Kolokasis (02/10/18)
-   *
-   * Create Config builders for the PMEM_OFFHEAP_SIZE
-   */
-  private[spark] val PMEM_OFFHEAP_SIZE = ConfigBuilder("spark.pmem.offHeap.size")
-    .doc("The absolute amount of memory in bytes which can be used for off-heap allocation. " +
-      "This setting has no impact on heap memory usage, so if your executors' total memory " +
-      "consumption must fit within some hard limit then be sure to shrink your JVM heap size " +
-      "accordingly. This must be set to a positive value when spark.pmem.offHeap.enabled=true.")
+  private[spark] val TERAHEAP_HEAP_SIZE = ConfigBuilder("spark.teraheap.heap.size")
+    .doc("The absolute amount of memory in bytes which can be used for TeraHeap allocation. " +
+      "This must be set to a positive value when spark.teraheap.heap.size=true.")
     .bytesConf(ByteUnit.BYTE)
-    .checkValue(_ >= 0, "The persistent off-heap memory size must not be negative")
-    .createWithDefault(0)
-  
-
-  /**
-   * Jack Kolokasis (02/10/18)
-   *
-   * Create Config builders for the PMEM_OFFHEAP_SIZE
-   */
-  private[spark] val FMAP_OFFHEAP_SIZE = ConfigBuilder("spark.fmap.offHeap.size")
-    .doc("The absolute amount of memory in bytes which can be used for off-heap allocation. " +
-      "This setting has no impact on heap memory usage, so if your executors' total memory " +
-      "consumption must fit within some hard limit then be sure to shrink your JVM heap size " +
-      "accordingly. This must be set to a positive value when spark.pmem.offHeap.enabled=true.")
-    .bytesConf(ByteUnit.BYTE)
-    .checkValue(_ >= 0, "The fastmap off-heap memory size must not be negative")
-    .createWithDefault(0)
-  
-  /**
-   * Jack Kolokasis (21/01/21)
-   *
-   * Create Config builders for the TERACACHE_ENABLE
-   */
-  private[spark] val TERACACHE_ENABLED = ConfigBuilder("spark.teracache.enabled")
-    .doc("If true, Spark will attempt to use TeraCache memory for certain operations. " +
-      "If TeraCache heap memory use is enabled, " +
-      "then spark.teracache.heap.size must be positive.")
-    .booleanConf
-    .createWithDefault(false)
-  
-    /**
-   * Jack Kolokasis (09/12/21)
-   *
-   * Create Config builders for the TERACACHE_PREFETCHING_ENABLED
-   */
-  private[spark] val TERACACHE_PREF_ENABLED = ConfigBuilder("spark.teracache.prefetch.enabled")
-    .doc("If true, Spark will attempt to use TeraCache memory for certain operations. " +
-      "If TeraCache heap memory use is enabled, " +
-      "then spark.teracache.heap.size must be positive.")
-    .booleanConf
-    .createWithDefault(false)
-  
-  /**
-   * Jack Kolokasis (21/01/21)
-   *
-   * Create Config builders for the TERACACHE_HEAP_SIZE
-   */
-  private[spark] val TERACACHE_HEAP_SIZE = ConfigBuilder("spark.teracache.heap.size")
-    .doc("The absolute amount of memory in bytes which can be used for TeraCache allocation. " +
-      "This must be set to a positive value when spark.teracache.heap.size=true.")
-    .bytesConf(ByteUnit.BYTE)
-    .checkValue(_ >= 0, "The TeraCache heap size must not be negative")
+    .checkValue(_ >= 0, "The TeraHeap heap size must not be negative")
     .createWithDefault(0)
 
   private[spark] val IS_PYTHON_APP = ConfigBuilder("spark.yarn.isPython").internal()
@@ -600,4 +535,3 @@ package object config {
       .createWithDefault(10000000)
 
 }
-// scalastyle:on

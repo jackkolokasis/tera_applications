@@ -28,8 +28,8 @@ as shown in the table below.
 ### Clean All
 ```sh
 ./build -c
-```
 
+```
 ## Run Benchmarks
 To run benchmarks with Spark go to the scripts repository and read the
 README file. 

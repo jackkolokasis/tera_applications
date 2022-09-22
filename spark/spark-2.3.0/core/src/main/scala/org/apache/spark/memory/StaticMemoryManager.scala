@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-// scalastyle:off
-
 package org.apache.spark.memory
 
 import org.apache.spark.SparkConf
@@ -58,8 +56,6 @@ private[spark] class StaticMemoryManager(
   }
 
   override def maxOffHeapStorageMemory: Long = 0L
-
-  override def maxPmemOffHeapStorageMemory: Long = 0L
 
   override def acquireStorageMemory(
       blockId: BlockId,
@@ -147,4 +143,3 @@ private[spark] object StaticMemoryManager {
   }
 
 }
-// scalastyle:on

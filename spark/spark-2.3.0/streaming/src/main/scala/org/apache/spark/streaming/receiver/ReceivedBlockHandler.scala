@@ -146,8 +146,7 @@ private[streaming] class WriteAheadLogBasedBlockHandler(
         s"write ahead log is enabled, change to replication 1")
     }
 
-    StorageLevel(storageLevel.useDisk, storageLevel.useMemory, storageLevel.useOffHeap,
-      storageLevel.usePmemOffHeap, false, 1)
+    StorageLevel(storageLevel.useDisk, storageLevel.useMemory, storageLevel.useOffHeap, false, 1)
   }
 
   if (storageLevel != effectiveStorageLevel) {

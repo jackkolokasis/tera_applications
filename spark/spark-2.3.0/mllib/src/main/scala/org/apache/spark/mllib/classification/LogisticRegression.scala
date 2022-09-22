@@ -432,7 +432,6 @@ class LogisticRegressionWithLBFGS
       def runWithMlLogisticRegression(elasticNetParam: Double) = {
         // Prepare the ml LogisticRegression based on our settings
         val lr = new org.apache.spark.ml.classification.LogisticRegression()
-
         lr.setRegParam(optimizer.getRegParam())
         lr.setElasticNetParam(elasticNetParam)
         lr.setStandardization(useFeatureScaling)
@@ -445,14 +444,11 @@ class LogisticRegressionWithLBFGS
         lr.setFitIntercept(addIntercept)
         lr.setMaxIter(optimizer.getNumIterations())
         lr.setTol(optimizer.getConvergenceTol())
-
         // Convert our input into a DataFrame
         val spark = SparkSession.builder().sparkContext(input.context).getOrCreate()
         val df = spark.createDataFrame(input.map(_.asML))
-
         // Determine if we should cache the DF
         val handlePersistence = input.getStorageLevel == StorageLevel.NONE
-
         // Train our model
         val mlLogisticRegressionModel = lr.train(df, handlePersistence)
         // convert the model

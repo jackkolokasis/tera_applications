@@ -283,9 +283,6 @@ abstract class RDD[T: ClassTag](
    */
   final def iterator(split: Partition, context: TaskContext): Iterator[T] = {
     if (storageLevel != StorageLevel.NONE) {
-      // Get the cache or calculate
-      // There is definetely no cache for the first time, so you need
-      // to calculate
       getOrCompute(split, context)
     } else {
       computeOrReadCheckpoint(split, context)
@@ -332,9 +329,7 @@ abstract class RDD[T: ClassTag](
    * Gets or computes an RDD partition. Used by RDD.iterator() when an RDD is cached.
    */
   private[spark] def getOrCompute(partition: Partition, context: TaskContext): Iterator[T] = {
-    // JK: Get the blockId
     val blockId = RDDBlockId(id, partition.index)
-    // JK: ReadCachedBlock flag
     var readCachedBlock = true
     // This method is called on executors, so we need call SparkEnv.get instead of sc.env.
     SparkEnv.get.blockManager.getOrElseUpdate(blockId, storageLevel, elementClassTag, () => {

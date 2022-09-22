@@ -16,7 +16,8 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.apache</groupId>
@@ -269,20 +270,6 @@
       <artifactId>unused</artifactId>
       <version>1.0.0</version>
     </dependency>
-
-    <!--
-         Jack Kolokasis
-         Start Insert here my depedency
-     -->
-    <dependency>
-      <groupId>NVMUnsafePath</groupId>
-      <artifactId>nvmUnsafe</artifactId>
-      <version>1.0</version>
-    </dependency>
-    <!--
-         Jack Kolokasis
-         End of Insert here my depedency
-     -->
     <!--
          This is needed by the scalatest plugin, and so is declared here to be available in
          all child modules, just as scalatest is run in all children
@@ -1395,7 +1382,7 @@
       <dependency>
         <groupId>${hive.group}</groupId>
         <artifactId>hive-exec</artifactId>
-        <!--
+<!--
         <classifier>core</classifier>
 -->
         <version>${hive.version}</version>
@@ -2080,8 +2067,7 @@
           <configuration>
             <scalaVersion>${scala.version}</scalaVersion>
             <recompileMode>incremental</recompileMode>
-            <!-- Disable Zinc !!! -->
-            <useZincServer>false</useZincServer>
+            <useZincServer>true</useZincServer>
             <args>
               <arg>-unchecked</arg>
               <arg>-deprecation</arg>
@@ -2183,7 +2169,7 @@
             <junitxml>.</junitxml>
             <filereports>SparkTestSuite.txt</filereports>
             <argLine>-ea -Xmx3g -Xss4m -XX:ReservedCodeCacheSize=${CodeCacheSize}</argLine>
-            <stderr />
+            <stderr/>
             <environmentVariables>
               <!--
                 Setting SPARK_DIST_CLASSPATH is a simple way to make sure any child processes
@@ -2340,7 +2326,7 @@
             <execution>
               <id>default-cli</id>
               <goals>
-                <goal>build-classpath</goal>
+                 <goal>build-classpath</goal>
               </goals>
               <configuration>
                 <!-- This includes dependencies with 'runtime' and 'compile' scopes;
@@ -2731,9 +2717,7 @@
     <profile>
       <id>test-java-home</id>
       <activation>
-        <property>
-          <name>env.JAVA_HOME</name>
-        </property>
+        <property><name>env.JAVA_HOME</name></property>
       </activation>
       <properties>
         <test.java.home>${env.JAVA_HOME}</test.java.home>

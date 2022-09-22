@@ -26,8 +26,7 @@ import java.util.Map;
 import org.apache.spark.unsafe.Platform;
 
 /**
- * A simple {@link MemoryAllocator} that can allocate up to 16GB using
- * a JVM long primitive array.
+ * A simple {@link MemoryAllocator} that can allocate up to 16GB using a JVM long primitive array.
  */
 public class HeapMemoryAllocator implements MemoryAllocator {
 
@@ -37,8 +36,8 @@ public class HeapMemoryAllocator implements MemoryAllocator {
   private static final int POOLING_THRESHOLD_BYTES = 1024 * 1024;
 
   /**
-   * Returns true if allocations of the given size should go through
-   * the pooling mechanism and false otherwise.
+   * Returns true if allocations of the given size should go through the pooling mechanism and
+   * false otherwise.
    */
   private boolean shouldPool(long size) {
     // Very small allocations are less likely to benefit from pooling.
@@ -47,7 +46,6 @@ public class HeapMemoryAllocator implements MemoryAllocator {
 
   @Override
   public MemoryBlock allocate(long size) throws OutOfMemoryError {
-    long startTime = System.currentTimeMillis();
     if (shouldPool(size)) {
       synchronized (this) {
         final LinkedList<WeakReference<long[]>> pool = bufferPoolsBySize.get(size);
@@ -73,14 +71,11 @@ public class HeapMemoryAllocator implements MemoryAllocator {
     if (MemoryAllocator.MEMORY_DEBUG_FILL_ENABLED) {
       memory.fill(MemoryAllocator.MEMORY_DEBUG_FILL_CLEAN_VALUE);
     }
-    long stopTime = System.currentTimeMillis();
-    System.out.println("HeapMemoryAllocator Time = " + (stopTime - startTime));
     return memory;
   }
 
   @Override
   public void free(MemoryBlock memory) {
-    long startTime = System.currentTimeMillis();
     assert (memory.obj != null) :
       "baseObject was null; are you trying to use the on-heap allocator to free off-heap memory?";
     assert (memory.pageNumber != MemoryBlock.FREED_IN_ALLOCATOR_PAGE_NUMBER) :
@@ -115,7 +110,5 @@ public class HeapMemoryAllocator implements MemoryAllocator {
     } else {
       // Do nothing
     }
-    long stopTime = System.currentTimeMillis();
-    System.out.println("HeapMemoryFree" + (stopTime - startTime));
   }
 }

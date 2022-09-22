@@ -22,10 +22,10 @@ ASYNC_PROF=/home1/public/kolokasis/sparkPersistentMemory/benchmarks/profiler/asy
 processId=""
 numOfExecutors=0
 
-while [ ${numOfExecutors} -lt ${NUM_OF_EXECUTORS} ] 
+while [ ${numOfExecutors} -lt "${NUM_OF_EXECUTORS}" ] 
 do
     # Calculate number of executors running
-    numOfExecutors=$(jps |grep "CoarseGrainedExecutorBackend" |wc -l)
+    numOfExecutors=$(jps |grep -c "CoarseGrainedExecutorBackend")
 done
 
 # Executors
@@ -38,7 +38,7 @@ i=0
 
 for execId in ${processId}
 do
-	${ASYNC_PROF}/profiler.sh -d 40000 -i 10ms -o collapsed ${execId} > ${OUTPUT} &
+  ${ASYNC_PROF}/profiler.sh -d 40000 -i 10ms -o collapsed ${execId} > "${OUTPUT}" &
 
-    i=$((i + 1))
+  i=$((i + 1))
 done

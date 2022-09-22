@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
 
+###################################################
+#
+# file: build.sh
+#
+# @Author:   Iacovos G. Kolokasis
+# @Version:  21-09-2022 
+# @email:    kolokasis@ics.forth.gr
+#
+# Compile Spark and Sparkbench suite
+#
+###################################################
+
 . ./config.sh
 # Check if the last command executed succesfully
 #
@@ -48,26 +60,11 @@ prepare_certificates() {
   cp ../util/certificates/java.security "${JAVA_HOME}"/lib/security/
 }
 
-spark_dependencies() {
-  if [ "$SPARK_VERSION" == "spark-2.3.0" ]
-  then
-    if [ -d "${HOME}/.m2" ]
-    then
-      if [[ -n $(find "${HOME}"/.m2 -name "nvmUnsafe*") ]]
-      then
-        rm -rf "${HOME}"/.m2/repository/NVMUnsafePath
-      fi
-    fi
-
-    cd "${TERA_HEAP_REPO}"/nvmUnsafe/ || exit
-    ./build.sh "${COMPILE_OUT}" "${SPARK_DIR}"
-    cd - > /dev/null || exit
-  fi
-}
-
 build_spark() {
   cd "${SPARK_DIR}" || exit
-  ./compile.sh >> "${COMPILE_OUT}" 2>&1
+  # Do not use parallel compilation. Spark3.3.0 freeze during
+  # compilation. 
+  ./build/mvn -DskipTests package >> "${COMPILE_OUT}" 2>&1
   retValue=$?
   message="Build Spark" 
   check ${retValue} "${message}"
@@ -89,7 +86,7 @@ benchmark_dependencies() {
 }
 
 build_benchmarks() {
-  ./spark-bench/bin/build-all.sh >> "${COMPILE_OUT}" 2>&1
+  ./spark-bench/bin/build-all.sh ${SPARK_VERSION} >> "${COMPILE_OUT}" 2>&1
   retValue=$?
   message="Build Spark Benchmarks" 
   check ${retValue} "${message}"
@@ -118,21 +115,21 @@ clean_all() {
 # Check for the input arguments
 while getopts "asbch" opt
 do
+
   echo "-----------------------------------"
   echo "Compilation output messages are here: ${COMPILE_OUT}"
   echo "-----------------------------------"
   echo 
+
   case "${opt}" in
     a)
       prepare_certificates
-      spark_dependencies
       build_spark
       benchmark_dependencies
       build_benchmarks
       ;;
     s)
       prepare_certificates
-      spark_dependencies
       build_spark
       ;;
     b)

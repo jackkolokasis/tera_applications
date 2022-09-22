@@ -38,28 +38,22 @@ import org.apache.spark.util.Utils;
 /**
  * Manages the memory allocated by an individual task.
  * <p>
- * Most of the complexity in this class deals with encoding of
- * off-heap addresses into 64-bit longs.  In off-heap mode, memory can
- * be directly addressed with 64-bit longs. In on-heap mode, memory is
- * addressed by the combination of a base Object reference and a
- * 64-bit offset within that object.  This is a problem when we want
- * to store pointers to data structures inside of other structures,
- * such as record pointers inside hashmaps or sorting buffers. Even if
- * we decided to use 128 bits to address memory, we can't just store
- * the address of the base object since it's not guaranteed to remain
- * stable as the heap gets reorganized due to GC.
+ * Most of the complexity in this class deals with encoding of off-heap addresses into 64-bit longs.
+ * In off-heap mode, memory can be directly addressed with 64-bit longs. In on-heap mode, memory is
+ * addressed by the combination of a base Object reference and a 64-bit offset within that object.
+ * This is a problem when we want to store pointers to data structures inside of other structures,
+ * such as record pointers inside hashmaps or sorting buffers. Even if we decided to use 128 bits
+ * to address memory, we can't just store the address of the base object since it's not guaranteed
+ * to remain stable as the heap gets reorganized due to GC.
  * <p>
- * Instead, we use the following approach to encode record pointers in
- * 64-bit longs: for off-heap mode, just store the raw address, and
- * for on-heap mode use the upper 13 bits of the address to store a
- * "page number" and the lower 51 bits to store an offset within this
- * page. These page numbers are used to index into a "page table"
- * array inside of the MemoryManager in order to retrieve the base
- * object.
+ * Instead, we use the following approach to encode record pointers in 64-bit longs: for off-heap
+ * mode, just store the raw address, and for on-heap mode use the upper 13 bits of the address to
+ * store a "page number" and the lower 51 bits to store an offset within this page. These page
+ * numbers are used to index into a "page table" array inside of the MemoryManager in order to
+ * retrieve the base object.
  * <p>
- * This allows us to address 8192 pages. In on-heap mode, the maximum
- * page size is limited by the maximum size of a long[] array,
- * allowing us to address 8192 * (2^31 - 1) * 8 bytes, which is
+ * This allows us to address 8192 pages. In on-heap mode, the maximum page size is limited by the
+ * maximum size of a long[] array, allowing us to address 8192 * (2^31 - 1) * 8 bytes, which is
  * approximately 140 terabytes of memory.
  */
 public class TaskMemoryManager {
@@ -112,11 +106,6 @@ public class TaskMemoryManager {
    * without doing any masking or lookups. Since this branching should be well-predicted by the JIT,
    * this extra layer of indirection / abstraction hopefully shouldn't be too expensive.
    */
-
-  /**
-   * After enable pmem off heap -- use to track weather you are in
-   * persistent memory off heap
-   */
   final MemoryMode tungstenMemoryMode;
 
   /**
@@ -149,7 +138,6 @@ public class TaskMemoryManager {
   public long acquireExecutionMemory(long required, MemoryConsumer consumer) {
     assert(required >= 0);
     assert(consumer != null);
-    // Get the memory mode of the consumer
     MemoryMode mode = consumer.getMode();
     // If we are allocating Tungsten pages off-heap and receive a request to allocate on-heap
     // memory here, then it may not make sense to spill since that would only end up freeing
@@ -277,18 +265,15 @@ public class TaskMemoryManager {
   }
 
   /**
-   * Allocate a block of memory that will be tracked in the
-   * MemoryManager's page table; this is intended for allocating large
-   * blocks of Tungsten memory that will be shared between operators.
+   * Allocate a block of memory that will be tracked in the MemoryManager's page table; this is
+   * intended for allocating large blocks of Tungsten memory that will be shared between operators.
    *
-   * Returns `null` if there was not enough memory to allocate the
-   * page. May return a page that contains fewer bytes than requested,
-   * so callers should verify the size of returned pages.
+   * Returns `null` if there was not enough memory to allocate the page. May return a page that
+   * contains fewer bytes than requested, so callers should verify the size of returned pages.
    *
    * @throws TooLargePageException
    */
   public MemoryBlock allocatePage(long size, MemoryConsumer consumer) {
-    long startTime = System.currentTimeMillis();
     assert(consumer != null);
     assert(consumer.getMode() == tungstenMemoryMode);
     if (size > MAXIMUM_PAGE_SIZE_BYTES) {
@@ -312,25 +297,23 @@ public class TaskMemoryManager {
     }
     MemoryBlock page = null;
     try {
-        page = memoryManager.tungstenMemoryAllocator().allocate(acquired);
+      page = memoryManager.tungstenMemoryAllocator().allocate(acquired);
     } catch (OutOfMemoryError e) {
-        logger.warn("Failed to allocate a page ({} bytes), try again.", acquired);
-        // there is no enough memory actually, it means the actual
-        // free memory is smaller than MemoryManager thought, we
-        // should keep the acquired memory.
-        synchronized (this) {
-            acquiredButNotUsed += acquired;
-            allocatedPages.clear(pageNumber);
-        }
-        // this could trigger spilling to free some pages.
-        return allocatePage(size, consumer);
+      logger.warn("Failed to allocate a page ({} bytes), try again.", acquired);
+      // there is no enough memory actually, it means the actual free memory is smaller than
+      // MemoryManager thought, we should keep the acquired memory.
+      synchronized (this) {
+        acquiredButNotUsed += acquired;
+        allocatedPages.clear(pageNumber);
+      }
+      // this could trigger spilling to free some pages.
+      return allocatePage(size, consumer);
     }
     page.pageNumber = pageNumber;
     pageTable[pageNumber] = page;
     if (logger.isTraceEnabled()) {
-        logger.trace("Allocate page number {} ({} bytes)", pageNumber, acquired);
+      logger.trace("Allocate page number {} ({} bytes)", pageNumber, acquired);
     }
-    long stopTime = System.currentTimeMillis();
     return page;
   }
 
@@ -338,7 +321,6 @@ public class TaskMemoryManager {
    * Free a block of memory allocated via {@link TaskMemoryManager#allocatePage}.
    */
   public void freePage(MemoryBlock page, MemoryConsumer consumer) {
-    long startTime = System.currentTimeMillis();
     assert (page.pageNumber != MemoryBlock.NO_PAGE_NUMBER) :
       "Called freePage() on memory that wasn't allocated with allocatePage()";
     assert (page.pageNumber != MemoryBlock.FREED_IN_ALLOCATOR_PAGE_NUMBER) :
@@ -360,7 +342,6 @@ public class TaskMemoryManager {
     page.pageNumber = MemoryBlock.FREED_IN_TMM_PAGE_NUMBER;
     memoryManager.tungstenMemoryAllocator().free(page);
     releaseExecutionMemory(pageSize, consumer);
-    long stopTime = System.currentTimeMillis();
   }
 
   /**

@@ -24,10 +24,10 @@ NUM_OF_EXECUTORS=$2
 processId=""
 numOfExecutors=0
 
-while [ ${numOfExecutors} -lt ${NUM_OF_EXECUTORS} ] 
+while [ ${numOfExecutors} -lt "${NUM_OF_EXECUTORS}" ] 
 do
     # Calculate number of executors running
-    numOfExecutors=$(jps |grep "CoarseGrainedExecutorBackend" |wc -l)
+    numOfExecutors=$(jps |grep -c "CoarseGrainedExecutorBackend")
 done
 
 # Executors
@@ -37,7 +37,7 @@ processId=$(jps |\
 
 for execId in ${processId}
 do
-	perf stat -o ${OUTPUT} -e cache-references,cache-misses,page-faults,major-faults,minor-faults,dTLB-load-misses,dTLB-store-misses -p ${execId} &
+	perf stat -o "${OUTPUT}" -e cache-references,cache-misses,page-faults,major-faults,minor-faults,dTLB-load-misses,dTLB-store-misses -p ${execId} &
 
 	#perf stat -o ${OUTPUT} -e cache-references,cache-misses \
 	#	-e dTLB-load-misses,dTLB-store-misses \

@@ -1,0 +1,10 @@
+# for prepare #600M example=40G
+############## 128GB #######################
+NUM_OF_EXAMPLES=10000
+NUM_OF_FEATURES=700000
+NUM_OF_PARTITIONS=256
+
+# for running
+MAX_ITERATION=100
+
+SPARK_STORAGE_MEMORYFRACTION=0.5    #0.79

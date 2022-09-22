@@ -44,25 +44,25 @@ usage() {
     exit 1
 }
 
-destroy_tc() {
-	if [ $1 ]
+destroy_th() {
+	if [ "$1" ]
 	then
-		sudo umount /mnt/spark
+		sudo umount "${MNT_SHFL}"
 		# Check if the command executed succesfully
 		retValue=$?
 		message="Unmount ${DEVICES[1]}" 
 		check ${retValue} "${message}"
 
-		rm -rf /mnt/fmap/file.txt
+		rm -rf "${MNT_FMAP}"/file.txt
 		# Check if the command executed succesfully
 		retValue=$?
-		message="Remove TeraCache file" 
+		message="Remove TeraHeap H2 backed-file" 
 		check ${retValue} "${message}"
 	else
-		rm -rf /mnt/spark/file.txt
+		rm -rf "${MNT_SHFL}"/file.txt
 		# Check if the command executed succesfully
 		retValue=$?
-		message="Remove TeraCache file" 
+		message="Remove TeraHeap H2 backed-file" 
 		check ${retValue} "${message}"
 		
 		sudo umount /mnt/spark
@@ -71,11 +71,10 @@ destroy_tc() {
 		message="Unmount ${DEVICES[0]}" 
 		check ${retValue} "${message}"
 	fi
-
 }
 
 destroy_ser() {
-	sudo umount /mnt/spark
+	sudo umount "${MNT_SHFL}"
 	# Check if the command executed succesfully
 	retValue=$?
 	message="Unmount $DEVICE_SHFL" 
@@ -87,13 +86,13 @@ while getopts ":s:d:tfuh" opt
 do
     case "${opt}" in
 		t)
-			TC=true
+			TH=true
 			;;
 		f)
 			FASTMAP=true
 			;;
 		s)
-			TC_FILE_SZ=${OPTARG}
+			TH_FILE_SZ=${OPTARG}
 			;;
 		d)
 			DEVICE_SHFL=${OPTARG}
@@ -101,21 +100,21 @@ do
 		u)
 			DESTROY=true
 			;;
-        h)
-            usage
-            ;;
-        *)
-            usage
-            ;;
-    esac
+    h)
+      usage
+      ;;
+    *)
+      usage
+      ;;
+  esac
 done
 
 # Unmount TeraCache device
 if [ $DESTROY ]
 then
-	if [ $TC ]
+	if [ $TH ]
 	then
-		destroy_tc $FASTMAP
+		destroy_th $FASTMAP
 	else
 		destroy_ser
 	fi
@@ -130,7 +129,7 @@ then
 fi
 
 # Setup TeraCache device
-if [ $TC ]
+if [ $TH ]
 then
 	if [ $FASTMAP ]
 	then
@@ -161,9 +160,9 @@ then
 		# if the file does not exist then create it
 		if [ ! -f file.txt ]
 		then
-			fallocate -l ${TC_FILE_SZ}G file.txt
+			fallocate -l ${TH_FILE_SZ}G file.txt
 			retValue=$?
-			message="Create ${TC_FILE_SZ}G file for TeraCache" 
+			message="Create ${TH_FILE_SZ}G file for TeraCache" 
 			check ${retValue} "${message}"
 		fi
 		cd -
@@ -188,22 +187,22 @@ then
 		# if the file does not exist then create it
 		if [ ! -f file.txt ]
 		then
-			fallocate -l ${TC_FILE_SZ}G file.txt
+			fallocate -l ${TH_FILE_SZ}G file.txt
 			# Check if the command executed succesfully
 			retValue=$?
-			message="Create ${TC_FILE_SZ}G file for TeraCache" 
+			message="Create ${TH_FILE_SZ}G file for TeraCache" 
 			check ${retValue} "${message}"
 		else
 			rm file.txt
 			# Check if the command executed succesfully
 			retValue=$?
-			message="Remove ${TC_FILE_SZ}G file" 
+			message="Remove ${TH_FILE_SZ}G file" 
 			check ${retValue} "${message}"
 			
-			fallocate -l ${TC_FILE_SZ}G file.txt
+			fallocate -l ${TH_FILE_SZ}G file.txt
 			# Check if the command executed succesfully
 			retValue=$?
-			message="Create ${TC_FILE_SZ}G file for TeraCache" 
+			message="Create ${TH_FILE_SZ}G file for TeraCache" 
 			check ${retValue} "${message}"
 		fi
 		cd -

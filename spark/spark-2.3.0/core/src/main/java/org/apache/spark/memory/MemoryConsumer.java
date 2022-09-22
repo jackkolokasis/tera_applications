@@ -35,9 +35,6 @@ public abstract class MemoryConsumer {
   protected long used;
 
   protected MemoryConsumer(TaskMemoryManager taskMemoryManager, long pageSize, MemoryMode mode) {
-    // System.out.println("MemoryConsumer::MemoryConsumer()");
-    // System.out.println("MemoryConsumer::MemoryConsumer()::mode=" + mode);
-    // System.out.println("MemoryConsumer::MemoryConsumer()::size=" + pageSize);
     this.taskMemoryManager = taskMemoryManager;
     this.pageSize = pageSize;
     this.mode = mode;
@@ -45,14 +42,12 @@ public abstract class MemoryConsumer {
 
   protected MemoryConsumer(TaskMemoryManager taskMemoryManager) {
     this(taskMemoryManager, taskMemoryManager.pageSizeBytes(), MemoryMode.ON_HEAP);
-    // System.out.println("MemoryConsumer::MemoryConsumer(OnHeap)");
   }
 
   /**
    * Returns the memory mode, {@link MemoryMode#ON_HEAP} or {@link MemoryMode#OFF_HEAP}.
    */
   public MemoryMode getMode() {
-    // System.out.println("MemoryConsumer::getMode");
     return mode;
   }
 
@@ -60,8 +55,6 @@ public abstract class MemoryConsumer {
    * Returns the size of used memory in bytes.
    */
   protected long getUsed() {
-    // System.out.println("MemoryConsumer::getUsed");
-    // System.out.println("MemoryConsumer::used=" + used);
     return used;
   }
 
@@ -69,7 +62,6 @@ public abstract class MemoryConsumer {
    * Force spill during building.
    */
   public void spill() throws IOException {
-    // System.out.println("MemoryConsumer::spill");
     spill(Long.MAX_VALUE, this);
   }
 
@@ -100,7 +92,6 @@ public abstract class MemoryConsumer {
    * @throws TooLargePageException
    */
   public LongArray allocateArray(long size) {
-    // System.out.println("MemoryConsumer::allocateArray");
     long required = size * 8L;
     MemoryBlock page = taskMemoryManager.allocatePage(required, this);
     if (page == null || page.size() < required) {
@@ -114,7 +105,6 @@ public abstract class MemoryConsumer {
    * Frees a LongArray.
    */
   public void freeArray(LongArray array) {
-    // System.out.println("MemoryConsumer::freeArray");
     freePage(array.memoryBlock());
   }
 
@@ -124,7 +114,6 @@ public abstract class MemoryConsumer {
    * @throws OutOfMemoryError
    */
   protected MemoryBlock allocatePage(long required) {
-    // System.out.println("MemoryConsumer::allocatePage");
     MemoryBlock page = taskMemoryManager.allocatePage(Math.max(pageSize, required), this);
     if (page == null || page.size() < required) {
       throwOom(page, required);
@@ -137,7 +126,6 @@ public abstract class MemoryConsumer {
    * Free a memory block.
    */
   protected void freePage(MemoryBlock page) {
-    // System.out.println("MemoryConsumer::freePage");
     used -= page.size();
     taskMemoryManager.freePage(page, this);
   }
@@ -146,7 +134,6 @@ public abstract class MemoryConsumer {
    * Allocates memory of `size`.
    */
   public long acquireMemory(long size) {
-    // System.out.println("MemoryConsumer::acquireMemory");
     long granted = taskMemoryManager.acquireExecutionMemory(size, this);
     used += granted;
     return granted;
@@ -156,13 +143,11 @@ public abstract class MemoryConsumer {
    * Release N bytes of memory.
    */
   public void freeMemory(long size) {
-    // System.out.println("MemoryConsumer::freeMemory");
     taskMemoryManager.releaseExecutionMemory(size, this);
     used -= size;
   }
 
   private void throwOom(final MemoryBlock page, final long required) {
-    // System.out.println("MemoryConsumer::throwOom");
     long got = 0;
     if (page != null) {
       got = page.size();

@@ -26,10 +26,10 @@ JIT=$3
 processId=""
 numOfExecutors=0
 
-while [ ${numOfExecutors} -lt ${NUM_OF_EXECUTORS} ] 
+while [ ${numOfExecutors} -lt "${NUM_OF_EXECUTORS}" ] 
 do
     # Calculate number of executors running
-    numOfExecutors=$(jps |grep "CoarseGrainedExecutorBackend" |wc -l)
+    numOfExecutors=$(jps |grep -c "CoarseGrainedExecutorBackend")
 done
 
 # Executors
@@ -46,8 +46,8 @@ do
 
 	if [ $JIT -eq 1 ]
 	then
-		jstat -printcompilation ${execId} 1000 > ${OUTPUT}/jit_method.txt &
-		jstat -compiler ${execId} 1000 > ${OUTPUT}/jit.txt &
+		jstat -printcompilation ${execId} 1000 > "${OUTPUT}"/jit_method.txt &
+		jstat -compiler ${execId} 1000 > "${OUTPUT}"/jit.txt &
 	fi
     i=$((i + 1))
 

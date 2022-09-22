@@ -2,18 +2,10 @@
 # Global settings - Configurations
 
 # Spark Master
-master="sith4-fast"
+master="sith8-fast"
 
 # A list of machines where the spark cluster is running
 MC_LIST="sith4-fast"
-
-# Uncomment this line for sith1
-#[ -z "$HADOOP_HOME" ] && export HADOOP_HOME="/opt/spark/hadoop-2.6.4"
-# base dir for DataSet
-#HDFS_URL="hdfs://sith0-hadoop:9000"
-#SPARK_HADOOP_FS_LOCAL_BLOCK_SIZE=536870912
-
-# DATA_HDFS="hdfs://${master}:9000/SparkBench", "file:///home/`whoami`/SparkBench"
 
 # Use these inputs for fileio
 DATA_HDFS="file:///mnt/datasets/SparkBench"

@@ -20,9 +20,6 @@ package org.apache.spark.executor
 import java.io.{File, NotSerializableException}
 import java.lang.Thread.UncaughtExceptionHandler
 import java.lang.management.ManagementFactory
-import java.lang.management.GarbageCollectorMXBean;
-
-import java.lang.management.MemoryUsage;
 import java.net.{URI, URL}
 import java.nio.ByteBuffer
 import java.util.Properties
@@ -177,7 +174,7 @@ private[spark] class Executor(
   def launchTask(context: ExecutorBackend, taskDescription: TaskDescription): Unit = {
     val tr = new TaskRunner(context, taskDescription)
     runningTasks.put(taskDescription.taskId, tr)
-    threadPool.execute(tr) // Start running in the executor
+    threadPool.execute(tr)
   }
 
   def killTask(taskId: Long, interruptThread: Boolean, reason: String): Unit = {
@@ -280,30 +277,20 @@ private[spark] class Executor(
      */
     private def setTaskFinishedAndClearInterruptStatus(): Unit = synchronized {
       this.finished = true
-      // SPARK-14234 - Reset the interrupted status of the thread to
-      // avoid the ClosedByInterruptException during
-      // execBackend.statusUpdate which causes Executor to crash
+      // SPARK-14234 - Reset the interrupted status of the thread to avoid the
+      // ClosedByInterruptException during execBackend.statusUpdate which causes
+      // Executor to crash
       Thread.interrupted()
-      // Notify any waiting TaskReapers. Generally there will only be
-      // one reaper per task but there is a rare corner-case where one
-      // task can have two reapers in case cancel(interrupt=False) is
-      // followed by cancel(interrupt=True). Thus we use notifyAll()
-      // to avoid a lost wakeup:
+      // Notify any waiting TaskReapers. Generally there will only be one reaper per task but there
+      // is a rare corner-case where one task can have two reapers in case cancel(interrupt=False)
+      // is followed by cancel(interrupt=True). Thus we use notifyAll() to avoid a lost wakeup:
       notifyAll()
     }
 
     override def run(): Unit = {
-      ////////////////////////////////////////////////////////////////////////////////////////
-      // jk: Enable GC
-      // ManagementFactory.getMemoryMXBean().gc()
-      // Get Heap heap usage when task start to run
-      // var startHeap: Long = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage.getUsed().toLong
-      ////////////////////////////////////////////////////////////////////////////////////////
-
       threadId = Thread.currentThread.getId
       Thread.currentThread.setName(threadName)
       val threadMXBean = ManagementFactory.getThreadMXBean
-      // JK: Get the task memory manager
       val taskMemoryManager = new TaskMemoryManager(env.memoryManager, taskId)
       val deserializeStartTime = System.currentTimeMillis()
       val deserializeStartCpuTime = if (threadMXBean.isCurrentThreadCpuTimeSupported) {
@@ -323,8 +310,6 @@ private[spark] class Executor(
         Executor.taskDeserializationProps.set(taskDescription.properties)
 
         updateDependencies(taskDescription.addedFiles, taskDescription.addedJars)
-        // Return an object type Task
-        // Task.scala
         task = ser.deserialize[Task[Any]](
           taskDescription.serializedTask, Thread.currentThread.getContextClassLoader)
         task.localProperties = taskDescription.properties
@@ -355,20 +340,6 @@ private[spark] class Executor(
         taskStartCpu = if (threadMXBean.isCurrentThreadCpuTimeSupported) {
           threadMXBean.getCurrentThreadCpuTime
         } else 0L
-        
-        //var memHeapUsage: MemoryUsage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage()
-        //println("Memory Before Trigger GC Usage (TID " + taskId  + ") = " +  memHeapUsage.getUsed().toLong)
-        //ManagementFactory.getMemoryMXBean().gc()
-        //memHeapUsage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage()
-        //println("Memory After Trigger GC Usage (TID " + taskId  + ") = " +  memHeapUsage.getUsed().toLong)
-
-        //////////////////////////////////////////////////////////////////////////////////////////
-
-        //memHeapUsage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage()
-        //var startHeap: Long = memHeapUsage.getUsed().toLong
-
-        //////////////////////////////////////////////////////////////////////////////////////////
-
         var threwException = true
         val value = try {
           val res = task.run(
@@ -409,23 +380,7 @@ private[spark] class Executor(
             s"unrecoverable fetch failures!  Most likely this means user code is incorrectly " +
             s"swallowing Spark's internal ${classOf[FetchFailedException]}", fetchFailure)
         }
-
-        //////////////////////////////////////////////////////////////////////////////////////////
-
-        //memHeapUsage  = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage()
-        //var stopHeap: Long = memHeapUsage.getUsed().toLong
-
-        //////////////////////////////////////////////////////////////////////////////////////////
-
-        //println("Start Heap Usage (TID " + taskId  + ") = " + startHeap)
-        //println("Stop Usage (TID " + taskId  + ") = " + stopHeap )
-        //println("Heap Usage (TID " + taskId  + ") = " + (stopHeap - startHeap))
-
-        //////////////////////////////////////////////////////////////////////////////////////////
-
         val taskFinish = System.currentTimeMillis()
-
-        // JK: Take the memory utilization at the end of each task
         val taskFinishCpu = if (threadMXBean.isCurrentThreadCpuTimeSupported) {
           threadMXBean.getCurrentThreadCpuTime
         } else 0L
@@ -498,16 +453,6 @@ private[spark] class Executor(
         val directResult = new DirectTaskResult(valueBytes, accumUpdates)
         val serializedDirectResult = ser.serialize(directResult)
         val resultSize = serializedDirectResult.limit()
-
-        //////////////////////////////////////////////////////////////////////////////////////////
-
-        // var stopHeap: Long = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed().toLong
-
-        // println("Start Heap Usage (TID " + taskId  + ") = " + startHeap)
-        // println("Stop Usage (TID " + taskId  + ") = " + stopHeap )
-        // println("Heap Usage (TID " + taskId  + ") = " + (stopHeap - startHeap))
-
-        //////////////////////////////////////////////////////////////////////////////////////////
 
         // directSend = sending directly back to the driver
         val serializedResult: ByteBuffer = {

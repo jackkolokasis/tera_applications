@@ -75,22 +75,12 @@ private[spark] class ShuffleMapTask(
   }
 
   override def runTask(context: TaskContext): MapStatus = {
-    ////////////////////////////////////////////////////////////////////////////////////////
-
-    // jk: Enable GC
-    // ManagementFactory.getMemoryMXBean().gc()
-    // Get Heap heap usage when task start to run
-    // var startHeap: Long = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage.getUsed().toLong
-
-    ////////////////////////////////////////////////////////////////////////////////////////
-
     // Deserialize the RDD using the broadcast variable.
     val threadMXBean = ManagementFactory.getThreadMXBean
     val deserializeStartTime = System.currentTimeMillis()
     val deserializeStartCpuTime = if (threadMXBean.isCurrentThreadCpuTimeSupported) {
       threadMXBean.getCurrentThreadCpuTime
     } else 0L
-    // Deserialize the broadcast variable task Binary to get the RDD
     val ser = SparkEnv.get.closureSerializer.newInstance()
     val (rdd, dep) = ser.deserialize[(RDD[_], ShuffleDependency[_, _, _])](
       ByteBuffer.wrap(taskBinary.value), Thread.currentThread.getContextClassLoader)
@@ -101,28 +91,10 @@ private[spark] class ShuffleMapTask(
 
     var writer: ShuffleWriter[Any, Any] = null
     try {
-      // Get shuffle manager
       val manager = SparkEnv.get.shuffleManager
-      // Get shuffle writer
       writer = manager.getWriter[Any, Any](dep.shuffleHandle, partitionId, context)
-      // First call rdd.iterator, if the RDD has been cached or
-      // checkpointed, then read directly
-      // Result, otherwise the result of the calculation will start to
-      // call Shuffle Writer to write to the local file system
       writer.write(rdd.iterator(partition, context).asInstanceOf[Iterator[_ <: Product2[Any, Any]]])
-      // Returns the metadata information of the data, including
-      // location and size
-      val tmp = writer.stop(success = true).get
-
-      
-      //////////////////////////////////////////////////////////////////////////////////////////
-
-      // println("Heap UsageSM ( JOBID = " + jobId + " SID = " + stageId + " ) = " + (ManagementFactory.getMemoryMXBean()
-      //      .getHeapMemoryUsage().getUsed().toLong - startHeap))
-      //////////////////////////////////////////////////////////////////////////////////////////
-
-      tmp
-
+      writer.stop(success = true).get
     } catch {
       case e: Exception =>
         try {

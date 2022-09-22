@@ -22,9 +22,8 @@ import java.io.Serializable;
 import org.apache.spark.annotation.InterfaceStability;
 
 /**
- * Used for per-partition offsets in continuous processing.
- * ContinuousReader implementations will provide a method to merge
- * these into a global Offset.
+ * Used for per-partition offsets in continuous processing. ContinuousReader implementations will
+ * provide a method to merge these into a global Offset.
  *
  * These offsets must be serializable.
  */

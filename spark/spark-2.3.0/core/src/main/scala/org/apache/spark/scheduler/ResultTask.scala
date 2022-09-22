@@ -69,17 +69,7 @@ private[spark] class ResultTask[T, U](
     if (locs == null) Nil else locs.toSet.toSeq
   }
 
-  // The ResultTask will directly produce the result of the
-  // operation
   override def runTask(context: TaskContext): U = {
-
-    ////////////////////////////////////////////////////////////////////////////////////////
-    // jk: Enable GC
-    // ManagementFactory.getMemoryMXBean().gc()
-    // Get Heap heap usage when task start to run
-    // var startHeap: Long = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage.getUsed().toLong
-    ////////////////////////////////////////////////////////////////////////////////////////
-
     // Deserialize the RDD and the func using the broadcast variables.
     val threadMXBean = ManagementFactory.getThreadMXBean
     val deserializeStartTime = System.currentTimeMillis()
@@ -87,8 +77,6 @@ private[spark] class ResultTask[T, U](
       threadMXBean.getCurrentThreadCpuTime
     } else 0L
     val ser = SparkEnv.get.closureSerializer.newInstance()
-    
-    // Deserialization
     val (rdd, func) = ser.deserialize[(RDD[T], (TaskContext, Iterator[T]) => U)](
       ByteBuffer.wrap(taskBinary.value), Thread.currentThread.getContextClassLoader)
     _executorDeserializeTime = System.currentTimeMillis() - deserializeStartTime
@@ -96,17 +84,7 @@ private[spark] class ResultTask[T, U](
       threadMXBean.getCurrentThreadCpuTime - deserializeStartCpuTime
     } else 0L
 
-    // Execute the logic code, we wrote
-    val tmp = func(context, rdd.iterator(partition, context))
-    
-    ////////////////////////////////////////////////////////////////////////////////////////
-    // jk: Enable GC
-    // Get Heap heap usage when task ends   
-    // var stopHeap: Long = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage.getUsed().toLong
-    // println("Heap UsageRT ( JOBID = " + jobId + " SID = " + stageId + " ) = " +  (stopHeap - startHeap))
-    ////////////////////////////////////////////////////////////////////////////////////////
-
-    tmp
+    func(context, rdd.iterator(partition, context))
   }
 
   // This is only callable on the driver side.

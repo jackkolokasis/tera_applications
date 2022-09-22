@@ -36,8 +36,7 @@ class BlockManagerMaster(
 
   val timeout = RpcUtils.askRpcTimeout(conf)
 
-  /** Remove a dead executor from the driver endpoint. This is only
-   *  called on the driver side. */
+  /** Remove a dead executor from the driver endpoint. This is only called on the driver side. */
   def removeExecutor(execId: String) {
     tell(RemoveExecutor(execId))
     logInfo("Removed " + execId + " successfully in removeExecutor")
@@ -52,28 +51,18 @@ class BlockManagerMaster(
   }
 
   /**
-   * Register the BlockManager's id with the driver. The input
-   * BlockManagerId does not contain topology information. This
-   * information is obtained from the master and we respond with an
+   * Register the BlockManager's id with the driver. The input BlockManagerId does not contain
+   * topology information. This information is obtained from the master and we respond with an
    * updated BlockManagerId fleshed out with this information.
-   *
-   * The message body with BlockManagerSlaveEndpoint is to receive the message that
-   * BlockManagerMasterEndpoint replies. These messages are encapsulated in the RegisterBlockManager
-   * and sent out via the tell method.
-   * The RegisterBlockManger message will be matched by the receiveAndReply method of
-   * BlockManagerMasterEndpoint and the register method will be registered to register the
-   * BlockManager.
    */
   def registerBlockManager(
       blockManagerId: BlockManagerId,
       maxOnHeapMemSize: Long,
       maxOffHeapMemSize: Long,
-      maxPmemOffHeapMemSize: Long,
       slaveEndpoint: RpcEndpointRef): BlockManagerId = {
     logInfo(s"Registering BlockManager $blockManagerId")
     val updatedId = driverEndpoint.askSync[BlockManagerId](
-      RegisterBlockManager(blockManagerId, maxOnHeapMemSize, maxOffHeapMemSize,
-        maxPmemOffHeapMemSize, slaveEndpoint))
+      RegisterBlockManager(blockManagerId, maxOnHeapMemSize, maxOffHeapMemSize, slaveEndpoint))
     logInfo(s"Registered BlockManager $updatedId")
     updatedId
   }
@@ -108,9 +97,8 @@ class BlockManagerMaster(
   }
 
   /**
-   * Check if block manager master has a block. Note that this can be
-   * used to check for only those blocks that are reported to block
-   * manager master.
+   * Check if block manager master has a block. Note that this can be used to check for only
+   * those blocks that are reported to block manager master.
    */
   def contains(blockId: BlockId): Boolean = {
     !getLocations(blockId).isEmpty
@@ -186,10 +174,9 @@ class BlockManagerMaster(
    * Return the block's status on all block managers, if any. NOTE: This is a
    * potentially expensive operation and should only be used for testing.
    *
-   * If askSlaves is true, this invokes the master to query each block
-   * manager for the most updated block statuses. This is useful when
-   * the master is not informed of the given block by all block
-   * managers.
+   * If askSlaves is true, this invokes the master to query each block manager for the most
+   * updated block statuses. This is useful when the master is not informed of the given block
+   * by all block managers.
    */
   def getBlockStatus(
       blockId: BlockId,

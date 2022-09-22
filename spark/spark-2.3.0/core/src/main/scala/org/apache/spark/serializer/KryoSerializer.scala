@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-// scalastyle:off println
-
 package org.apache.spark.serializer
 
 import java.io._
@@ -240,9 +238,7 @@ class KryoSerializationStream(
   private[this] var kryo: Kryo = serInstance.borrowKryo()
 
   override def writeObject[T: ClassTag](t: T): SerializationStream = {
-    // Serialize the java object and write it to output
-    var res = kryo.writeClassAndObject(output, t)
-    res
+    kryo.writeClassAndObject(output, t)
     this
   }
 
@@ -269,12 +265,9 @@ class KryoSerializationStream(
 private[spark]
 class KryoDeserializationStream(
     serInstance: KryoSerializerInstance,
-    // Represent an input stream of bytes
     inStream: InputStream,
     useUnsafe: Boolean) extends DeserializationStream {
 
-  // Create an new Input for reading from an InputStream with the
-  // specified buffer size
   private[this] var input: KryoInput =
     if (useUnsafe) new KryoUnsafeInput(inStream) else new KryoInput(inStream)
 
@@ -282,8 +275,7 @@ class KryoDeserializationStream(
 
   override def readObject[T: ClassTag](): T = {
     try {
-      val res = kryo.readClassAndObject(input).asInstanceOf[T]
-      res
+      kryo.readClassAndObject(input).asInstanceOf[T]
     } catch {
       // DeserializationStream uses the EOF exception to indicate stopping condition.
       case e: KryoException
@@ -553,5 +545,3 @@ private object JavaIterableWrapperSerializer extends Logging {
     }
   }
 }
-
-// scalastyle:off println

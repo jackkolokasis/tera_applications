@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// scalastyle:off println
+
 package org.apache.spark
 
 import java.io._
@@ -75,11 +75,8 @@ class SparkContext(config: SparkConf) extends Logging {
   private val creationSite: CallSite = Utils.getCallSite()
 
   // If true, log warnings instead of throwing exceptions when multiple SparkContexts are active
-  // Only one context use the spark.
-  private val allowMultipleContexts: Boolean = {
-    // println("SparkContext.scala::allowMultipleContexts")
+  private val allowMultipleContexts: Boolean =
     config.getBoolean("spark.driver.allowMultipleContexts", false)
-  }
 
   // In order to prevent multiple SparkContexts from being active at the same time, mark this
   // context as having started construction.
@@ -88,11 +85,9 @@ class SparkContext(config: SparkConf) extends Logging {
 
   val startTime = System.currentTimeMillis()
 
-
   private[spark] val stopped: AtomicBoolean = new AtomicBoolean(false)
 
   private[spark] def assertNotStopped(): Unit = {
-    // println("SparkContext.scala::assertNotStopped")
     if (stopped.get()) {
       val activeContext = SparkContext.activeContext.get()
       val activeCreationSite =
@@ -269,7 +264,6 @@ class SparkContext(config: SparkConf) extends Logging {
 
   // Keeps track of all persisted RDDs
   private[spark] val persistentRdds = {
-    // println("SparkContext::persistentRdds")
     val map: ConcurrentMap[Int, RDD[_]] = new MapMaker().weakValues().makeMap[Int, RDD[_]]()
     map.asScala
   }
@@ -366,7 +360,6 @@ class SparkContext(config: SparkConf) extends Logging {
   }
 
   try {
-    // println("SparkContext::try scope")
     _conf = config.clone()
     _conf.validateSettings()
 
@@ -2917,4 +2910,3 @@ object WritableFactory {
     simpleWritableFactory(w => w)
 
 }
-// scalastyle:on println

@@ -368,16 +368,13 @@ public final class UnsafeExternalSorter extends MemoryConsumer {
   }
 
   /**
-   * Allocates more memory in order to insert an additional record.
-   * This will request additional memory from the memory manager and
-   * spill if the requested memory can not be obtained.
+   * Allocates more memory in order to insert an additional record. This will request additional
+   * memory from the memory manager and spill if the requested memory can not be obtained.
    *
-   * @param required the required space in the data page, in bytes,
-   *                 including space for storing the record size. This
-   *                 must be less than or equal to the page size
-   *                 (records that exceed the page size are handled
-   *                 via a different code path which uses special
-   *                 overflow pages).
+   * @param required the required space in the data page, in bytes, including space for storing
+   *                      the record size. This must be less than or equal to the page size (records
+   *                      that exceed the page size are handled via a different code path which uses
+   *                      special overflow pages).
    */
   private void acquireNewPageIfNecessary(int required) {
     if (currentPage == null ||
