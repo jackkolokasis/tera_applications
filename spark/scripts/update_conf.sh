@@ -69,15 +69,16 @@ update_spark_bench() {
 	sed -i '/master="[a-z0-9-]*"/c\master='"\"${SPARK_MASTER}\"" env.sh
 	sed -i '/MC_LIST/c\MC_LIST='"\"${SPARK_SLAVE}\"" env.sh
 	sed -i '/DATA_HDFS=\"[a-z]*\:/c\DATA_HDFS='"${DATA_HDFS}" env.sh
-  sed -i 's/export SPARK_HOME=[\/a-zA-Z-0-9.]*/export SPARK_HOME='"${SPARK_DIR}" env.sh
+  sed -i "s|export SPARK_HOME=.*$|export SPARK_HOME=${SPARK_DIR}|g" env.sh
 	sed -i '/SPARK_EXECUTOR_MEMORY/c\SPARK_EXECUTOR_MEMORY='"${H1_SIZE}"'g' env.sh
 	sed -i '/SPARK_EXECUTOR_CORES/c\SPARK_EXECUTOR_CORES='"${EXEC_CORES}" env.sh
 	sed -i '/SPARK_EXECUTOR_INSTANCES/c\SPARK_EXECUTOR_INSTANCES='"${NUM_EXECUTORS}" env.sh
 	sed -i '/STORAGE_LEVEL/c\STORAGE_LEVEL='"${S_LEVEL}" env.sh
+	sed -i '/NUM_OF_PARTITIONS/c\NUM_OF_PARTITIONS='"${NUM_OF_PARTITIONS}" env.sh
 }
 
 # Check for the input arguments
-while getopts ":bh" opt
+while getopts ":b:h" opt
 do
     case "${opt}" in
         b)
@@ -114,6 +115,14 @@ then
 
   cp "./configs/workloads/${DATA_SIZE}/${BENCHMARKS}/env.sh" \
     "${SPARK_BENCH_DIR}/${BENCHMARKS}/conf"
+
+  # Some workloads have the partition parameter in their configuration
+  # file. So we need to set this parameter.
+  cd "${SPARK_BENCH_DIR}/${BENCHMARKS}/conf" || exit
+
+  sed -i "s/NUM_OF_PARTITIONS=[0-9]*/NUM_OF_PARTITIONS=${NUM_OF_PARTITIONS}/g" env.sh
+
+  cd - > /dev/null || exit
 fi
 
 if [ "${RAMDISK}" -ne 0 ]

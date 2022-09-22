@@ -13,6 +13,10 @@
 ###################################################
 
 . ./conf.sh
+
+#### Global Variables ####
+CUSTOM_BENCHMARK=false
+
 # Print error/usage script message
 usage() {
   echo
@@ -33,6 +37,22 @@ usage() {
   echo
 
   exit 1
+}
+
+##
+# Description:
+#   Create a cgroup
+setup_cgroup() {
+	# Change user/group IDs to your own
+	sudo cgcreate -a kolokasis:carvsudo -t kolokasis:carvsudo -g memory:memlim
+	cgset -r memory.limit_in_bytes="$MEM_BUDGET" memlim
+}
+
+##
+# Description:
+#   Delete a cgroup
+delete_cgroup() {
+	sudo cgdelete memory:memlim
 }
 
 ##
@@ -185,7 +205,7 @@ gen_config_files() {
     cp ./configs/teraheap/spark-defaults.conf "${SPARK_DIR}"/conf
   fi
 }
-CUSTOM_BENCHMARK=false
+
 
 # Check for the input arguments
 while getopts ":n:o:ktspjfbh" opt
@@ -253,7 +273,7 @@ do
   for ((i=0; i<ITER; i++))
   do
     mkdir -p "${OUT}/${benchmark}/run${i}"
-
+      
     # For every configuration
     for ((j=0; j<TOTAL_CONFS; j++))
     do
@@ -265,12 +285,10 @@ do
       # Set configuration
       if [ $SERDES ]
       then
-        ./update_conf.sh -i "$j" -b "${CUSTOM_BENCHMARK}"
+        ./update_conf.sh -b "${CUSTOM_BENCHMARK}"
       else
-        ./update_conf_tc.sh -i "$j" -b "${CUSTOM_BENCHMARK}"
+        ./update_conf_th.sh -b "${CUSTOM_BENCHMARK}"
       fi
-
-      exit
 
       start_spark
 
@@ -311,16 +329,15 @@ do
 
       if [ $CUSTOM_BENCHMARK == "true" ]
       then
-        ### if [ $SERDES ]
-        ### then
-        ###   ./custom_benchmarks.sh "${RUN_DIR}" "${EXEC_CORES[$j]}" "${HEAP[$j]}" "${S_LEVEL[$j]}"
-        ### else
-        ###   ./custom_benchmarks.sh "${RUN_DIR}" "${EXEC_CORES[$j]}" "${TERACACHE[$j]}" "${S_LEVEL[$j]}"
-        ### fi
+        if [ $SERDES ]
+        then
+          ./custom_benchmarks.sh "${RUN_DIR}" "${EXEC_CORES[$j]}" "${HEAP[$j]}" "${S_LEVEL[$j]}"
+        else
+          ./custom_benchmarks.sh "${RUN_DIR}" "${EXEC_CORES[$j]}" "${TERACACHE[$j]}" "${S_LEVEL[$j]}"
+        fi
       else
         # Run benchmark and save output to tmp_out.txt
-        ### Test 
-        ### "${SPARK_BENCH_DIR}"/"${benchmark}"/bin/run.sh > "${RUN_DIR}"/tmp_out.txt 2>&1
+        "${SPARK_BENCH_DIR}"/"${benchmark}"/bin/run.sh > "${RUN_DIR}"/tmp_out.txt 2>&1
       fi
 
       if [[ ${DEV_FMAP} == *pmem* ]]
@@ -361,7 +378,7 @@ do
       if [ $TH ]
       then
           TH_METRICS=$(ls -td "${SPARK_DIR}"/work/* | head -n 1)
-          cp "${TH_METRICS}"/0/teraCache.txt "${RUN_DIR}"/
+          cp "${TH_METRICS}"/0/teraHeap.txt "${RUN_DIR}"/
           ./parse_results.sh -d "${RUN_DIR}" -t
       elif [ $SERDES ]
       then

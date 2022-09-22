@@ -15,15 +15,15 @@
 # Dataset size "small" and "large"
 DATA_SIZE=small
 # JAVA Home
-MY_JAVA_HOME=${HOME}/github/teracache/openjdk-8/openjdk8/build/linux-x86_64-normal-server-release/jdk
+MY_JAVA_HOME=/home1/public/kolokasis/jdk8u/teracache/jdk8u345/build/linux-x86_64-normal-server-release/jdk
 # Directory that contains datasets
 DATA_HDFS="file:///mnt/datasets/SparkBench"
 # Spark Version
-SPARK_VERSION=2.3.0
+SPARK_VERSION=3.3.0
 # Number of partitions
 NUM_OF_PARTITIONS=256
 # Benchmark repo
-BENCH_DIR=${HOME}/tera_applications
+BENCH_DIR=/opt/kolokasis/tera_applications
 # Spark directory
 SPARK_DIR=${BENCH_DIR}/spark/spark-${SPARK_VERSION}
 # Spark master log dir
@@ -49,15 +49,15 @@ CARD_SIZE=$((8 * 1024))
 # Region size for H2
 REGION_SIZE=$((256 * 1024 * 1024))
 # Stripe size for H2
-STRIPE_SIZE=$(( ${REGION_SIZE} / ${CARD_SIZE}))
+STRIPE_SIZE=$(( REGION_SIZE / CARD_SIZE ))
 # TeraCache file size in GB e.g 800 -> 800GB
 H2_FILE_SZ=900
 # Executor cores
 EXEC_CORES=( 16 )
 # SparkBench directory
-SPARK_BENCH_DIR=${BENCH_DIR}/spark/SparkBench
+SPARK_BENCH_DIR=${BENCH_DIR}/spark/spark-bench
 #Benchmark log
-BENCH_LOG=${BENCH_DIR}/spark/log.out
+BENCH_LOG=${BENCH_DIR}/spark/scripts/log.out
 # Heap size for executors '-Xms' is in GB e.g., 54 -> 54GB
 H1_SIZE=( 54 )
 # DRAM shrink 200GB
@@ -73,4 +73,4 @@ BENCHMARKS=( "PageRank" )
 # Number of executors
 NUM_EXECUTORS=( 1 )
 # Total Configurations
-TOTAL_CONFS=${#HEAP[@]}
+TOTAL_CONFS=${#H1_SIZE[@]}
