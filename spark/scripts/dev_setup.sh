@@ -88,9 +88,6 @@ do
 		t)
 			TH=true
 			;;
-		f)
-			FASTMAP=true
-			;;
 		s)
 			TH_FILE_SZ=${OPTARG}
 			;;
@@ -131,42 +128,6 @@ fi
 # Setup TeraCache device
 if [ $TH ]
 then
-	if [ $FASTMAP ]
-	then
-		if ! mountpoint -q /mnt/spark
-		then
-			# Setup disk for shuffle
-			sudo mount /dev/${DEVICE_SHFL} /mnt/spark
-			# Check if the command executed succesfully
-			retValue=$?
-			message="Mount ${DEVICE_SHFL} for shuffle" 
-			check ${retValue} "${message}"
-
-			sudo chown kolokasis /mnt/spark
-			# Check if the command executed succesfully
-			retValue=$?
-			message="Change ownerships /mnt/spark" 
-			check ${retValue} "${message}"
-		fi
-
-		sudo chown kolokasis /mnt/fmap
-		# Check if the command executed succesfully
-		retValue=$?
-		message="Change ownerships /mnt/fmap" 
-		check ${retValue} "${message}"
-
-		cd /mnt/fmap
-
-		# if the file does not exist then create it
-		if [ ! -f file.txt ]
-		then
-			fallocate -l ${TH_FILE_SZ}G file.txt
-			retValue=$?
-			message="Create ${TH_FILE_SZ}G file for TeraCache" 
-			check ${retValue} "${message}"
-		fi
-		cd -
-	else
 		if ! mountpoint -q /mnt/spark
 		then
 			sudo mount /dev/${DEVICE_SHFL} /mnt/spark
@@ -175,14 +136,14 @@ then
 			message="Mount ${DEVICE_SHFL} for shuffle and TeraCache" 
 			check ${retValue} "${message}"
 
-			sudo chown kolokasis /mnt/spark
+      sudo chown "$(whoami)" /mnt/spark
 			# Check if the command executed succesfully
 			retValue=$?
 			message="Change ownerships /mnt/spark" 
 			check ${retValue} "${message}"
 		fi
 
-		cd /mnt/spark
+		cd /mnt/spark || exit
 
 		# if the file does not exist then create it
 		if [ ! -f file.txt ]
