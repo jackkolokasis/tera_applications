@@ -36,6 +36,14 @@ graphs.output-directory =
 platform.neo4j.home =
 ```
 
+3. Edit run.sh and change the user and sudo group in the following
+   line. Replace "kolokasis" with your username and "carvsudo" with
+   sudo group name in your server.
+```sh
+sudo cgcreate -a kolokasis:carvsudo -t kolokasis:carvsudo -g memory:memlim
+
+```
+
 ### Run Benchmarks
 
 Before running benchmarks you have to set the global configuration
