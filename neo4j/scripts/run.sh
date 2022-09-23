@@ -426,8 +426,8 @@ do
 
       fi
 			./serdes.sh "$RUN_DIR"/serdes.txt 1 &
-			# Enable profiler
 
+			# Enable profiler
 			if [ ${PROFILER} ]
 			then
 				./profiler.sh "$RUN_DIR"/profile.svg 1 &
@@ -474,8 +474,6 @@ do
         cp -r "$BENCHMARK_SUITE/report/teraHeap.txt" "${RUN_DIR}/"
       fi
 
-			rm -rf "$BENCHMARK_SUITE"/report/*
-
 			if [ $TH ]
 			then
 				./parse_results.sh -d "$RUN_DIR" -t  >> "$LOG" 2>&1
@@ -497,6 +495,8 @@ do
 			# Calculate Average
 			calculate_avg "${OUT}/${benchmark}/conf${i}" "$ITER"
 		fi
+			
+    rm -rf "$BENCHMARK_SUITE"/report/*
 	done
 
 	ENDTIME=$(date +%s)
