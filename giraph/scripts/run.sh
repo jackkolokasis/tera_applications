@@ -434,6 +434,14 @@ printEndMsg() {
     echo
 }
 
+# Check if you have system_util. If not then download it
+download_system_util() {
+  if [ ! -d "system_util" ]
+  then
+    git clone git@github.com:jackkolokasis/system_util.git >> "${LOG}" 2>&1
+  fi
+}
+
 # Check for the input arguments
 while getopts ":n:o:m:tspkjfh" opt
 do
@@ -484,6 +492,8 @@ OUT="${OUTPUT_PATH}_${TIME}"
 mkdir -p "${OUT}"
 
 enable_perf_event
+
+download_system_util
 
 # Run each benchmark
 for benchmark in "${BENCHMARKS[@]}"
