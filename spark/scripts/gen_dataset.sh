@@ -34,6 +34,8 @@ CUSTOM_BENCHMARK=false
 
 ./update_conf.sh -b ${CUSTOM_BENCHMARK}
 
+cp ./configs/native/spark-defaults.conf "${SPARK_DIR}"/conf
+
 start_spark
 
 # Run benchmark and save output to tmp_out.txt

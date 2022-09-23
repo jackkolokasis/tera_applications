@@ -71,8 +71,8 @@ update_spark_defaults() {
   # Change teraheap (h2) size for Spark
   sed -i '/teraheap.heap.size/c\spark.teraheap.heap.size '"${H1_H2_SIZE}"'g' spark-defaults.conf
   TH_BYTES=$(echo "(${H1_H2_SIZE} - ${H1_SIZE}) * 1024 * 1024 * 1024" | bc)
-  # Change teracache size for JVM
-  sed -i "s/TeraCacheSize=[0-9]*/TeraCacheSize=${TH_BYTES}/g" spark-defaults.conf
+  # Change TeraHeap size for JVM
+  sed -i "s/TeraHeapSize=[0-9]*/TeraHeapSize=${TH_BYTES}/g" spark-defaults.conf
   # Change the spark.memory.fraction
   sed -i '/storageFraction/c\spark.memory.storageFraction '"${MEM_FRACTION}" spark-defaults.conf
 }
