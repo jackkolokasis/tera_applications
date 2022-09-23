@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+./conf.sh
+
 DATE=( "2009-07-30" "2007-04-24" "2011-05-06" \
 	"2011-06-15" \
 	"2010-08-16" \
@@ -100,15 +102,20 @@ DATE=( "2009-07-30" "2007-04-24" "2011-05-06" \
 	"2008-12-23" \
 	"2010-05-20")
 
-for ((i=50000000; i<200000000; i++))
+cd "${DATA_HDFS}"/sql/Input || exit
+
+for ((i=1001; i<200000000; i++))
 do
-	num=$(($RANDOM % 100))
+	num=$(( RANDOM % 100 ))
 	echo "$i|$i|${DATE[$num]}" >> OS_ORDER.txt
 done
 
-for ((i=50000000; i<200000000; i++))
+for ((i=1000; i<200000000; i++))
 do
-	num=$(($RANDOM % 200000000))
+	num=$(( RANDOM % 200000000 ))
 	echo "$i|1.4992498E7|$i|$num|683.22|249969.77" >> ./OS_ORDER_ITEM.txt
 done
 
+cd - > /dev/null || exit
+
+exit

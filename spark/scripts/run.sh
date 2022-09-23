@@ -39,6 +39,33 @@ usage() {
   exit 1
 }
 
+create_ramdisk() {
+  if [ "${RAMDISK}" -ne 0 ]
+  then
+    cp ./ramdisk_create_and_mount.sh /tmp
+
+    cd /tmp || exit
+
+    # Remove the previous ramdisk
+    sudo ./ramdisk_create_and_mount.sh -d >> "${BENCH_LOG}" 2>&1
+
+    # Create the new ramdisk
+    MEM=$(( RAMDISK * 1024 * 1024 ))
+    sudo ./ramdisk_create_and_mount.sh -m ${MEM} -c >> ${BENCH_LOG} 2>&1
+
+    cd - > /dev/null || exit
+
+    cd /mnt/ramdisk || exit
+
+    # Fill the ramdisk
+    MEM=$(( RAMDISK * 1024 ))
+    dd if=/dev/zero of=file.txt bs=1M count=${MEM} >> "${BENCH_LOG}" 2>&1
+
+    cd - > /dev/null || exit
+  fi
+}
+
+
 ##
 # Description:
 #   Create a cgroup
@@ -289,6 +316,8 @@ do
       else
         ./update_conf_th.sh -b "${CUSTOM_BENCHMARK}"
       fi
+
+      create_ramdisk
 
       start_spark
 

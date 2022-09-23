@@ -27,11 +27,31 @@ Setup the following variables in the conf.sh file.
 
 You need to have "sudo" access in the server.
 
-## Change JVM Option Flags
-If you want to add/remove jvm flags for Spark executor please edit the
-spark-defaults.conf files under ./configs/native and
-./configs/teraheap
+Supported Benchmarks:
+| **Benchmarks**         |
+|----------------------  |
+| PageRank               |
+| ConnectedComponents    |
+| TriangleCounts         |
+| ShortestPaths          |
+| SVDPlusPlus            |
+| LinearRegression       |
+| LogisticRegression     |
+| SVM                    |
+| SQL                    |
 
+## Generate Datasets
+Before run a specific benchmark you have to generate a dataset. This
+dataset will be used as an input file for the specific benchmark.
+```
+./gen_dataset.sh
+```
+In case of SQL workload you have to run also the following script to
+increase the dataset size.
+```sh
+./sql_gen_data.sh
+
+```
 
 ## Run experiments with enable TeraHeap
 ```sh
@@ -51,3 +71,8 @@ spark-defaults.conf files under ./configs/native and
 ```sh
 ./run.sh -h
 ```
+
+## Change JVM Option Flags
+If you want to add/remove jvm flags for Spark executor please edit the
+spark-defaults.conf files under ./configs/native and
+./configs/teraheap

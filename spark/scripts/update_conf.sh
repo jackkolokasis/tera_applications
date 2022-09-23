@@ -106,49 +106,4 @@ update_spark_defaults
 
 cd - > /dev/null || exit
 
-if [ $CUSTOM_BENCHMARK == "false" ]
-then
-	# Enter the spark-bechmarks
-	cd "${SPARK_BENCH_DIR}"/conf/ || exit
-
-  update_spark_bench
-
-	cd - > /dev/null || exit
-
-  cp "./configs/workloads/${DATA_SIZE}/${BENCHMARKS}/env.sh" \
-    "${SPARK_BENCH_DIR}/${BENCHMARKS}/conf"
-
-  # Some workloads have the partition parameter in their configuration
-  # file. So we need to set this parameter.
-  cd "${SPARK_BENCH_DIR}/${BENCHMARKS}/conf" || exit
-
-  sed -i "s/NUM_OF_PARTITIONS=[0-9]*/NUM_OF_PARTITIONS=${NUM_OF_PARTITIONS}/g" env.sh
-
-  cd - > /dev/null || exit
-fi
-
-if [ "${RAMDISK}" -ne 0 ]
-then
-  cp ./ramdisk_create_and_mount.sh /tmp
-
-	cd /tmp || exit
-
-	# Remove the previous ramdisk
-	sudo ./ramdisk_create_and_mount.sh -d >> "${BENCH_LOG}" 2>&1
-
-	# Create the new ramdisk
-	MEM=$(( ${RAMDISK} * 1024 * 1024 ))
-	sudo ./ramdisk_create_and_mount.sh -m ${MEM} -c >> ${BENCH_LOG} 2>&1
-
-  cd - > /dev/null || exit
-
-	cd /mnt/ramdisk || exit
-
-	# Fill the ramdisk
-	MEM=$(( ${RAMDISK} * 1024 ))
-	dd if=/dev/zero of=file.txt bs=1M count=${MEM} >> "${BENCH_LOG}" 2>&1
-
-	cd - > /dev/null || exit
-fi
-
 exit
