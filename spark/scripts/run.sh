@@ -357,7 +357,7 @@ do
       fi
 
       # System statistics start
-      ~/system_util/start_statistics.sh -d "${RUN_DIR}"
+      ./system_util/start_statistics.sh -d "${RUN_DIR}"
 
       if [ $CUSTOM_BENCHMARK == "true" ]
       then
@@ -379,16 +379,16 @@ do
       fi
 
       # System statistics stop
-      ~/system_util/stop_statistics.sh -d "${RUN_DIR}"
+      ./system_util/stop_statistics.sh -d "${RUN_DIR}"
 
       if [ $SERDES ]
       then
         # Parse cpu and disk statistics results
-        ~/system_util/extract-data.sh -r "${RUN_DIR}" -d "${DEV_SHFL}" -d "${DEV_FMAP}" >> "${BENCH_LOG}" 2>&1
+        ./system_util/extract-data.sh -r "${RUN_DIR}" -d "${DEV_SHFL}" -d "${DEV_FMAP}" >> "${BENCH_LOG}" 2>&1
       elif [ $TH ]
       then
         # Parse cpu and disk statistics results
-        ~/system_util/extract-data.sh -r "${RUN_DIR}" -d "${DEV_FMAP}" -d "${DEV_SHFL}"
+        ./system_util/extract-data.sh -r "${RUN_DIR}" -d "${DEV_FMAP}" -d "${DEV_SHFL}"
       fi
 
       # Copy the confifuration to the directory with the results
