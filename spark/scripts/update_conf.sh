@@ -97,13 +97,24 @@ done
 
 # Enter to spark configuration
 cd "${SPARK_DIR}"/conf || exit
-
 update_slave_file
-
 update_spark_env
-
 update_spark_defaults
-
 cd - > /dev/null || exit
+
+if [ "${CUSTOM_BENCHMARK}" == "false" ]
+then
+	# Enter the spark-bechmarks
+	cd "${SPARK_BENCH_DIR}"/conf/ || exit
+
+  update_spark_bench
+
+	cd - > /dev/null || exit
+
+  cp "./configs/workloads/${DATA_SIZE}/${BENCHMARKS}/env.sh" \
+    "${SPARK_BENCH_DIR}/${BENCHMARKS}/conf"
+
+	cd - > /dev/null || exit
+fi
 
 exit

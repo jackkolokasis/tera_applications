@@ -231,6 +231,9 @@ gen_config_files() {
   else
     cp ./configs/teraheap/spark-defaults.conf "${SPARK_DIR}"/conf
   fi
+
+  mkdir -p "${SPARK_DIR}"/work
+  mkdir -p "${SPARK_DIR}"/logs
 }
 
 
