@@ -10,8 +10,8 @@ as shown in the table below.
 | **Parameters** 	|                   **Description**                   	|
 |:--------------:	|:---------------------------------------------------:	|
 | JAVA_HOME      	| Locate the build directory of the JVM with HugeHeap 	|
-| TERA_HEAP_REPO 	| Path to the HugeHeap repository                     	|
 | TERA_APPS_REPO 	| Path to the repository of tera_applications         	|
+| SPARK_VERSION 	| Set "spark-3.3.0" or "spark-2.3.0"                    |
 
 ### Build Spark and SparkBench suite
 ```sh
