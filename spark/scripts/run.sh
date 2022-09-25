@@ -39,6 +39,14 @@ usage() {
   exit 1
 }
 
+build_async_profiler() {
+  export JAVA_HOME=${MY_JAVA_HOME}
+
+  cd ../../util/async-profiler/ || exit
+  make >> "${BENCH_LOG}" 2>&1 
+  cd - > /dev/null || exit
+}
+
 create_ramdisk() {
   if [ "${RAMDISK}" -ne 0 ]
   then
@@ -291,6 +299,8 @@ gen_config_files
 
 download_third_party
 
+build_async_profiler
+
 # Run each benchmark
 for benchmark in "${BENCHMARKS[@]}"
 do
@@ -336,10 +346,10 @@ do
       if [ $PERF_TOOL ]
       then
         # Count total cache references, misses and pagefaults
-        ./perf.sh ${RUN_DIR}/perf.txt ${NUM_EXECUTORS} &
+        ./perf.sh ${RUN_DIR}/perf ${NUM_EXECUTORS} &
       fi
 
-      ./serdes.sh ${RUN_DIR}/serdes.txt ${NUM_EXECUTORS} &
+      ./serdes.sh ${RUN_DIR}/serdes ${NUM_EXECUTORS} &
 
       # Enable profiler
       if [ ${PROFILER} ]
@@ -411,10 +421,10 @@ do
       then
           TH_METRICS=$(ls -td "${SPARK_DIR}"/work/* | head -n 1)
           cp "${TH_METRICS}"/0/teraHeap.txt "${RUN_DIR}"/
-          ./parse_results.sh -d "${RUN_DIR}" -t
+          ./parse_results.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -t
       elif [ $SERDES ]
       then
-          ./parse_results.sh -d "${RUN_DIR}" -s
+          ./parse_results.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -s
       else
         ./parse_results.sh -d "${RUN_DIR}"
       fi

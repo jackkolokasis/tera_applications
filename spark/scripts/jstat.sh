@@ -42,13 +42,13 @@ i=0
 
 for execId in ${processId}
 do
-    jstat -gcutil ${execId} 1000 > ${OUTPUT}/jstat.txt &
+    jstat -gcutil "${execId}" 1000 > "${OUTPUT}_${i}.txt" &
 
 	if [ $JIT -eq 1 ]
 	then
 		jstat -printcompilation ${execId} 1000 > "${OUTPUT}"/jit_method.txt &
 		jstat -compiler ${execId} 1000 > "${OUTPUT}"/jit.txt &
 	fi
-    i=$((i + 1))
+  i=$((i + 1))
 
 done
