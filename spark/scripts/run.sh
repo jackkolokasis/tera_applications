@@ -419,14 +419,11 @@ do
       # Parse results
       if [ $TH ]
       then
-          TH_METRICS=$(ls -td "${SPARK_DIR}"/work/* | head -n 1)
-          cp "${TH_METRICS}"/0/teraHeap.txt "${RUN_DIR}"/
-          ./parse_results.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -t
-      elif [ $SERDES ]
-      then
-          ./parse_results.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -s
+        TH_METRICS=$(ls -td "${SPARK_DIR}"/work/* | head -n 1)
+        cp "${TH_METRICS}"/0/teraHeap.txt "${RUN_DIR}"/
+        ./parse_results.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -t
       else
-        ./parse_results.sh -d "${RUN_DIR}"
+        ./parse_results.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -s
       fi
     done
   done

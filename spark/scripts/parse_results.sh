@@ -41,7 +41,7 @@ do
             RESULT_DIR="${OPTARG}"
             ;;
         n)
-            EXECUTORS="${OPTARG}"
+            NUM_EXECUTORS="${OPTARG}"
             ;;
         h)
             usage
