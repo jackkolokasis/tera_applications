@@ -30,11 +30,14 @@ stop_spark() {
   "${SPARK_DIR}"/sbin/stop-all.sh >> "${BENCH_LOG}" 2>&1
 }
 
+
 CUSTOM_BENCHMARK=false
 
-./update_conf.sh -b ${CUSTOM_BENCHMARK}
+stop_spark
 
 cp ./configs/native/spark-defaults.conf "${SPARK_DIR}"/conf
+
+./update_conf.sh -b ${CUSTOM_BENCHMARK}
 
 start_spark
 

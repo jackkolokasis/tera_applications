@@ -327,24 +327,24 @@ do
       if [ -z "$JIT" ]
       then
         # Collect statics only for the garbage collector
-        ./jstat.sh ${RUN_DIR} ${EXECUTORS} 0 &
+        ./jstat.sh ${RUN_DIR} ${NUM_EXECUTORS} 0 &
       else
         # Collect statics for garbage collector and JIT
-        ./jstat.sh ${RUN_DIR} ${EXECUTORS} 1 &
+        ./jstat.sh ${RUN_DIR} ${NUM_EXECUTORS} 1 &
       fi
 
       if [ $PERF_TOOL ]
       then
         # Count total cache references, misses and pagefaults
-        ./perf.sh ${RUN_DIR}/perf.txt ${EXECUTORS} &
+        ./perf.sh ${RUN_DIR}/perf.txt ${NUM_EXECUTORS} &
       fi
 
-      ./serdes.sh ${RUN_DIR}/serdes.txt ${EXECUTORS} &
+      ./serdes.sh ${RUN_DIR}/serdes.txt ${NUM_EXECUTORS} &
 
       # Enable profiler
       if [ ${PROFILER} ]
       then
-        ./profiler.sh ${RUN_DIR}/profile.svg ${EXECUTORS} &
+        ./profiler.sh ${RUN_DIR}/profile.svg ${NUM_EXECUTORS} &
       fi
 
       # Drop caches
