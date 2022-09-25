@@ -80,7 +80,7 @@ update_spark_defaults() {
 update_spark_bench() {
   sed -i '/master="[a-z0-9-]*"/c\master='"\"${SPARK_MASTER}\"" env.sh
   sed -i '/MC_LIST/c\MC_LIST='"\"${SPARK_SLAVE}\"" env.sh
-  sed -i '/DATA_HDFS=\"[a-z]*\:/c\DATA_HDFS='"${DATA_HDFS}" env.sh
+  sed -i '/DATA_HDFS=file/c\DATA_HDFS='"${DATA_HDFS}" env.sh
   sed -i "s|export SPARK_HOME=.*$|export SPARK_HOME=${SPARK_DIR}|g" env.sh
   sed -i '/SPARK_EXECUTOR_MEMORY/c\SPARK_EXECUTOR_MEMORY='"${H1_H2_SIZE}"'g' env.sh
   sed -i '/SPARK_EXECUTOR_CORES/c\SPARK_EXECUTOR_CORES='"${EXEC_CORES}" env.sh
