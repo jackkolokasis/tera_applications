@@ -337,10 +337,10 @@ do
       if [ -z "$JIT" ]
       then
         # Collect statics only for the garbage collector
-        ./jstat.sh ${RUN_DIR} ${NUM_EXECUTORS} 0 &
+        ./jstat.sh "${RUN_DIR}"/jstat "${NUM_EXECUTORS}" 0 &
       else
         # Collect statics for garbage collector and JIT
-        ./jstat.sh ${RUN_DIR} ${NUM_EXECUTORS} 1 &
+        ./jstat.sh "${RUN_DIR}"/jstat "${NUM_EXECUTORS}" 1 &
       fi
 
       if [ $PERF_TOOL ]
