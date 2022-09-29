@@ -41,6 +41,12 @@
 		<artifactId>spark-hive_${scala.binary.version}</artifactId>
 		<version>${spark.version}</version>
 	</dependency>
+
+  <dependency>
+    <groupId>org.scala-lang</groupId>
+    <artifactId>scala-reflect</artifactId>
+    <version>${scala.version}</version>
+  </dependency>
   </dependencies> 
  
 </project>

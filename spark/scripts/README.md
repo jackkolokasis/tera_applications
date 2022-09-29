@@ -76,3 +76,26 @@ increase the dataset size.
 If you want to add/remove jvm flags for Spark executor please edit the
 spark-defaults.conf files under ./configs/native and
 ./configs/teraheap
+
+## Reduction of Memory for Out of Core Experiments
+Scripts reduce memory using Cgroups. You need to set in conf.sh 
+```sh
+# cgset accepts K,M,G and KiB, MiB, GiB units for memory limit
+MEM_BUDGET=
+```
+Edit spark-3.3.0/bin/spark-class file:
+
+```sh
+# Replace line: exec "${CMD[@]}"
+cgexec -g memory:memlim --sticky "${CMD[@]}"
+```
+
+\Edit spark-3.3.0/bin/spark-submit file:
+```sh
+# Replace line: 
+exec "${SPARK_HOME}"/bin/spark-class org.apache.spark.deploy.SparkSubmit "$@"
+# with
+cgexec -g memory:memlim --sticky "${SPARK_HOME}"/bin/spark-class org.apache.spark.deploy.SparkSubmit "$@"
+
+```
+

@@ -13,9 +13,10 @@
 #
 ###################################################
 # Dataset size "small" and "large"
-DATA_SIZE=small
+DATA_SIZE=large
 # JAVA Home
-MY_JAVA_HOME=/home1/public/kolokasis/jdk8u/teracache/jdk8u345/build/linux-x86_64-normal-server-release/jdk
+# MY_JAVA_HOME=/usr/java/jdk-17.0.4.1/
+MY_JAVA_HOME="/usr/lib/jvm/java-8-kolokasis/jdk8u-jdk8u345-b01/build/linux-x86_64-normal-server-release/jdk"
 # Directory that contains datasets
 DATA_HDFS="file:///mnt/datasets/SparkBench"
 # Spark Version
@@ -53,23 +54,23 @@ STRIPE_SIZE=$(( REGION_SIZE / CARD_SIZE ))
 # TeraCache file size in GB e.g 800 -> 800GB
 H2_FILE_SZ=900
 # Executor cores
-EXEC_CORES=( 16 )
+EXEC_CORES=( 8 )
 # SparkBench directory
 SPARK_BENCH_DIR=${BENCH_DIR}/spark/spark-bench
 #Benchmark log
 BENCH_LOG=${BENCH_DIR}/spark/scripts/log.out
 # Heap size for executors '-Xms' is in GB e.g., 54 -> 54GB
-H1_SIZE=( 54 )
-# DRAM shrink 200GB
-RAMDISK=( 0 )
+H1_SIZE=( 84 )
+# cgset accepts K,M,G and KiB, MiB, GiB units for memory limit
+MEM_BUDGET=100G
 # Spark memory fraction: 'spark.memory.storagefraction'
-MEM_FRACTION=( 0.9 )
+MEM_FRACTION=( 0.5 )
 # Storage Level
-S_LEVEL=( "MEMORY_ONLY" )
+S_LEVEL=( "MEMORY_AND_DISK" )
 # TeraCache configuration size in Spark: 'spark.teracache.heap.size'
 H1_H2_SIZE=( 1200 )
 # Running benchmarks
-BENCHMARKS=( "PageRank" )
+BENCHMARKS=( "ShortestPaths" )
 # Number of executors
 NUM_EXECUTORS=( 1 )
 # Total Configurations
