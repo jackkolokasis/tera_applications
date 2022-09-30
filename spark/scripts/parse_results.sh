@@ -66,12 +66,12 @@ done
 # Caclulate the overheads in TeraHeap card table traversal, marking and adjust phases
 if [ $TH ]
 then
-  TC_CT_TRAVERSAL=$(grep "TC_CT" "${RESULT_DIR}"/teraCache.txt     | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
-  HEAP_CT_TRAVERSAL=$(grep "HEAP_CT" "${RESULT_DIR}"/teraCache.txt | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
-  PHASE1=$(grep "PHASE1" "${RESULT_DIR}"/teraCache.txt             | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
-  PHASE2=$(grep "PHASE2" "${RESULT_DIR}"/teraCache.txt             | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
-  PHASE3=$(grep "PHASE3" "${RESULT_DIR}"/teraCache.txt             | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
-  PHASE4=$(grep "PHASE4" "${RESULT_DIR}"/teraCache.txt             | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
+  TC_CT_TRAVERSAL=$(grep "TC_CT" "${RESULT_DIR}"/teraHeap.txt     | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
+  HEAP_CT_TRAVERSAL=$(grep "HEAP_CT" "${RESULT_DIR}"/teraHeap.txt | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
+  PHASE1=$(grep "PHASE1" "${RESULT_DIR}"/teraHeap.txt             | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
+  PHASE2=$(grep "PHASE2" "${RESULT_DIR}"/teraHeap.txt             | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
+  PHASE3=$(grep "PHASE3" "${RESULT_DIR}"/teraHeap.txt             | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
+  PHASE4=$(grep "PHASE4" "${RESULT_DIR}"/teraHeap.txt             | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
 fi
 
 # Caclulate the serialziation/deserialization overhead

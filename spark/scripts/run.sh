@@ -346,9 +346,9 @@ do
       then
         if [ $SERDES ]
         then
-          ./custom_benchmarks.sh "${RUN_DIR}" "${EXEC_CORES[$j]}" "${HEAP[$j]}" "${S_LEVEL[$j]}"
+          cgexec -g memory:memlim	--sticky ./custom_benchmarks.sh "${RUN_DIR}" "$SERDES"
         else
-          ./custom_benchmarks.sh "${RUN_DIR}" "${EXEC_CORES[$j]}" "${TERACACHE[$j]}" "${S_LEVEL[$j]}"
+          cgexec -g memory:memlim	--sticky ./custom_benchmarks.sh "${RUN_DIR}" "$SERDES"
         fi
       else
         # Run benchmark and save output to tmp_out.txt

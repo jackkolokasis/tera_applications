@@ -1,9 +1,9 @@
 #!/usr/bin/env bash                                                             
 
+. ./conf.sh
+
 RUN_DIR=$1
-CORES=$2
-MEMORY=$3
-STORAGE_LEVEL=$4
+SERDES=$2
 
 # KDD2012
 # wget https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/kdd12.bz2
@@ -26,17 +26,32 @@ function timestamp()
 
 start_time=$(timestamp)
 
-/opt/spark/spark-2.3.0-kolokasis/bin/spark-submit \
-	--class org.apache.spark.examples.mllib.SparseNaiveBayes \
-	--conf spark.executor.instances=1 \
-	--conf spark.executor.cores=${CORES} \
-	--conf spark.executor.memory=${MEMORY}g \
-	--conf spark.kryoserializer.buffer.max=512m \
-	--jars /opt/spark/spark-2.3.0-kolokasis/examples/target/scala-2.11/jars/spark-examples_2.11-2.3.0.jar, /opt/spark/spark-2.3.0-kolokasis/examples/target/scala-2.11/jars/scopt_2.11-3.7.0.jar\
-	--numPartitions 512 \
-	--numFeatures 54686452 \
+if [ "$SERDES" ]
+then
+  "${SPARK_DIR}"/bin/spark-submit \
+    --class org.apache.spark.examples.mllib.SparseNaiveBayes \
+    --conf spark.executor.instances=1 \
+    --conf spark.executor.cores="${EXEC_CORES}" \
+    --conf spark.executor.memory="${H1_SIZE}"g \
+    --conf spark.kryoserializer.buffer.max=512m \
+    --jars "${SPARK_DIR}"/examples/target/scala-2.12/jars/spark-examples_2.12-3.3.0.jar, "${SPARK_DIR}"/examples/target/scala-2.12/jars/scopt_2.12-3.7.1.jar\
+    --numPartitions 512 \
+    --numFeatures 54686452 \
     /mnt/datasets/kdd12 \
-	"${STORAGE_LEVEL}"
+    "${S_LEVEL}"
+else
+  "${SPARK_DIR}"/bin/spark-submit \
+    --class org.apache.spark.examples.mllib.SparseNaiveBayes \
+    --conf spark.executor.instances=1 \
+    --conf spark.executor.cores="${EXEC_CORES}" \
+    --conf spark.executor.memory="${H1_H2_SIZE}"g \
+    --conf spark.kryoserializer.buffer.max=512m \
+    --jars "${SPARK_DIR}"/examples/target/scala-2.12/jars/spark-examples_2.12-3.3.0.jar, "${SPARK_DIR}"/examples/target/scala-2.12/jars/scopt_2.12-3.7.1.jar\
+    --numPartitions 512 \
+    --numFeatures 54686452 \
+    /mnt/datasets/kdd12 \
+    "${S_LEVEL}"
+fi
 
 end_time=$(timestamp)                                                           
 
