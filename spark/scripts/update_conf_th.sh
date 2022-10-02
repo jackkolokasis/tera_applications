@@ -65,6 +65,8 @@ update_spark_defaults() {
   sed -i '/spark.metrics.conf/c\spark.metrics.conf '"${MASTER_METRIC_FILE}" spark-defaults.conf
   # Change GC threads
   sed -i "s/ParallelGCThreads=[0-9]*/ParallelGCThreads=${GC_THREADS}/g" spark-defaults.conf
+  # Change TeraStripeSize
+  sed -i "s|TeraStripeSize=[0-9]*|TeraStripeSize=${STRIPE_SIZE}|g" spark-defaults.conf
   # Change the minimum heap size
   # Change only the first -Xms 
   sed -i -e '0,/-Xms[0-9]*g/ s/-Xms[0-9]*g/-Xms'"${H1_SIZE}"'g/' spark-defaults.conf

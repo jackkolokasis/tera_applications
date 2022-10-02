@@ -12,6 +12,8 @@
 #
 ###################################################
 
+set -x
+
 . ./conf.sh
 
 #### Global Variables ####
@@ -64,12 +66,16 @@ delete_cgroup() {
 	sudo cgdelete memory:memlim
 }
 
+run_cgexec() {
+  cgexec -g memory:memlim --sticky ./run_cgexec.sh "$@"
+}
+
 ##
 # Description: 
 #   Start Spark
 ##
 start_spark() {
-  cgexec -g memory:memlim --sticky "${SPARK_DIR}"/sbin/start-all.sh >> "${BENCH_LOG}" 2>&1
+  run_cgexec "${SPARK_DIR}"/sbin/start-all.sh >> "${BENCH_LOG}" 2>&1
 }
 
 ##
@@ -77,7 +83,7 @@ start_spark() {
 #   Stop Spark
 ##
 stop_spark() {
-  cgexec -g memory:memlim --sticky "${SPARK_DIR}"/sbin/stop-all.sh >> "${BENCH_LOG}" 2>&1
+  run_cgexec "${SPARK_DIR}"/sbin/stop-all.sh >> "${BENCH_LOG}" 2>&1
 }
 
 ##
@@ -346,13 +352,13 @@ do
       then
         if [ $SERDES ]
         then
-          cgexec -g memory:memlim	--sticky ./custom_benchmarks.sh "${RUN_DIR}" "$SERDES"
+          run_cgexec ./custom_benchmarks.sh "${RUN_DIR}" "$SERDES"
         else
-          cgexec -g memory:memlim	--sticky ./custom_benchmarks.sh "${RUN_DIR}" "$SERDES"
+          run_cgexec ./custom_benchmarks.sh "${RUN_DIR}" "$SERDES"
         fi
       else
         # Run benchmark and save output to tmp_out.txt
-        cgexec -g memory:memlim	--sticky "${SPARK_BENCH_DIR}"/"${benchmark}"/bin/run.sh > "${RUN_DIR}"/tmp_out.txt 2>&1
+        run_cgexec "${SPARK_BENCH_DIR}"/"${benchmark}"/bin/run.sh > "${RUN_DIR}"/tmp_out.txt 2>&1
       fi
 
       if [[ ${DEV_FMAP} == *pmem* ]]
@@ -371,11 +377,11 @@ do
       if [ $SERDES ]
       then
         # Parse cpu and disk statistics results
-        ./system_util/extract-data.sh -r "${RUN_DIR}" -d "${DEV_SHFL}" -d "${DEV_FMAP}" >> "${BENCH_LOG}" 2>&1
+        ./system_util/extract-data.sh -r "${RUN_DIR}" -d "${DEV_SHFL}" -d "${DEV_H2}" >> "${BENCH_LOG}" 2>&1
       elif [ $TH ]
       then
         # Parse cpu and disk statistics results
-        ./system_util/extract-data.sh -r "${RUN_DIR}" -d "${DEV_FMAP}" -d "${DEV_SHFL}"
+        ./system_util/extract-data.sh -r "${RUN_DIR}" -d "${DEV_H2}" -d "${DEV_SHFL}" >> "${BENCH_LOG}" 2>&1
       fi
 
       # Copy the confifuration to the directory with the results

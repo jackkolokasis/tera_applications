@@ -128,18 +128,13 @@ done
 
 if [ $TH ]
 then
-	grep "TOTAL_TRANS_OBJ" "${RESULT_DIR}"/teraCache.txt    \
-		| awk '{print $3","$5}' > "${RESULT_DIR}"/statistics.csv
-	grep "TOTAL_FORWARD_PTRS" "${RESULT_DIR}"/teraCache.txt \
-		| awk '{print $3","$5}' >> "${RESULT_DIR}"/statistics.csv
-	grep "TOTAL_BACK_PTRS" "${RESULT_DIR}"/teraCache.txt \
-		| awk '{print $3","$5}' >> "${RESULT_DIR}"/statistics.csv
-	grep "DUMMY" "${RESULT_DIR}"/teraCache.txt \
-		| awk '{sum+=$6} END {print "DUMMY_OBJ_SIZE(GB),"sum*8/1024/1024}' \
-    >> "${RESULT_DIR}"/statistics.csv
-  grep "DISTRIBUTION" "${RESULT_DIR}"/teraCache.txt |tail -n 1 \
-    |awk '{print $5 " " $6 " " $7 " " $8 " " $9 " " $10 " " $11 " " $12" " $13 " " $14 " " $15}' \
-    >> "${RESULT_DIR}"/statistics.csv
+  {
+    grep "TOTAL_TRANS_OBJ" "${RESULT_DIR}"/teraHeap.txt | awk '{print $3","$5}'
+    grep "TOTAL_FORWARD_PTRS" "${RESULT_DIR}"/teraHeap.txt | awk '{print $3","$5}'
+    grep "TOTAL_BACK_PTRS" "${RESULT_DIR}"/teraHeap.txt | awk '{print $3","$5}'
+    grep "DUMMY" "${RESULT_DIR}"/teraHeap.txt | awk '{sum+=$6} END {print "DUMMY_OBJ_SIZE(GB),"sum*8/1024/1024}'
+    grep "DISTRIBUTION" "${RESULT_DIR}"/teraHeap.txt |tail -n 1 |awk '{print $5 " " $6 " " $7 " " $8 " " $9 " " $10 " " $11 " " $12" " $13 " " $14 " " $15}'
+  } >> "${RESULT_DIR}"/statistics.csv
 fi
 
 # Read the Utilization from system.csv file
