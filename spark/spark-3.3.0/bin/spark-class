@@ -72,6 +72,10 @@ build_command() {
   printf "%d\0" $?
 }
 
+run_cgexec() {
+  cgexec -g memory:memlim --sticky ${SPARK_HOME}/bin/run_cgexec.sh "$@"
+}
+
 # Turn off posix mode since it does not allow process substitution
 set +o posix
 CMD=()
@@ -108,4 +112,4 @@ if [ $LAUNCHER_EXIT_CODE != 0 ]; then
 fi
 
 CMD=("${CMD[@]:0:$LAST}")
-exec "${CMD[@]}"
+run_cgexec "${CMD[@]}"

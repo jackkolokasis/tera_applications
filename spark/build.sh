@@ -86,7 +86,7 @@ benchmark_dependencies() {
 }
 
 build_benchmarks() {
-  ./spark-bench/bin/build-all.sh ${SPARK_VERSION} >> "${COMPILE_OUT}" 2>&1
+  ./spark-bench/bin/build-all.sh "spark3.3.0" > "${COMPILE_OUT}" 2>&1
   retValue=$?
   message="Build Spark Benchmarks" 
   check ${retValue} "${message}"

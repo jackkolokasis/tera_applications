@@ -94,7 +94,7 @@ public class KmeansAppJava {
 
     // Cluster the data into classes using KMeans
     //start = System.currentTimeMillis();
-    KMeansModel clusters = KMeans.train(parsedData.rdd(), numClusters, maxIterations, runs, KMeans.K_MEANS_PARALLEL(), 127L);
+    KMeansModel clusters = KMeans.train(parsedData.rdd(), numClusters, maxIterations);
     double trainingTime = (double) (System.currentTimeMillis() - start) / 1000.0;
 
     // Evaluate clustering by computing Within Set Sum of Squared Errors

@@ -33,4 +33,4 @@ fi
 
 . "${SPARK_HOME}/sbin/spark-config.sh"
 
-exec "${SPARK_HOME}/sbin/workers.sh" cd "${SPARK_HOME}" \; "${SPARK_HOME}/sbin/spark-daemon.sh" "$@"
+"${SPARK_HOME}/sbin/workers.sh" cd "${SPARK_HOME}" \; "${SPARK_HOME}/sbin/spark-daemon.sh" "$@"

@@ -49,7 +49,6 @@ build_async_profiler() {
   cd - > /dev/null || exit
 }
 
-
 ##
 # Description:
 #   Create a cgroup
@@ -76,6 +75,7 @@ run_cgexec() {
 ##
 start_spark() {
   run_cgexec "${SPARK_DIR}"/sbin/start-all.sh >> "${BENCH_LOG}" 2>&1
+  #"${SPARK_DIR}"/sbin/start-all.sh >> "${BENCH_LOG}" 2>&1
 }
 
 ##
@@ -84,6 +84,7 @@ start_spark() {
 ##
 stop_spark() {
   run_cgexec "${SPARK_DIR}"/sbin/stop-all.sh >> "${BENCH_LOG}" 2>&1
+  #"${SPARK_DIR}"/sbin/stop-all.sh >> "${BENCH_LOG}" 2>&1
 }
 
 ##
@@ -359,6 +360,7 @@ do
       else
         # Run benchmark and save output to tmp_out.txt
         run_cgexec "${SPARK_BENCH_DIR}"/"${benchmark}"/bin/run.sh > "${RUN_DIR}"/tmp_out.txt 2>&1
+        #"${SPARK_BENCH_DIR}"/"${benchmark}"/bin/run.sh > "${RUN_DIR}"/tmp_out.txt 2>&1
       fi
 
       if [[ ${DEV_FMAP} == *pmem* ]]

@@ -18,13 +18,14 @@
 // scalastyle:off println
 package org.apache.spark.examples.mllib
 
-import org.apache.logging.log4j.Level
-import org.apache.logging.log4j.core.config.Configurator
+import org.apache.log4j.{Level, Logger}
 import scopt.OptionParser
 
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.mllib.classification.NaiveBayes
 import org.apache.spark.mllib.util.MLUtils
+
+import org.apache.spark.storage.StorageLevel
 
 /**
  * An example naive Bayes app. Run with
@@ -39,9 +40,10 @@ object SparseNaiveBayes {
       input: String = null,
       minPartitions: Int = 0,
       numFeatures: Int = -1,
-      lambda: Double = 1.0) extends AbstractParams[Params]
+      lambda: Double = 1.0,
+      sLevel: String = null) extends AbstractParams[Params]
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     val defaultParams = Params()
 
     val parser = new OptionParser[Params]("SparseNaiveBayes") {
@@ -59,6 +61,10 @@ object SparseNaiveBayes {
         .text("input paths to labeled examples in LIBSVM format")
         .required()
         .action((x, c) => c.copy(input = x))
+      arg[String]("<storage Level>")
+        .text("Caching storage level(e.g. MEMORY_ONLY)")
+        .required()
+        .action((x, c) => c.copy(sLevel = x))
     }
 
     parser.parse(args, defaultParams) match {
@@ -71,7 +77,7 @@ object SparseNaiveBayes {
     val conf = new SparkConf().setAppName(s"SparseNaiveBayes with $params")
     val sc = new SparkContext(conf)
 
-    Configurator.setRootLevel(Level.WARN)
+    Logger.getRootLogger.setLevel(Level.WARN)
 
     val minPartitions =
       if (params.minPartitions > 0) params.minPartitions else sc.defaultMinPartitions
@@ -79,7 +85,12 @@ object SparseNaiveBayes {
     val examples =
       MLUtils.loadLibSVMFile(sc, params.input, params.numFeatures, minPartitions)
     // Cache examples because it will be used in both training and evaluation.
-    examples.cache()
+    if (params.sLevel == "MEMORY_ONLY")
+      examples.persist(StorageLevel.MEMORY_ONLY)
+    else if (params.sLevel == "DISK_ONLY")
+      examples.persist(StorageLevel.DISK_ONLY)
+    else
+      examples.persist(StorageLevel.MEMORY_AND_DISK)
 
     val splits = examples.randomSplit(Array(0.8, 0.2))
     val training = splits(0)
