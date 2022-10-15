@@ -54,6 +54,15 @@ download_hadoop() {
   fi
 }
 
+download_zookeeper() {
+  if [ ! -d zookeeper-3.4.1 ]
+  then
+    wget https://archive.apache.org/dist/zookeeper/zookeeper-3.4.1/zookeeper-3.4.1.tar.gz
+    tar xf zookeeper-3.4.1.tar.gz
+    rm zookeeper-3.4.1.tar.gz
+  fi
+}
+
 build_giraph() {
   if [ ! -d Giraph_Teraheap ]
   then
@@ -108,6 +117,7 @@ do
     a)
       prepare_certificates
       download_hadoop
+      download_zookeeper
       build_giraph
       build_ldbc_graphalytics
       build_ldbc_giraph_bench

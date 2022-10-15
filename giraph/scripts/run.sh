@@ -12,6 +12,8 @@
 #
 ###################################################
 
+set -x
+
 . ./conf.sh
 # Print error/usage script message
 usage() {
@@ -63,17 +65,17 @@ start_hadoop_yarn_zkeeper() {
 		local tc_size=$(( (900 - HEAP) * 1024 * 1024 * 1024 ))
 
 		jvm_opts="\t\t<value>-XX:-ClassUnloading -XX:+UseParallelGC "
-		jvm_opts+="-XX:-UseParallelOldGC -XX:ParallelGCThreads=${GC_THREADS} -XX:+EnableTeraCache "
-		jvm_opts+="-XX:TeraCacheSize=${tc_size} -Xmx900g -Xms${HEAP}g "
-		jvm_opts+="-XX:TeraCacheThreshold=0 -XX:-UseCompressedOops " 
-		jvm_opts+="-XX:-UseCompressedClassPointers -XX:+TeraCacheStatistics "
-		jvm_opts+="-Xlogtc:${BENCHMARK_SUITE//'/'/\\/}\/report\/teraCache.txt "
-		jvm_opts+="-XX:TeraStripeSize=32768 -XX:+ShowMessageBoxOnError<\/value>"
+		jvm_opts+="-XX:-UseParallelOldGC -XX:ParallelGCThreads=${GC_THREADS} -XX:+EnableTeraHeap "
+		jvm_opts+="-XX:TeraHeapSize=${tc_size} -Xmx900g -Xms${HEAP}g "
+		jvm_opts+="-XX:-UseCompressedOops " 
+		jvm_opts+="-XX:-UseCompressedClassPointers -XX:+TeraHeapStatistics "
+		jvm_opts+="-Xlogth:${BENCHMARK_SUITE//'/'/\\/}\/report\/teraHeap.txt "
+		jvm_opts+="-XX:TeraStripeSize=${STRIPE_SIZE} -XX:+ShowMessageBoxOnError<\/value>"
 	else
 		jvm_opts="\t\t<value>-Xms${HEAP}g -Xmx${HEAP}g -XX:-ClassUnloading -XX:+UseParallelGC "
 		jvm_opts+="-XX:-UseParallelOldGC -XX:ParallelGCThreads=${GC_THREADS} -XX:-ResizeTLAB "
 		jvm_opts+="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers "
-		jvm_opts+="-XX:+TimeBreakDown -Xlogtime:${BENCHMARK_SUITE//'/'/\\/}\/report\/teraCache.txt<\/value>"
+		#jvm_opts+="-XX:+TimeBreakDown -Xlogtime:${BENCHMARK_SUITE//'/'/\\/}\/report\/teraCache.txt<\/value>"
 	fi
 
 	# Yarn child executor jvm flags
@@ -125,9 +127,9 @@ stop_hadoop_yarn_zkeeper() {
 	message="Stop HDFS" 
 	check ${retValue} "${message}"
 
-	rm -rf /mnt/datasets/hadoop
-	rm -f /mnt/fmap/file.txt
-	rm -rf /mnt/fmap/partitions
+	rm -rf ${DATASET_DIR}/hadoop
+  rm -rf ${TH_DIR}/file.txt
+  fallocate -l ${TH_FILE_SZ}G ${TH_DIR}/file.txt
 }
 
 ##
@@ -519,16 +521,16 @@ do
 			stop_hadoop_yarn_zkeeper
 
 			# Prepare devices for Zookeeper and TeraCache accordingly
-			if [ $SERDES ]
-			then
-				./dev_setup.sh
-			else
-				./dev_setup.sh -t
-			fi
+			###if [ $SERDES ]
+			###then
+			###	./dev_setup.sh
+			###else
+			###	./dev_setup.sh -t
+			###fi
 
 			start_hadoop_yarn_zkeeper ${SERDES}
 
-			create_ramdisk "${j}" 
+			#create_ramdisk "${j}" 
 
 			update_conf "${benchmark}" ${SERDES}
 
@@ -559,12 +561,13 @@ do
 			sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches >> "${LOG}" 2>&1
 
       # System statistics start
-      ~/system_util/start_statistics.sh -d "${RUN_DIR}"
+      ./system_util/start_statistics.sh -d "${RUN_DIR}"
 
 			cd "${BENCHMARK_SUITE}" || exit
 
 			# Run benchmark and save output to tmp_out.txt
-			./bin/sh/run-benchmark.sh >> "${LOG}" 2>&1
+			#./bin/sh/run-benchmark.sh >> "${LOG}" 2>&1
+			./bin/sh/run-benchmark.sh 
 
 			cd - > /dev/null || exit
 				
@@ -575,10 +578,10 @@ do
 			fi
             
             # System statistics stop
-			~/system_util/stop_statistics.sh -d "${RUN_DIR}"
+			./system_util/stop_statistics.sh -d "${RUN_DIR}"
 
 			# Parse cpu and disk statistics results
-			~/system_util/extract-data.sh -r "${RUN_DIR}" -d ${DEV_TH} \
+			./system_util/extract-data.sh -r "${RUN_DIR}" -d ${DEV_TH} \
 				-d ${DEV_HDFS} -d ${DEV_ZK} >> ${LOG} 2>&1
 
 			# Copy the confifuration to the directory with the results
@@ -595,14 +598,6 @@ do
 				./parse_results.sh -d "${RUN_DIR}" -t  >> "${LOG}" 2>&1
 			else
 				./parse_results.sh -d "${RUN_DIR}" >> "${LOG}" 2>&1
-			fi
-
-			# Check if the run completed succesfully. If the run fail then retry
-			# to run the same iteration
-			check=$(grep "TOTAL_TIME" "${RUN_DIR}"/result.csv | awk -F ',' '{print $2}')
-			if [ -z "${check}" ]  
-			then
-				j=$((j - 1))
 			fi
 		done
 

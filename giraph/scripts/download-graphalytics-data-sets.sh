@@ -2,12 +2,21 @@
 
 DOWNLOAD_PATH=$1
 
+if [ -z "$1" ]
+then
+  echo
+  echo "Usage:"
+  echo -e "\t ./download-graphalytics-data-sets.sh <path/to/download/file>"
+  exit
+fi
+
+
 mkdir -p "$DOWNLOAD_PATH"/graphs
 mkdir -p "$DOWNLOAD_PATH"/output
 mkdir -p "$DOWNLOAD_PATH"/validations
 
 download_dataset() {
-  echo cit-Patents;        curl https://surfdrive.surf.nl/files/index.php/s/mhTyNV2wk5HNAf7/download | tar -xv --use-compress-program=unzstd
+  #echo cit-Patents;        curl https://surfdrive.surf.nl/files/index.php/s/mhTyNV2wk5HNAf7/download | tar -xv --use-compress-program=unzstd
   #echo com-friendster;     curl https://surfdrive.surf.nl/files/index.php/s/z8PSwZwBma7etRg/download | tar -xv --use-compress-program=unzstd
   #echo datagen-7_5-fb;     curl https://surfdrive.surf.nl/files/index.php/s/ypGcsxzrBeh2YGb/download | tar -xv --use-compress-program=unzstd
   #echo datagen-7_6-fb;     curl https://surfdrive.surf.nl/files/index.php/s/pxl7rDvzDQJFhfc/download | tar -xv --use-compress-program=unzstd
@@ -24,7 +33,7 @@ download_dataset() {
   #echo datagen-8_7-zf;     curl https://surfdrive.surf.nl/files/index.php/s/jik4NN4CDnUDmAG/download | tar -xv --use-compress-program=unzstd
   #echo datagen-8_8-zf;     curl https://surfdrive.surf.nl/files/index.php/s/Qmi35tpKSjovS5d/download | tar -xv --use-compress-program=unzstd
   #echo datagen-8_9-fb;     curl https://surfdrive.surf.nl/files/index.php/s/A8dCtfeqNgSyAOF/download | tar -xv --use-compress-program=unzstd
-  #echo datagen-9_0-fb;     curl https://surfdrive.surf.nl/files/index.php/s/RFkNmmIOewT3YSd/download | tar -xv --use-compress-program=unzstd
+  echo datagen-9_0-fb;     curl https://surfdrive.surf.nl/files/index.php/s/RFkNmmIOewT3YSd/download | tar -xv --use-compress-program=unzstd
   #echo datagen-9_1-fb;     curl https://surfdrive.surf.nl/files/index.php/s/7vJ0i7Ydj67loEL/download | tar -xv --use-compress-program=unzstd
   #echo datagen-9_2-zf;     curl https://surfdrive.surf.nl/files/index.php/s/cT4SZT8frlaIkLI/download | tar -xv --use-compress-program=unzstd
   #echo datagen-9_3-zf;     curl https://surfdrive.surf.nl/files/index.php/s/DE67JXHTN3jxM7O/download | tar -xv --use-compress-program=unzstd
@@ -69,3 +78,4 @@ mv ./*-LCC "$DOWNLOAD_PATH"/validations
 mv ./*-CDLP "$DOWNLOAD_PATH"/validations
 mv ./*-PR "$DOWNLOAD_PATH"/validations
 mv ./*-WCC "$DOWNLOAD_PATH"/validations
+mv ./*-SSSP "$DOWNLOAD_PATH"/validations
