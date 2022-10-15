@@ -1,0 +1,11 @@
+giraph/compile.out
+giraph/hadoop-2.4.0/
+giraph/ldbc_graphalytics/
+giraph/graphalytics-platforms-giraph/
+giraph/scripts/system_util/
+giraph/scripts/zookeeper.out
+giraph/zookeeper-3.4.1/
+spark/scripts/log.out
+spark/spark-3.3.0/logs/*
+spark/spark-3.3.0/work/*
+giraph/Giraph_TeraHeap/
