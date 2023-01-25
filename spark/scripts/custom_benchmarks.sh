@@ -5,10 +5,6 @@
 RUN_DIR=$1
 SERDES=$2
 
-# KDD2012
-# wget https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/kdd12.bz2
-# 
-
 function timestamp()                                                            
 {
     local sec
@@ -24,6 +20,9 @@ function timestamp()
     echo $(( tmp + msec ))
 }                                                                               
 
+word_to_remove="file:\/\/"
+dataset_path="${DATA_HDFS//${word_to_remove}/}"
+
 start_time=$(timestamp)
 
 if [ "$SERDES" ]
@@ -37,7 +36,7 @@ then
     --jars "${SPARK_DIR}"/examples/target/scala-2.12/jars/spark-examples_2.12-3.3.0.jar, "${SPARK_DIR}"/examples/target/scala-2.12/jars/scopt_2.12-3.7.1.jar\
     --numPartitions 512 \
     --numFeatures 54686452 \
-    /mnt/datasets/kdd12 \
+    "${dataset_path}"/kdd12 \
     "${S_LEVEL}"
 else
   "${SPARK_DIR}"/bin/spark-submit \
@@ -49,7 +48,7 @@ else
     --jars "${SPARK_DIR}"/examples/target/scala-2.12/jars/spark-examples_2.12-3.3.0.jar, "${SPARK_DIR}"/examples/target/scala-2.12/jars/scopt_2.12-3.7.1.jar\
     --numPartitions 512 \
     --numFeatures 54686452 \
-    /mnt/datasets/kdd12 \
+    "${dataset_path}"/kdd12 \
     "${S_LEVEL}"
 fi
 
