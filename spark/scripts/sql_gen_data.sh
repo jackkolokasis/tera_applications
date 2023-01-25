@@ -102,7 +102,10 @@ DATE=( "2009-07-30" "2007-04-24" "2011-05-06" \
 	"2008-12-23" \
 	"2010-05-20")
 
-cd "${DATA_HDFS}"/sql/Input || exit
+word_to_remove="file:\/\/"
+dataset_path="${DATA_HDFS//${word_to_remove}/}"
+
+cd "${dataset_path}"/sql/Input || exit
 
 for ((i=1001; i<200000000; i++))
 do
