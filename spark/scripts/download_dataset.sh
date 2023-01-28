@@ -4,6 +4,11 @@
 
 DOWNLOAD_PATH=$1
 
+if [ -f "${DOWNLOAD_PATH}/kdd12" ]
+then
+  exit
+fi
+
 # KDD2012
 wget -P "${DOWNLOAD_PATH}" https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/kdd12.bz2
 
