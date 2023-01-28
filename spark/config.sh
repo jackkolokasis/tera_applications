@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 TERAHEAP_REPO="/home1/public/kolokasis/jdk8u/teracache"
 
 # Export Allocator
