@@ -48,8 +48,12 @@ prepare_certificates() {
 download_hadoop() {
   if [ ! -d hadoop-2.4.0 ]
   then
-    wget https://archive.apache.org/dist/hadoop/common/hadoop-2.4.0/hadoop-2.4.0.tar.gz
-    tar xf hadoop-2.4.0.tar.gz
+    wget https://archive.apache.org/dist/hadoop/common/hadoop-2.4.0/hadoop-2.4.0.tar.gz >> "${COMPILE_OUT}" 2>&1
+    retValue=$?
+    message="Download Hadoop" 
+    check ${retValue} "${message}"
+
+    tar xf hadoop-2.4.0.tar.gz >> "${COMPILE_OUT}" 2>&1
     rm hadoop-2.4.0.tar.gz
   fi
 }
@@ -57,8 +61,12 @@ download_hadoop() {
 download_zookeeper() {
   if [ ! -d zookeeper-3.4.1 ]
   then
-    wget https://archive.apache.org/dist/zookeeper/zookeeper-3.4.1/zookeeper-3.4.1.tar.gz
-    tar xf zookeeper-3.4.1.tar.gz
+    wget https://archive.apache.org/dist/zookeeper/zookeeper-3.4.1/zookeeper-3.4.1.tar.gz >> "${COMPILE_OUT}" 2>&1
+    retValue=$?
+    message="Download Zookeeper" 
+    check ${retValue} "${message}"
+
+    tar xf zookeeper-3.4.1.tar.gz >> "${COMPILE_OUT}" 2>&1
     rm zookeeper-3.4.1.tar.gz
   fi
 }
@@ -66,11 +74,19 @@ download_zookeeper() {
 build_giraph() {
   if [ ! -d Giraph_Teraheap ]
   then
-    git clone git@github.com:jackkolokasis/Giraph_TeraHeap.git
+    git clone git@github.com:jackkolokasis/Giraph_TeraHeap.git >> "${COMPILE_OUT}" 2>&1
+    
+    retValue=$?
+    message="Clone Giraph-TeraHeap" 
+    check ${retValue} "${message}"
   fi
 
   cd ./Giraph_TeraHeap/giraph || exit
   mvn -Phadoop_yarn -Dhadoop.version=2.4.0 -DskipTests -Dcheckstyle.skip clean package install >> "${COMPILE_OUT}" 2>&1
+  retValue=$?
+  message="Build Giraph-TeraHeap" 
+  check ${retValue} "${message}"
+
   cd - > /dev/null || exit
 }
 
@@ -78,6 +94,10 @@ build_ldbc_graphalytics() {
   if [ ! -d ldbc_graphalytics ]
   then
     git clone git@github.com:ldbc/ldbc_graphalytics.git >> "${COMPILE_OUT}" 2>&1
+    
+    retValue=$?
+    message="Clone LDBC Graphalytics" 
+    check ${retValue} "${message}"
   fi
 
   cd ldbc_graphalytics || exit
@@ -95,6 +115,10 @@ build_ldbc_giraph_bench() {
   if [ ! -d graphalytics-platforms-giraph ]
   then
     git clone git@github.com:jackkolokasis/graphalytics-platforms-giraph.git >> "${COMPILE_OUT}" 2>&1
+
+    retValue=$?
+    message="Clone Giraph Benchmark" 
+    check ${retValue} "${message}"
   fi
 
   cd ./graphalytics-platforms-giraph || exit
@@ -105,7 +129,7 @@ build_ldbc_giraph_bench() {
   check ${retValue} "${message}"
 
   tar xf graphalytics-1.2.0-giraph-0.2-SNAPSHOT-bin.tar.gz >> "${COMPILE_OUT}" 2>&1
-  cp -r ./scripts/config/ graphalytics-1.2.0-giraph-0.2-SNAPSHOT/
+  cp -r ../scripts/config/ graphalytics-1.2.0-giraph-0.2-SNAPSHOT/
 
   cd - > /dev/null || exit
 }
