@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+<configuration>
+
+<!-- Site specific YARN configuration properties -->
+	<property>
+		<name>yarn.nodemanager.aux-services</name>
+		<value>mapreduce_shuffle</value>
+	</property>
+
+	<property>
+		<name>yarn.nodemanager.aux-services.mapreduce_shuffle.class</name>
+		<value>org.apache.hadoop.mapred.ShuffleHandler</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.resource-tracker.address</name>
+		<value>localhost:8025</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.scheduler.address</name>
+		<value>titan:8030</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.address</name>
+		<value>titan:8050</value>
+	</property>
+
+	<property>
+		<name>yarn.nodemanager.localizer.address</name>
+		<value>${yarn.nodemanager.hostname}:8060</value>
+	</property>
+
+	<property>
+		<name>yarn.nodemanager.webapp.address</name>
+		<value>${yarn.nodemanager.hostname}:8070</value>
+	</property>
+	
+	<property>
+		<name>yarn.nodemanager.vmem-check-enabled</name>
+		<value>false</value>
+	</property>
+	
+	<property>
+		<name>yarn.log-aggregation-enable</name>
+		<value>true</value>
+	</property>
+
+	<!--
+        Amount of physical memory, in MB, that can be allocated for containers.
+        It means the amount of memory YARN can utilize on this node and
+        therefore this property should be lower than the total memory of that
+        machine.
+	-->
+	<property>
+		<name>yarn.nodemanager.resource.memory-mb</name>
+		<value>819200</value> <!-- 40 GB -->
+	</property>
+
+	<!-- 
+		RAM-per-container 
+	-->
+	<property>
+		<name>yarn.scheduler.minimum-allocation-mb</name> 
+		<value>409600</value>
+	</property>
+
+	<!-- Max RAM-per-container -->
+	<property>
+		<name>yarn.scheduler.maximum-allocation-mb</name> 
+		<value>409600</value>
+	</property>
+
+	<property>
+		<name>mapreduce.map.env</name>
+    <value>LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/kolokasis/teraheap/allocator/lib:/usr/local/lib64:/home1/public/kolokasis/hsdis/build/linux-amd64</value>
+	</property>
+
+</configuration>

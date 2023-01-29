@@ -55,6 +55,30 @@ download_hadoop() {
 
     tar xf hadoop-2.4.0.tar.gz >> "${COMPILE_OUT}" 2>&1
     rm hadoop-2.4.0.tar.gz
+
+    # Compy the configurations
+    cp ./scripts/config/hadoop/*  ./hadoop-2.4.0/etc/hadoop/
+
+    cd ./hadoop-2.4.0/etc/hadoop/ || exit
+
+    command="    <value>hdfs://${HADOOP_SLAVE}:9000</value>"
+    sed '/hdfs:/c\'"${command}" core-site.xml
+
+    command="    <value>${HDFS_DIR}/hadoop</value>"
+    sed '/<value>\/mnt\/datasets\/hadoop/c\'"${command}" core-site.xml
+
+    command="\t\t<value>${HADOOP_SLAVE}:8030</value>"
+    sed '/<value>titan:8030/c\'"${command}" yarn-site.xml
+    
+    command="\t\t<value>${HADOOP_SLAVE}:8050</value>"
+    sed '/<value>titan:8050/c\'"${command}" yarn-site.xml
+
+    command="\t\t<value>LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${TERAHEAP_DIR}/allocator/lib:/usr/local/lib64</value>"
+    sed '/<value>LD_LIBRARY_PATH/c\'"${command}" yarn-site.xml
+
+    echo "${HADOOP_SLAVE}" > slaves
+
+    cd - > /dev/null || exit
   fi
 }
 
@@ -68,6 +92,16 @@ download_zookeeper() {
 
     tar xf zookeeper-3.4.1.tar.gz >> "${COMPILE_OUT}" 2>&1
     rm zookeeper-3.4.1.tar.gz
+
+    # Compy the configurations
+    cp ./scripts/config/zookeeper/*  ./zookeeper-3.4.1/conf/
+
+    cd ./zookeeper-3.4.1/conf/ || exit
+    
+    command="dataDir=${ZK_SNAPSHOT_DIR}"
+    sed '/dataDir=/c\'"${command}" zoo.cfg
+
+    cd - > /dev/null || exit
   fi
 }
 
@@ -129,7 +163,7 @@ build_ldbc_giraph_bench() {
   check ${retValue} "${message}"
 
   tar xf graphalytics-1.2.0-giraph-0.2-SNAPSHOT-bin.tar.gz >> "${COMPILE_OUT}" 2>&1
-  cp -r ../scripts/config/ graphalytics-1.2.0-giraph-0.2-SNAPSHOT/
+  cp -r ../scripts/config/graphalytics/config/ graphalytics-1.2.0-giraph-0.2-SNAPSHOT/
 
   cd - > /dev/null || exit
 }
