@@ -123,7 +123,7 @@ build_ldbc_giraph_bench() {
 
   cd ./graphalytics-platforms-giraph || exit
 
-  mvn -DskipTests clean package
+  mvn -DskipTests clean package >> "${COMPILE_OUT}" 2>&1
   retValue=$?
   message="Build Giraph Benchmark" 
   check ${retValue} "${message}"
