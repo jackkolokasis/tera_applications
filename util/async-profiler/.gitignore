@@ -1,7 +1,0 @@
-/build/
-/nbproject/
-/out/
-/.idea/
-/test/*.class
-.vscode
-*.iml
