@@ -12,6 +12,8 @@
 #
 ###################################################
 
+set -x
+
 . ./conf.sh
 
 #### Global Variables ####
@@ -42,8 +44,15 @@ usage() {
 build_async_profiler() {
   export JAVA_HOME=${MY_JAVA_HOME}
 
-  cd ../../util/async-profiler/ || exit
-  make >> "${BENCH_LOG}" 2>&1 
+  cd ../../util/ || exit
+
+  if [ ! -d async-profiler ]
+  then
+    wget https://github.com/async-profiler/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-x64.tar.gz >> "${BENCH_LOG}" 2>&1 
+    tar xf async-profiler-2.9-linux-x64.tar.gz >> "${BENCH_LOG}" 2>&1 
+    mv async-profiler-2.9-linux-x64 async-profiler
+  fi
+
   cd - > /dev/null || exit
 }
 
