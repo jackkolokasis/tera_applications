@@ -64,9 +64,18 @@ build_spark() {
   cd "${SPARK_DIR}" || exit
   # Do not use parallel compilation. Spark3.3.0 freeze during
   # compilation. 
-  ./build/mvn -DskipTests package >> "${COMPILE_OUT}" 2>&1
+  ./build/mvn -DskipTests clean package >> "${COMPILE_OUT}" 2>&1
   retValue=$?
   message="Build Spark" 
+  check ${retValue} "${message}"
+  cd - > /dev/null || exit
+}
+
+install_spark() {
+  cd "${SPARK_DIR}" || exit
+  ./build/mvn -DskipTests clean install >> "${COMPILE_OUT}" 2>&1
+  retValue=$?
+  message="Install Spark" 
   check ${retValue} "${message}"
   cd - > /dev/null || exit
 }
@@ -113,7 +122,7 @@ clean_all() {
 }
 
 # Check for the input arguments
-while getopts "asbch" opt
+while getopts "asbich" opt
 do
 
   echo "-----------------------------------"
@@ -135,6 +144,10 @@ do
     b)
       benchmark_dependencies
       build_benchmarks
+      ;;
+    i)
+      prepare_certificates
+      install_spark
       ;;
     c)
       clean_all
