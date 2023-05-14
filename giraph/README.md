@@ -33,6 +33,23 @@ benchmark.runner.max-memory = 10g
 ./build -b
 ```
 
+3. Export in your .bashrc the following variables
+```sh
+#### Hadoop
+export HADOOP_HOME=/<path tot tera_applications>/tera_applications/giraph/hadoop-2.4.0
+export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
+export HADOOP_OPTS="-Djava.library.path=$HADOOP_HOME/lib -Djava.library.path=$HADOOP_HOME/lib/native"
+export HADOOP_OPTS="-Djava.library.path=$LD_LIBRARY_PATH"
+export HADOOP_PREFIX=/<path tot tera_applications>/tera_applications/giraph/hadoop-2.4.0
+export PATH=$HADOOP_PREFIX/bin:$PATH
+export PATH=$HADOOP_PREFIX/sbin:$PATH
+export HADOOP_MAPRED_HOME=${HADOOP_PREFIX}
+export HADOOP_COMMON_HOME=${HADOOP_PREFIX}
+export HADOOP_HDFS_HOME=${HADOOP_PREFIX}
+export YARN_HOME=${HADOOP_PREFIX}
+export JAVA_HOME=/<path to teraheap repo>/teraheap/jdk8u345/build/linux-x86_64-normal-server-release/jdk
+```
+
 ### Run Benchmarks
 To run the benchmarks please read the README file in ./scripts
 directory

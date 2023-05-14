@@ -50,6 +50,26 @@ check () {
 }
 
 ##
+# Description:
+#   Create a cgroup
+setup_cgroup() {
+	# Change user/group IDs to your own
+	sudo cgcreate -a kolokasis:carvsudo -t kolokasis:carvsudo -g memory:memlim
+	cgset -r memory.limit_in_bytes="$MEM_BUDGET" memlim
+}
+
+##
+# Description:
+#   Delete a cgroup
+delete_cgroup() {
+	sudo cgdelete memory:memlim
+}
+
+run_cgexec() {
+  cgexec -g memory:memlim --sticky /opt/carvguest/asplos23_ae/tera_applications/giraph/scripts/run_cgexec.sh "$@"
+}
+
+##
 # Description: 
 #   Start Hadoop, Yarn, and Zookeeper
 #
@@ -68,13 +88,13 @@ start_hadoop_yarn_zkeeper() {
 		jvm_opts+="-XX:-UseParallelOldGC -XX:ParallelGCThreads=${GC_THREADS} -XX:+EnableTeraHeap "
 		jvm_opts+="-XX:TeraHeapSize=${tc_size} -Xmx900g -Xms${HEAP}g "
 		jvm_opts+="-XX:-UseCompressedOops " 
-		jvm_opts+="-XX:-UseCompressedClassPointers -XX:+TeraHeapStatistics "
+		jvm_opts+="-XX:-UseCompressedClassPointers -XX:+TeraHeapStatistics -XX:+TeraHeapCardStatistics "
 		jvm_opts+="-Xlogth:${BENCHMARK_SUITE//'/'/\\/}\/report\/teraHeap.txt "
 		jvm_opts+="-XX:TeraStripeSize=${STRIPE_SIZE} -XX:+ShowMessageBoxOnError<\/value>"
 	else
-		jvm_opts="\t\t<value>-Xms${HEAP}g -Xmx${HEAP}g -XX:-ClassUnloading -XX:+UseParallelGC "
+		jvm_opts="\t\t<value>-Xmx${HEAP}g -XX:-ClassUnloading -XX:+UseParallelGC "
 		jvm_opts+="-XX:-UseParallelOldGC -XX:ParallelGCThreads=${GC_THREADS} -XX:-ResizeTLAB "
-		jvm_opts+="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers "
+		jvm_opts+="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers <\/value>"
 		#jvm_opts+="-XX:+TimeBreakDown -Xlogtime:${BENCHMARK_SUITE//'/'/\\/}\/report\/teraCache.txt<\/value>"
 	fi
 
@@ -85,18 +105,18 @@ start_hadoop_yarn_zkeeper() {
 	check ${retValue} "${message}"
 
 	# Format Hadoop
-	"${HADOOP}"/bin/hdfs namenode -format >> "$LOG" 2>&1
+	run_cgexec "${HADOOP}"/bin/hdfs namenode -format >> "$LOG" 2>&1
 	retValue=$?
 	message="Format Hadoop" 
 	check ${retValue} "${message}"
 
 	# Start hadoop, yarn, and zookeeper
-	"${HADOOP}"/sbin/start-dfs.sh >> "$LOG" 2>&1
+	run_cgexec "${HADOOP}"/sbin/start-dfs.sh >> "$LOG" 2>&1
 	retValue=$?
 	message="Start HDFS" 
 	check ${retValue} "${message}"
 
-	"${HADOOP}"/sbin/start-yarn.sh >> "$LOG" 2>&1
+	run_cgexec "${HADOOP}"/sbin/start-yarn.sh >> "$LOG" 2>&1
 	retValue=$?
 	message="Start Yarn" 
 	check ${retValue} "${message}"
@@ -105,6 +125,27 @@ start_hadoop_yarn_zkeeper() {
 	retValue=$?
 	message="Start Zookeeper" 
 	check ${retValue} "${message}"
+  
+}
+
+##
+# Description:
+#   Clear files
+##
+clear_files() {
+	rm -rf "${DATASET_DIR}/hadoop"
+  rm -rf "${TH_DIR}/file.txt"
+  rm -rf "${ZOOKEEPER_DIR}/version-2"
+  rm -rf "${ZOOKEEPER_DIR}/zookeeper_server.pid"
+}
+
+##
+# Description:
+#   Cretea necessary files
+##
+create_files() {
+  mkdir -p "${DATASET_DIR}/hadoop"
+  fallocate -l ${TH_FILE_SZ}G ${TH_DIR}/file.txt
 }
 
 ##
@@ -112,24 +153,23 @@ start_hadoop_yarn_zkeeper() {
 #   Stop Hadoop, Yarn, and Zookeeper
 ##
 stop_hadoop_yarn_zkeeper() {
-	"${ZOOKEEPER}"/bin/zkServer.sh stop >> "$LOG" 2>&1
+	run_cgexec "${ZOOKEEPER}"/bin/zkServer.sh stop >> "$LOG" 1>&1
 	retValue=$?
 	message="Stop Zookeeper" 
 	check ${retValue} "${message}"
 	
-	"${HADOOP}"/sbin/stop-yarn.sh >> "$LOG" 2>&1
+	run_cgexec "${HADOOP}"/sbin/stop-yarn.sh >> "$LOG" 2>&1
 	retValue=$?
 	message="Stop Yarn" 
 	check ${retValue} "${message}"
 
-	"${HADOOP}"/sbin/stop-dfs.sh >> "$LOG" 2>&1
+	run_cgexec "${HADOOP}"/sbin/stop-dfs.sh >> "$LOG" 2>&1
 	retValue=$?
 	message="Stop HDFS" 
 	check ${retValue} "${message}"
 
-	rm -rf ${DATASET_DIR}/hadoop
-  rm -rf ${TH_DIR}/file.txt
-  fallocate -l ${TH_FILE_SZ}G ${TH_DIR}/file.txt
+  # Kill all the processes in the cgroup. In case the group 
+  xargs -a /sys/fs/cgroup/memory/memlim/cgroup.procs kill
 }
 
 ##
@@ -216,16 +256,49 @@ update_conf() {
 	local heap_size=$(( HEAP * 1024 ))
 	local is_ser=$2
 	local check
+  local command
+
+  # Set dataset
+  command="benchmark.custom.graphs = ${DATASET}"
+  sed -i 's/benchmark\.custom\.graphs.*/'"${command}"'/' \
+    "${BENCHMARK_CONFIG}"/benchmarks/custom.properties 
 
 	# Set benchmark
 	sed -i '/benchmark.custom.algorithms/c\benchmark.custom.algorithms = '"$bench" \
 		"${BENCHMARK_CONFIG}"/benchmarks/custom.properties 
-	
+
+  # Set benchmark properties
+  command="graphs.root-directory = ${DATASET_DIR}/graphalytics/graphs"
+  sed -i '/graphs\.root-directory.*/c\'"${command}" \
+    "${BENCHMARK_CONFIG}"/benchmarks/benchmark.properties 
+
+  command="graphs.validation-directory = ${DATASET_DIR}/graphalytics/validation"
+  sed -i '/graphs\.validation-directory.*/c\'"${command}" \
+    "${BENCHMARK_CONFIG}"/benchmarks/benchmark.properties 
+  
+  command="graphs.output-directory = ${DATASET_DIR}/graphalytics/output"
+  sed -i '/graphs\.output-directory.*/c\'"${command}" \
+    "${BENCHMARK_CONFIG}"/benchmarks/benchmark.properties 
+
+  # Set address of ZooKeeper deployment (required)
+  command="platform.giraph.zoo-keeper-address: ${HOSTNAME}:2181"
+  sed -i '/platform.giraph.zoo-keeper-address/c\'"${command}" \
+    "${BENCHMARK_CONFIG}"/platform.properties
+
 	# Set heap size
 	sed -i '/memory-size/c\platform.giraph.job.memory-size: '"${heap_size}" \
 		"${BENCHMARK_CONFIG}"/platform.properties
 	sed -i '/heap-size/c\platform.giraph.job.heap-size: '"${heap_size}" \
 		"${BENCHMARK_CONFIG}"/platform.properties
+
+  # Set worker cores
+	sed -i '/worker-cores/c\platform.giraph.job.worker-cores: '"${COMPUTE_THREADS}" \
+		"${BENCHMARK_CONFIG}"/platform.properties
+
+  # Set hadoop home
+  command="platform.hadoop.home: ${TERA_APPS_REPO}/giraph/hadoop-2.4.0"
+  sed -i '/platform.hadoop.home/c\'"${command}" \
+    "${BENCHMARK_CONFIG}"/platform.properties
 
 	# Set number of compute threads
 	sed -i '/numComputeThreads/c\platform.giraph.options.numComputeThreads: '"${COMPUTE_THREADS}" \
@@ -518,7 +591,7 @@ do
 			mkdir -p "${OUT}/${benchmark}/conf${i}/run${j}"
 			RUN_DIR="${OUT}/${benchmark}/conf${i}/run${j}"
 
-			stop_hadoop_yarn_zkeeper
+      setup_cgroup
 
 			# Prepare devices for Zookeeper and TeraCache accordingly
 			###if [ $SERDES ]
@@ -528,10 +601,11 @@ do
 			###	./dev_setup.sh -t
 			###fi
 
+      clear_files
+      create_files
+
 			start_hadoop_yarn_zkeeper ${SERDES}
-
-			#create_ramdisk "${j}" 
-
+			
 			update_conf "${benchmark}" ${SERDES}
 
 			if [ -z "$JIT" ]
@@ -567,7 +641,7 @@ do
 
 			# Run benchmark and save output to tmp_out.txt
 			#./bin/sh/run-benchmark.sh >> "${LOG}" 2>&1
-			./bin/sh/run-benchmark.sh 
+			run_cgexec ./bin/sh/run-benchmark.sh 
 
 			cd - > /dev/null || exit
 				
@@ -589,7 +663,7 @@ do
 
 			cp -r "$BENCHMARK_SUITE"/report/*-*-*-report-*/log/benchmark-summary.log "${RUN_DIR}/"
 			cp -r "$BENCHMARK_SUITE"/report/bench.log "${RUN_DIR}/"
-			cp -r "$BENCHMARK_SUITE"/report/teraCache.txt "${RUN_DIR}/"
+			cp -r "$BENCHMARK_SUITE"/report/teraHeap.txt "${RUN_DIR}/"
 
 			rm -rf "${BENCHMARK_SUITE}"/report/*
 
@@ -599,6 +673,12 @@ do
 			else
 				./parse_results.sh -d "${RUN_DIR}" >> "${LOG}" 2>&1
 			fi
+
+			stop_hadoop_yarn_zkeeper
+
+      clear_files
+
+      delete_cgroup
 		done
 
 		if [ $ITER -ge 3 ]
