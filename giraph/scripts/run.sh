@@ -12,8 +12,6 @@
 #
 ###################################################
 
-set -x
-
 . ./conf.sh
 # Print error/usage script message
 usage() {
@@ -270,15 +268,15 @@ update_conf() {
   # Set benchmark properties
   command="graphs.root-directory = ${DATASET_DIR}/graphalytics/graphs"
   sed -i '/graphs\.root-directory.*/c\'"${command}" \
-    "${BENCHMARK_CONFIG}"/benchmarks/benchmark.properties 
+    "${BENCHMARK_CONFIG}"/benchmark.properties 
 
   command="graphs.validation-directory = ${DATASET_DIR}/graphalytics/validation"
   sed -i '/graphs\.validation-directory.*/c\'"${command}" \
-    "${BENCHMARK_CONFIG}"/benchmarks/benchmark.properties 
+    "${BENCHMARK_CONFIG}"/benchmark.properties 
   
   command="graphs.output-directory = ${DATASET_DIR}/graphalytics/output"
   sed -i '/graphs\.output-directory.*/c\'"${command}" \
-    "${BENCHMARK_CONFIG}"/benchmarks/benchmark.properties 
+    "${BENCHMARK_CONFIG}"/benchmark.properties 
 
   # Set address of ZooKeeper deployment (required)
   command="platform.giraph.zoo-keeper-address: ${HOSTNAME}:2181"
@@ -296,7 +294,7 @@ update_conf() {
 		"${BENCHMARK_CONFIG}"/platform.properties
 
   # Set hadoop home
-  command="platform.hadoop.home: ${TERA_APPS_REPO}/giraph/hadoop-2.4.0"
+  command="platform.hadoop.home: ${HADOOP}"
   sed -i '/platform.hadoop.home/c\'"${command}" \
     "${BENCHMARK_CONFIG}"/platform.properties
 
@@ -641,7 +639,7 @@ do
 
 			# Run benchmark and save output to tmp_out.txt
 			#./bin/sh/run-benchmark.sh >> "${LOG}" 2>&1
-			run_cgexec ./bin/sh/run-benchmark.sh 
+			run_cgexec ./bin/sh/run-benchmark.sh >> "${LOG}" 2>&1
 
 			cd - > /dev/null || exit
 				
