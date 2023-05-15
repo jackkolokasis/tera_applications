@@ -86,8 +86,7 @@ start_hadoop_yarn_zkeeper() {
 		jvm_opts+="-XX:-UseParallelOldGC -XX:ParallelGCThreads=${GC_THREADS} -XX:+EnableTeraHeap "
 		jvm_opts+="-XX:TeraHeapSize=${tc_size} -Xmx900g -Xms${HEAP}g "
 		jvm_opts+="-XX:-UseCompressedOops " 
-		jvm_opts+="-XX:-UseCompressedClassPointers -XX:+TeraHeapStatistics -XX:+TeraHeapCardStatistics "
-		jvm_opts+="-Xlogth:${BENCHMARK_SUITE//'/'/\\/}\/report\/teraHeap.txt "
+		jvm_opts+="-XX:-UseCompressedClassPointers "
 		jvm_opts+="-XX:TeraStripeSize=${STRIPE_SIZE} -XX:+ShowMessageBoxOnError<\/value>"
 	else
 		jvm_opts="\t\t<value>-Xmx${HEAP}g -XX:-ClassUnloading -XX:+UseParallelGC "
@@ -119,7 +118,8 @@ start_hadoop_yarn_zkeeper() {
 	message="Start Yarn" 
 	check ${retValue} "${message}"
 
-	SERVER_JVMFLAGS="-Xmx4g" "${ZOOKEEPER}"/bin/zkServer.sh start >> "$LOG" 2>&1
+	export SERVER_JVMFLAGS="-Xmx4g" 
+  run_cgexec "${ZOOKEEPER}"/bin/zkServer.sh start >> "$LOG" 2>&1
 	retValue=$?
 	message="Start Zookeeper" 
 	check ${retValue} "${message}"
@@ -589,6 +589,9 @@ do
 			mkdir -p "${OUT}/${benchmark}/conf${i}/run${j}"
 			RUN_DIR="${OUT}/${benchmark}/conf${i}/run${j}"
 
+			# Drop caches
+			sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches >> "${LOG}" 2>&1
+
       setup_cgroup
 
 			# Prepare devices for Zookeeper and TeraCache accordingly
@@ -628,9 +631,6 @@ do
 			then
 				./profiler.sh "${RUN_DIR}"/profile.svg "${EXECUTORS}" &
 			fi
-
-			# Drop caches
-			sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches >> "${LOG}" 2>&1
 
       # System statistics start
       ./system_util/start_statistics.sh -d "${RUN_DIR}"
