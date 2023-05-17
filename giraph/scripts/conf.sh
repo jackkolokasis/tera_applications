@@ -22,7 +22,7 @@ DEV_TH=nvme1n1
 # TeraHeap file size in GB e.g. 900 -> 900GB
 TH_FILE_SZ=450
 # Heap size for executors '-Xms'
-HEAP=35
+HEAP=50
 # Garbage collection threads
 GC_THREADS=16
 # Number of compute threads
@@ -31,11 +31,11 @@ COMPUTE_THREADS=8
 DATASET="datagen-9_0-fb" 
 # Benchmarks to run
 #BENCHMARKS=( "pr" "bfs" "wcc" "cdlp" "sssp" )
-BENCHMARKS=( "bfs" )
+BENCHMARKS=( "sssp" )
 # Number of executors
 EXECUTORS=1
 # cgset accepts K,M,G and eiB, MiB, GiB units for memory limit
-MEM_BUDGET=65G
+MEM_BUDGET=90G
 # Total Configurations
 TOTAL_CONFS=1
 # Card segment size for H2
@@ -44,3 +44,9 @@ CARD_SIZE=$((8 * 1024))
 REGION_SIZE=$((32 * 1024 * 1024))
 # Stripe size for H2
 STRIPE_SIZE=$((REGION_SIZE / CARD_SIZE ))
+# Print TeraHeap statistics for cards. When this flag is enabled the
+# PRINT_EXTENDED_STATS should be disabled
+PRINT_STATS=false
+# Print TeraHeap extended statistics includeing dirty cards. When this
+# flag is enabled the PRINT_STATS should be disabled
+PRINT_EXTENDED_STATS=true

@@ -87,6 +87,15 @@ start_hadoop_yarn_zkeeper() {
 		jvm_opts+="-XX:TeraHeapSize=${tc_size} -Xmx900g -Xms${HEAP}g "
 		jvm_opts+="-XX:-UseCompressedOops " 
 		jvm_opts+="-XX:-UseCompressedClassPointers "
+    if [ "${PRINT_STATS}" == "true" ]
+    then
+      jvm_opts+="-XX:+TeraHeapStatistics "
+      jvm_opts+="-Xlogth:${BENCHMARK_SUITE//'/'/\\/}\/report\/teraHeap.txt "
+    elif [ "${PRINT_EXTENDED_STATS}" == "true" ]
+    then
+      jvm_opts+="-XX:+TeraHeapStatistics -XX:+TeraHeapCardStatistics "
+      jvm_opts+="-Xlogth:${BENCHMARK_SUITE//'/'/\\/}\/report\/teraHeap.txt "
+    fi
 		jvm_opts+="-XX:TeraStripeSize=${STRIPE_SIZE} -XX:+ShowMessageBoxOnError<\/value>"
 	else
 		jvm_opts="\t\t<value>-Xmx${HEAP}g -XX:-ClassUnloading -XX:+UseParallelGC "
