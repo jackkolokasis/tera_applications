@@ -54,6 +54,18 @@ setup_cgroup() {
 	# Change user/group IDs to your own
 	sudo cgcreate -a kolokasis:carvsudo -t kolokasis:carvsudo -g memory:memlim
 	cgset -r memory.limit_in_bytes="$MEM_BUDGET" memlim
+
+  # Add the proper exports in the script that we use to execute
+  # processes under cgroups
+  sed -i '2i\
+  export JAVA_HOME='${JAVA_PATH}'\
+  export LIBRARY_PATH='${TERAHEAP_REPO}'/allocator/lib:$LIBRARY_PATH\
+  export LD_LIBRARY_PATH='${TERAHEAP_REPO}'/allocator/lib:$LD_LIBRARY_PATH\
+  export PATH='${TERAHEAP_REPO}'/allocator/include/:$PATH\
+  export LIBRARY_PATH='${TERAHEAP_REPO}'/tera_malloc/lib:$LIBRARY_PATH\
+  export LD_LIBRARY_PATH='${TERAHEAP_REPO}'/tera_malloc/lib:$LD_LIBRARY_PATH\
+  export PATH='${TERAHEAP_REPO}'/tera_malloc/include/:$PATH
+  ' ./run_cgexec.sh
 }
 
 ##
@@ -61,6 +73,7 @@ setup_cgroup() {
 #   Delete a cgroup
 delete_cgroup() {
 	sudo cgdelete memory:memlim
+  sed -i '/export/d' ./run_cgexec.sh
 }
 
 run_cgexec() {
@@ -83,7 +96,7 @@ start_hadoop_yarn_zkeeper() {
 		local tc_size=$(( (900 - HEAP) * 1024 * 1024 * 1024 ))
 
 		jvm_opts="\t\t<value>-XX:-ClassUnloading -XX:+UseParallelGC "
-		jvm_opts+="-XX:-UseParallelOldGC -XX:ParallelGCThreads=${GC_THREADS} -XX:+EnableTeraHeap "
+		jvm_opts+="-XX:-UseParallelOldGC -XX:ParallelGCThreads=${GC_THREADS} -XX:+EnableTeraHeap -XX:+DynamicHeapResizing "
 		jvm_opts+="-XX:TeraHeapSize=${tc_size} -Xmx900g -Xms${HEAP}g "
 		jvm_opts+="-XX:-UseCompressedOops " 
 		jvm_opts+="-XX:-UseCompressedClassPointers "
