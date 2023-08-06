@@ -18,13 +18,13 @@
 // scalastyle:off println
 package org.apache.spark.examples.mllib
 
-import org.apache.log4j.{Level, Logger}
+import org.apache.logging.log4j.Level
+import org.apache.logging.log4j.core.config.Configurator
 import scopt.OptionParser
 
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.mllib.classification.NaiveBayes
 import org.apache.spark.mllib.util.MLUtils
-
 import org.apache.spark.storage.StorageLevel
 
 /**
@@ -77,7 +77,7 @@ object SparseNaiveBayes {
     val conf = new SparkConf().setAppName(s"SparseNaiveBayes with $params")
     val sc = new SparkContext(conf)
 
-    Logger.getRootLogger.setLevel(Level.WARN)
+    Configurator.setRootLevel(Level.WARN)
 
     val minPartitions =
       if (params.minPartitions > 0) params.minPartitions else sc.defaultMinPartitions
@@ -85,12 +85,15 @@ object SparseNaiveBayes {
     val examples =
       MLUtils.loadLibSVMFile(sc, params.input, params.numFeatures, minPartitions)
     // Cache examples because it will be used in both training and evaluation.
-    if (params.sLevel == "MEMORY_ONLY")
+    if (params.sLevel == "MEMORY_ONLY") {
       examples.persist(StorageLevel.MEMORY_ONLY)
-    else if (params.sLevel == "DISK_ONLY")
+    }
+    else if (params.sLevel == "DISK_ONLY") {
       examples.persist(StorageLevel.DISK_ONLY)
-    else
+    }
+    else {
       examples.persist(StorageLevel.MEMORY_AND_DISK)
+    }
 
     val splits = examples.randomSplit(Array(0.8, 0.2))
     val training = splits(0)

@@ -63,6 +63,7 @@ setup_cgroup() {
 	# Change user/group IDs to your own
 	sudo cgcreate -a kolokasis:carvsudo -t kolokasis:carvsudo -g memory:memlim
 	cgset -r memory.limit_in_bytes="$MEM_BUDGET" memlim
+  #sudo cgset -r memory.numa_stat=0 memlim
 }
 
 ##
@@ -232,6 +233,11 @@ gen_config_files() {
   mkdir -p "${SPARK_DIR}"/logs
 }
 
+##
+# Function to kill the watch process
+kill_watch() {
+  pkill -f "watch -n 1"
+}
 
 # Check for the input arguments
 while getopts ":n:o:ktspjfbh" opt
@@ -330,6 +336,9 @@ do
         ./jstat.sh "${RUN_DIR}"/jstat "${NUM_EXECUTORS}" 1 &
       fi
 
+      # Monitor memory
+      ./mem_usage.sh "${RUN_DIR}"/mem_usage.txt "${NUM_EXECUTORS}" &
+
       if [ $PERF_TOOL ]
       then
         # Count total cache references, misses and pagefaults
@@ -369,6 +378,9 @@ do
         run_cgexec "${SPARK_BENCH_DIR}"/"${benchmark}"/bin/run.sh > "${RUN_DIR}"/tmp_out.txt 2>&1
         #"${SPARK_BENCH_DIR}"/"${benchmark}"/bin/run.sh > "${RUN_DIR}"/tmp_out.txt 2>&1
       fi
+
+      # Kil watch process
+      kill_watch
 
       if [[ ${DEV_FMAP} == *pmem* ]]
       then

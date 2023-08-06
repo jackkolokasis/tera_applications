@@ -15,8 +15,9 @@
 # Dataset size "small" and "large"
 DATA_SIZE=large
 # JAVA Home
-# MY_JAVA_HOME=/usr/java/jdk-17.0.4.1/
-MY_JAVA_HOME="/usr/lib/jvm/java-8-kolokasis/jdk8u-jdk8u345-b01/build/linux-x86_64-normal-server-release/jdk"
+MY_JAVA_HOME="/spare/kolokasis/dev/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk"
+#MY_JAVA_HOME="/opt/carvguest/asplos23_ae/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk"
+#MY_JAVA_HOME="/spare/kolokasis/nativeJVM/jdk17u/build/linux-x86_64-server-release/jdk"
 # Directory that contains datasets
 DATA_HDFS="file:///mnt/datasets/SparkBench"
 # Spark Version
@@ -24,7 +25,7 @@ SPARK_VERSION=3.3.0
 # Number of partitions
 NUM_OF_PARTITIONS=256
 # Benchmark repo
-BENCH_DIR=/opt/kolokasis/tera_applications
+BENCH_DIR=/opt/carvguest/asplos23_ae/tera_applications
 # Spark directory
 SPARK_DIR=${BENCH_DIR}/spark/spark-${SPARK_VERSION}
 # Spark master log dir
@@ -36,9 +37,9 @@ SPARK_MASTER=sith4-fast
 # Spark slave host name
 SPARK_SLAVE=sith4-fast
 # Number of garbage collection threads
-GC_THREADS=16
+GC_THREADS=8
 # Device for shuffle
-DEV_SHFL=nvme0n1
+DEV_SHFL=md1
 # Mount point for shuffle directory
 MNT_SHFL=/mnt/spark
 # Device for H2
@@ -60,17 +61,17 @@ SPARK_BENCH_DIR=${BENCH_DIR}/spark/spark-bench
 #Benchmark log
 BENCH_LOG=${BENCH_DIR}/spark/scripts/log.out
 # Heap size for executors '-Xms' is in GB e.g., 54 -> 54GB
-H1_SIZE=( 84 )
-# cgset accepts K,M,G and KiB, MiB, GiB units for memory limit
-MEM_BUDGET=100G
+H1_SIZE=(38)
+# cgset accepts K,M,G and eiB, MiB, GiB units for memory limit
+MEM_BUDGET=54G
 # Spark memory fraction: 'spark.memory.storagefraction'
-MEM_FRACTION=( 0.5 )
+MEM_FRACTION=( 0.9 )
 # Storage Level
-S_LEVEL=( "MEMORY_AND_DISK" )
+S_LEVEL=( "MEMORY_ONLY" )
 # TeraCache configuration size in Spark: 'spark.teracache.heap.size'
 H1_H2_SIZE=( 1200 )
 # Running benchmarks
-BENCHMARKS=( "ShortestPaths" )
+BENCHMARKS=( "LinearRegression" )
 # Number of executors
 NUM_EXECUTORS=( 1 )
 # Total Configurations

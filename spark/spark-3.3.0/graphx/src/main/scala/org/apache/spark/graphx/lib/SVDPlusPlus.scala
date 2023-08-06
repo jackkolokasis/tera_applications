@@ -22,6 +22,7 @@ import scala.util.Random
 import org.apache.spark.graphx._
 import org.apache.spark.ml.linalg.BLAS
 import org.apache.spark.rdd._
+import org.apache.spark.storage.StorageLevel
 
 /** Implementation of SVD++ algorithm. */
 object SVDPlusPlus {
@@ -75,7 +76,7 @@ object SVDPlusPlus {
     val u = rs / rc
 
     // construct graph
-    var g = Graph.fromEdges(edges, defaultF(conf.rank)).cache()
+    var g = Graph.fromEdges(edges, defaultF(conf.rank), StorageLevel.MEMORY_AND_DISK, StorageLevel.MEMORY_AND_DISK).cache()
     materialize(g)
     edges.unpersist()
 
