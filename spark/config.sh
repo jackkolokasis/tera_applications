@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-TERAHEAP_REPO="/home1/public/kolokasis/jdk8u/teracache"
+TERAHEAP_REPO="/opt/carvguest/asplos23_ae/teraheap"
 
 # Export Allocator
 export LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib:$LIBRARY_PATH
@@ -12,7 +12,7 @@ export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:$CPLUS_INCLUDE_PAT
 # Set JAVA_HOME to use TeraHeap JVM
 export JAVA_HOME="${TERAHEAP_REPO}/jdk8u345/build/linux-x86_64-normal-server-release/jdk"
 # Set up the path of TeraHeap applications
-TERA_APPS_REPO="/opt/kolokasis/tera_applications"
+TERA_APPS_REPO="/opt/carvguest/asplos23_ae/tera_applications"
 SPARK_VERSION="spark-3.3.0"
 #
 ########################################

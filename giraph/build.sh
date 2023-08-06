@@ -129,7 +129,7 @@ download_zookeeper() {
 }
 
 build_giraph() {
-  if [ ! -d Giraph_Teraheap ]
+  if [ ! -d Giraph_TeraHeap ]
   then
     git clone git@github.com:jackkolokasis/Giraph_TeraHeap.git >> "${COMPILE_OUT}" 2>&1
     
@@ -205,6 +205,7 @@ do
       ;;
     b)
       prepare_certificates
+      build_giraph
       build_ldbc_graphalytics
       build_ldbc_giraph_bench
       ;;

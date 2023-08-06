@@ -72,7 +72,7 @@ setup_cgroup() {
 # Description:
 #   Delete a cgroup
 delete_cgroup() {
-	sudo cgdelete memory:memlim
+	sudo cgdelete memory:memlim 
   sed -i '/export/d' ./run_cgexec.sh
 }
 
@@ -404,6 +404,12 @@ create_ramdisk() {
 }
 
 ##
+# Function to kill the watch process
+kill_watch() {
+  pkill -f "watch -n 1" >> "${LOG}" 2>&1
+}
+
+##
 # Description: 
 #   Console Message
 #
@@ -639,6 +645,9 @@ do
 				# Collect statics for garbage collector and JIT
 				./jstat.sh "${RUN_DIR}" "${EXECUTORS}" 1 &
 			fi
+
+      # Monitor memory
+      ./mem_usage.sh "${RUN_DIR}"/mem_usage.txt "${EXECUTORS}" &
 			
 			if [ $PERF_TOOL ]
 			then
@@ -664,6 +673,9 @@ do
 			run_cgexec ./bin/sh/run-benchmark.sh >> "${LOG}" 2>&1
 
 			cd - > /dev/null || exit
+
+      # Kil watch process
+      kill_watch
 				
 			if [ $PERF_TOOL ]
 			then
@@ -693,6 +705,26 @@ do
 			else
 				./parse_results.sh -d "${RUN_DIR}" >> "${LOG}" 2>&1
 			fi
+
+      # Plot the used memory and the buffer cache across the execution
+      ./mem_usage.py -i "${RUN_DIR}"/mem_usage.txt \
+        -o "${RUN_DIR}"/plots/mem_usage.png >> "${LOG}" 2>&1
+
+      # The logs of the state machine are in the teraheap.txt
+      if [ "$TH" ] && [ -f "${RUN_DIR}"/teraHeap.txt ]
+      then
+        if grep -q "STATE =" "${RUN_DIR}"/teraHeap.txt
+        then
+          grep "STATE =" teraHeap.txt | awk '{print $1,$4}' | awk 'BEGIN {FS="[: ]"; OFS=" "}
+          {
+            gsub(",", ".", $1)
+            print $1","$3
+          }' >> "${RUN_DIR}"/state_machine.csv
+
+          ./state_machine.py -i "${RUN_DIR}"/state_machine.csv \
+            -o "${RUN_DIR}"/plots/state_machine.png >> "${LOG}" 2>&1
+        fi
+      fi
 
 			stop_hadoop_yarn_zkeeper
 
