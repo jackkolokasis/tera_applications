@@ -47,25 +47,29 @@ usage() {
 destroy_th() {
 	if [ "$1" ]
 	then
-		sudo umount "${MNT_SHFL}"
+		#sudo umount "${MNT_SHFL}"
+		umount "${MNT_SHFL}"
 		# Check if the command executed succesfully
 		retValue=$?
 		message="Unmount ${DEVICES[1]}" 
 		check ${retValue} "${message}"
 
-		rm -rf "${MNT_FMAP}"/file.txt
+		#rm -rf "${MNT_FMAP}"/file.txt
+		rm -rf "${MNT_H2}"/teraheap_h2_mmap_file.txt
 		# Check if the command executed succesfully
 		retValue=$?
 		message="Remove TeraHeap H2 backed-file" 
 		check ${retValue} "${message}"
 	else
-		rm -rf "${MNT_SHFL}"/file.txt
+		#rm -rf "${MNT_SHFL}"/file.txt
+		rm -rf "${MNT_SHFL}"/teraheap_h2_mmap_file.txt
 		# Check if the command executed succesfully
 		retValue=$?
 		message="Remove TeraHeap H2 backed-file" 
 		check ${retValue} "${message}"
 		
-		sudo umount /mnt/spark
+		#sudo umount /mnt/spark
+		umount /spare/perpap/spark
 		# Check if the command executed succesfully
 		retValue=$?
 		message="Unmount ${DEVICES[0]}" 
@@ -74,7 +78,8 @@ destroy_th() {
 }
 
 destroy_ser() {
-	sudo umount "${MNT_SHFL}"
+	#sudo umount "${MNT_SHFL}"
+	umount "${MNT_SHFL}"
 	# Check if the command executed succesfully
 	retValue=$?
 	message="Unmount $DEVICE_SHFL" 
@@ -119,48 +124,55 @@ then
 fi
 
 # Setup Device 
-if ! mountpoint -q /mnt/datasets
+#if ! mountpoint -q /mnt/datasets
+if ! mountpoint -q /spare/perpap/datasets
 then
-	sudo mount /dev/sdb /mnt/datasets
-	sudo chown kolokasis /mnt/datasets
+	#sudo mount /dev/sdb /mnt/datasets
+	#sudo chown kolokasis /mnt/datasets
+	mount /dev/nvme4n1 /spare/perpap/datasets
+	chown perpap /spare/perpap/datasets
 fi
 
 # Setup TeraCache device
 if [ $TH ]
 then
-		if ! mountpoint -q /mnt/spark
+		#if ! mountpoint -q /mnt/spark
+		if ! mountpoint -q /spare/perpap/spark
 		then
-			sudo mount /dev/${DEVICE_SHFL} /mnt/spark
+			#sudo mount /dev/${DEVICE_SHFL} /mnt/spark
+			mount /dev/${DEVICE_SHFL} /spare/perpap/spark
 			# Check if the command executed succesfully
 			retValue=$?
 			message="Mount ${DEVICE_SHFL} for shuffle and TeraCache" 
 			check ${retValue} "${message}"
 
-      sudo chown "$(whoami)" /mnt/spark
+      #sudo chown "$(whoami)" /mnt/spark
+      chown "$(whoami)" /spare/perpap/spark
 			# Check if the command executed succesfully
 			retValue=$?
-			message="Change ownerships /mnt/spark" 
+			#message="Change ownerships /mnt/spark" 
+			message="Change ownerships /spare/perpap/spark" 
 			check ${retValue} "${message}"
 		fi
 
-		cd /mnt/spark || exit
-
+		#cd /mnt/spark || exit
+		cd /spare/perpap/spark || exit
 		# if the file does not exist then create it
-		if [ ! -f file.txt ]
+		if [ ! -f teraheap_h2_mmap_file.txt ]
 		then
-			fallocate -l ${TH_FILE_SZ}G file.txt
+			fallocate -l ${TH_FILE_SZ}G teraheap_h2_mmap_file.txt
 			# Check if the command executed succesfully
 			retValue=$?
 			message="Create ${TH_FILE_SZ}G file for TeraCache" 
 			check ${retValue} "${message}"
 		else
-			rm file.txt
+			rm teraheap_h2_mmap_file.txt
 			# Check if the command executed succesfully
 			retValue=$?
 			message="Remove ${TH_FILE_SZ}G file" 
 			check ${retValue} "${message}"
 			
-			fallocate -l ${TH_FILE_SZ}G file.txt
+			fallocate -l ${TH_FILE_SZ}G teraheap_h2_mmap_file.txt
 			# Check if the command executed succesfully
 			retValue=$?
 			message="Create ${TH_FILE_SZ}G file for TeraCache" 
@@ -169,20 +181,23 @@ then
 		cd -
 	fi
 else
-	if mountpoint -q /mnt/spark
+	#if mountpoint -q /mnt/spark
+	if mountpoint -q /spare/perpap/spark
 	then
 		exit
 	fi
-	sudo mount /dev/${DEVICE_SHFL} /mnt/spark
+	#sudo mount /dev/${DEVICE_SHFL} /mnt/spark
+	mount /dev/${DEVICE_SHFL} /spare/perpap/spark
 	# Check if the command executed succesfully
 	retValue=$?
-	message="Mount ${DEVICE_SHFL} /mnt/spark" 
+	message="Mount ${DEVICE_SHFL} /spare/perpap/spark" 
 	check ${retValue} "${message}"
 		
-	sudo chown kolokasis /mnt/spark
+	#sudo chown kolokasis /mnt/spark
+	chown perpap /spare/perpap/spark
 	# Check if the command executed succesfully
 	retValue=$?
-	message="Change ownerships /mnt/spark" 
+	message="Change ownerships /spare/perpap/spark" 
 	check ${retValue} "${message}"
 fi
 exit
