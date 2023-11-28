@@ -19,7 +19,8 @@ create_ramDisk () {
 	mkfs.xfs /dev/ram0
 	mkdir -p /mnt/ramdisk/
 	mount -t xfs /dev/ram0 /mnt/ramdisk/
-	chown -R kolokasis:users /mnt/ramdisk
+	#chown -R kolokasis:users /mnt/ramdisk
+	chown -R perpap:users /mnt/ramdisk
 	chmod -R 777 /mnt/ramdisk
 }
 

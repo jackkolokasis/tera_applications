@@ -82,7 +82,7 @@ destroy_ser() {
 	umount "${MNT_SHFL}"
 	# Check if the command executed succesfully
 	retValue=$?
-	message="Unmount $DEVICE_SHFL" 
+	message="Unmount $DEV_SHFL" 
 	check ${retValue} "${message}"
 }
     
@@ -140,10 +140,10 @@ then
 		if ! mountpoint -q /spare/perpap/spark
 		then
 			#sudo mount /dev/${DEVICE_SHFL} /mnt/spark
-			mount /dev/${DEVICE_SHFL} /spare/perpap/spark
+			mount /dev/${DEV_SHFL} /spare/perpap/spark
 			# Check if the command executed succesfully
 			retValue=$?
-			message="Mount ${DEVICE_SHFL} for shuffle and TeraCache" 
+			message="Mount ${DEV_SHFL} for shuffle and TeraCache" 
 			check ${retValue} "${message}"
 
       #sudo chown "$(whoami)" /mnt/spark
@@ -187,10 +187,10 @@ else
 		exit
 	fi
 	#sudo mount /dev/${DEVICE_SHFL} /mnt/spark
-	mount /dev/${DEVICE_SHFL} /spare/perpap/spark
+	mount /dev/${DEV_SHFL} /spare/perpap/spark
 	# Check if the command executed succesfully
 	retValue=$?
-	message="Mount ${DEVICE_SHFL} /spare/perpap/spark" 
+	message="Mount ${DEV_SHFL} /spare/perpap/spark" 
 	check ${retValue} "${message}"
 		
 	#sudo chown kolokasis /mnt/spark
