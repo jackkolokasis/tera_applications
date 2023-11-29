@@ -48,11 +48,9 @@ DEV_SHFL=md1
 #MNT_SHFL=/mnt/spark
 MNT_SHFL=/spare/perpap/spark
 # Device for H2
-#DEV_H2=nvme1n1
-DEV_H2=nvme4n1
+DEV_H2=nvme3n1
 # Mount point for H2 TeraHeap directory
-#MNT_H2=/mnt/fmap
-MNT_H2=/spare/perpap/fmap
+MNT_H2=/mnt/fmap
 # Card segment size for H2
 CARD_SIZE=$((8 * 1024))
 # Region size for H2
@@ -60,7 +58,7 @@ REGION_SIZE=$((256 * 1024 * 1024))
 # Stripe size for H2
 STRIPE_SIZE=$(( REGION_SIZE / CARD_SIZE ))
 # TeraCache file size in GB e.g 800 -> 800GB
-H2_FILE_SZ=900
+H2_FILE_SZ=800
 # Executor cores
 EXEC_CORES=( 8 )
 # SparkBench directory

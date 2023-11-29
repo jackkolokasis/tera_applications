@@ -47,29 +47,28 @@ usage() {
 destroy_th() {
 	if [ "$1" ]
 	then
-		#sudo umount "${MNT_SHFL}"
-		umount "${MNT_SHFL}"
+		sudo umount "${MNT_SHFL}"
 		# Check if the command executed succesfully
 		retValue=$?
 		message="Unmount ${DEVICES[1]}" 
 		check ${retValue} "${message}"
 
 		#rm -rf "${MNT_FMAP}"/file.txt
-		rm -rf "${MNT_H2}"/teraheap_h2_mmap_file.txt
+		rm -rf "${MNT_H2}"/H2.txt
 		# Check if the command executed succesfully
 		retValue=$?
 		message="Remove TeraHeap H2 backed-file" 
 		check ${retValue} "${message}"
 	else
 		#rm -rf "${MNT_SHFL}"/file.txt
-		rm -rf "${MNT_SHFL}"/teraheap_h2_mmap_file.txt
+		rm -rf "${MNT_SHFL}"/H2.txt
 		# Check if the command executed succesfully
 		retValue=$?
 		message="Remove TeraHeap H2 backed-file" 
 		check ${retValue} "${message}"
 		
 		#sudo umount /mnt/spark
-		umount /spare/perpap/spark
+		sudo umount /spare/perpap/spark
 		# Check if the command executed succesfully
 		retValue=$?
 		message="Unmount ${DEVICES[0]}" 
@@ -78,8 +77,7 @@ destroy_th() {
 }
 
 destroy_ser() {
-	#sudo umount "${MNT_SHFL}"
-	umount "${MNT_SHFL}"
+	sudo umount "${MNT_SHFL}"
 	# Check if the command executed succesfully
 	retValue=$?
 	message="Unmount $DEV_SHFL" 
@@ -129,8 +127,8 @@ if ! mountpoint -q /spare/perpap/datasets
 then
 	#sudo mount /dev/sdb /mnt/datasets
 	#sudo chown kolokasis /mnt/datasets
-	mount /dev/nvme4n1 /spare/perpap/datasets
-	chown perpap /spare/perpap/datasets
+	sudo mount /dev/nvme4n1 /spare/perpap/datasets
+	sudo chown perpap /spare/perpap/datasets
 fi
 
 # Setup TeraCache device
@@ -140,14 +138,14 @@ then
 		if ! mountpoint -q /spare/perpap/spark
 		then
 			#sudo mount /dev/${DEVICE_SHFL} /mnt/spark
-			mount /dev/${DEV_SHFL} /spare/perpap/spark
+			sudo mount /dev/${DEV_SHFL} /spare/perpap/spark
 			# Check if the command executed succesfully
 			retValue=$?
 			message="Mount ${DEV_SHFL} for shuffle and TeraCache" 
 			check ${retValue} "${message}"
 
       #sudo chown "$(whoami)" /mnt/spark
-      chown "$(whoami)" /spare/perpap/spark
+      sudo chown "$(whoami)" /spare/perpap/spark
 			# Check if the command executed succesfully
 			retValue=$?
 			#message="Change ownerships /mnt/spark" 
@@ -158,21 +156,21 @@ then
 		#cd /mnt/spark || exit
 		cd /spare/perpap/spark || exit
 		# if the file does not exist then create it
-		if [ ! -f teraheap_h2_mmap_file.txt ]
+		if [ ! -f H2.txt ]
 		then
-			fallocate -l ${TH_FILE_SZ}G teraheap_h2_mmap_file.txt
+			fallocate -l ${TH_FILE_SZ}G H2.txt
 			# Check if the command executed succesfully
 			retValue=$?
 			message="Create ${TH_FILE_SZ}G file for TeraCache" 
 			check ${retValue} "${message}"
 		else
-			rm teraheap_h2_mmap_file.txt
+			rm H2.txt
 			# Check if the command executed succesfully
 			retValue=$?
 			message="Remove ${TH_FILE_SZ}G file" 
 			check ${retValue} "${message}"
 			
-			fallocate -l ${TH_FILE_SZ}G teraheap_h2_mmap_file.txt
+			fallocate -l ${TH_FILE_SZ}G H2.txt
 			# Check if the command executed succesfully
 			retValue=$?
 			message="Create ${TH_FILE_SZ}G file for TeraCache" 
@@ -187,14 +185,14 @@ else
 		exit
 	fi
 	#sudo mount /dev/${DEVICE_SHFL} /mnt/spark
-	mount /dev/${DEV_SHFL} /spare/perpap/spark
+	sudo mount /dev/${DEV_SHFL} /spare/perpap/spark
 	# Check if the command executed succesfully
 	retValue=$?
 	message="Mount ${DEV_SHFL} /spare/perpap/spark" 
 	check ${retValue} "${message}"
 		
 	#sudo chown kolokasis /mnt/spark
-	chown perpap /spare/perpap/spark
+	sudo chown perpap /spare/perpap/spark
 	# Check if the command executed succesfully
 	retValue=$?
 	message="Change ownerships /spare/perpap/spark" 
