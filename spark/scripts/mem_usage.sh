@@ -25,4 +25,7 @@ do
     numOfExecutors=$(jps |grep -c "CoarseGrainedExecutorBackend")
 done
 
-watch -n 1 "free -g >> ${OUTPUT}" &
+while true; do
+    free -g >> "${OUTPUT}"
+    sleep 1
+done

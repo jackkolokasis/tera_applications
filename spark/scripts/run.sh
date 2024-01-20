@@ -83,7 +83,6 @@ run_cgexec() {
 ##
 start_spark() {
   run_cgexec "${SPARK_DIR}"/sbin/start-all.sh >> "${BENCH_LOG}" 2>&1
-  #"${SPARK_DIR}"/sbin/start-all.sh >> "${BENCH_LOG}" 2>&1
 }
 
 ##
@@ -92,7 +91,8 @@ start_spark() {
 ##
 stop_spark() {
   run_cgexec "${SPARK_DIR}"/sbin/stop-all.sh >> "${BENCH_LOG}" 2>&1
-  #"${SPARK_DIR}"/sbin/stop-all.sh >> "${BENCH_LOG}" 2>&1
+  #kill all the processes of Spark
+  xargs -a /sys/fs/cgroup/memory/memlim/cgroup.procs kill
 }
 
 ##
@@ -236,7 +236,8 @@ gen_config_files() {
 ##
 # Function to kill the watch process
 kill_watch() {
-  pkill -f "watch -n 1"
+  #pkill -f "watch -n 1"
+  kill -9 "$(pgrep -f "mem_usage.sh")"
 }
 
 # Check for the input arguments

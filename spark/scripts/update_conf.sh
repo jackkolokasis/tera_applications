@@ -57,14 +57,19 @@ update_spark_env() {
 }
 
 update_spark_defaults() {
+  local extra_java_opts="spark.executor.extraJavaOptions -server "
+  extra_java_opts+="-XX:-ClassUnloading -XX:+UseParallelGC -XX:ParallelGCThreads=${GC_THREADS} "
+  extra_java_opts+="-XX:-ResizeTLAB -XX:-UseCompressedOops -XX:-UseCompressedClassPointers "
+  extra_java_opts+=${USER_EXTRA_JAVA_OPTS}
+
   # Change the spark.log.dir
   sed -i '/eventLog.dir/c\spark.eventLog.dir '"${MASTER_LOG_DIR}" spark-defaults.conf
   # Change the spark.metrics.conf
   sed -i '/spark.metrics.conf/c\spark.metrics.conf '"${MASTER_METRIC_FILE}" spark-defaults.conf
+  # Change the spark.executor.extraJavaOptions
+  sed '/^spark\.executor\.extraJavaOptions/s/.*/'"${extra_java_opts}"'/' spark-defaults.conf
   # Change the spark.memory.storageFraction
   sed -i '/storageFraction/c\spark.memory.storageFraction '"${MEM_FRACTION}" spark-defaults.conf
-  # Change GC threads
-  sed -i "s/ParallelGCThreads=[0-9]*/ParallelGCThreads=${GC_THREADS}/g" spark-defaults.conf
 }
 
 update_spark_bench() {
