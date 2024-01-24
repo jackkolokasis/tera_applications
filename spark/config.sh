@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+cpu_arch=$(uname -p)
 TERAHEAP_REPO="/spare/perpap/teraheap"
 
 # Export Allocator
@@ -10,7 +11,8 @@ export C_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:$C_INCLUDE_PATH
 export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:$CPLUS_INCLUDE_PATH
 
 # Set JAVA_HOME to use TeraHeap JVM
-export JAVA_HOME="${TERAHEAP_REPO}/jdk17u067/build/linux-aarch64-server-release/jdk"
+export JAVA_HOME="${TERAHEAP_REPO}/jdk17u067/build/linux-$cpu_arch-server-release/jdk"
+echo "JAVA_HOME=$JAVA_HOME"
 # Set up the path of TeraHeap applications
 TERA_APPS_REPO="/spare/perpap/tera_applications"
 SPARK_VERSION="spark-3.3.0"
