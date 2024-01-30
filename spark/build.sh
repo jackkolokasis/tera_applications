@@ -13,6 +13,8 @@
 ###################################################
 
 . ./config.sh
+echo "JAVA_HOME=$JAVA_HOME"
+echo "TERAHEAP_REPO=$TERAHEAP_REPO"
 # Check if the last command executed succesfully
 #
 # if executed succesfully, print SUCCEED

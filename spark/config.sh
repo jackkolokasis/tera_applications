@@ -14,7 +14,7 @@ export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:$CPLUS_INCLUDE_PAT
 # Set JAVA_HOME to use TeraHeap JVM
 export JAVA_HOME="${TERAHEAP_REPO}/jdk17u067/build/linux-$CPU_ARCH-server-release/jdk"
 #export JAVA_HOME="${TERAHEAP_REPO}/jdk8u345/build/linux-$CPU_ARCH-server-release/jdk"
-
+#export JAVA_HOME=/spare/$USER/openjdk/jdk8u402-b06
 # Set up the path of TeraHeap applications
 TERA_APPS_REPO="/spare/$USER/tera_applications"
 SPARK_VERSION="spark-3.3.0"
