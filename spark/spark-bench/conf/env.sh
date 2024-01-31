@@ -1,21 +1,24 @@
 # Spark Bench Suite
 # Global settings - Configurations
 
+USER=$(whoami)
+
 # Spark Master
-master="sith4-fast"
+#master="sith4-fast"
+master="ampere"
 
 # A list of machines where the spark cluster is running
-MC_LIST="sith4-fast"
-
+#MC_LIST="sith4-fast"
+MC_LIST="ampere"
 # Use these inputs for fileio
-DATA_HDFS=file:///mnt/datasets/SparkBench
-
+#DATA_HDFS=file:///mnt/datasets/SparkBench
+DATA_HDFS=file://$SPARK_DATASETS
 # Local dataset optional
 DATASET_DIR="${DATA_HDFS}/dataset"
 
 # Use this when run on Spark 2.3.0-kolokasis
 SPARK_VERSION=2.3.0
-[ -z "$SPARK_HOME" ] &&  export SPARK_HOME=/opt/kolokasis/tera_applications/spark/spark-3.3.0
+[ -z "$SPARK_HOME" ] &&  export SPARK_HOME=$TERA_APPLICATIONS_REPO/spark/spark-3.3.0
 
 SPARK_MASTER=spark://${master}:7077
 
