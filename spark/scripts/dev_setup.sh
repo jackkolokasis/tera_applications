@@ -12,6 +12,8 @@
 #
 ###################################################
 
+USER=$(whoami)
+
 # Check if the last command executed succesfully
 #
 # if executed succesfully, print SUCCEED
@@ -68,7 +70,7 @@ destroy_th() {
 		check ${retValue} "${message}"
 		
 		#sudo umount /mnt/spark
-		sudo umount /spare/perpap/spark
+		sudo umount $TERA_APPLICATIONS_REPO/spark
 		# Check if the command executed succesfully
 		retValue=$?
 		message="Unmount ${DEVICES[0]}" 
@@ -123,38 +125,38 @@ fi
 
 # Setup Device 
 #if ! mountpoint -q /mnt/datasets
-if ! mountpoint -q /spare/perpap/datasets
+if ! mountpoint -q $SPARK_DATASETS
 then
 	#sudo mount /dev/sdb /mnt/datasets
 	#sudo chown kolokasis /mnt/datasets
-	sudo mount /dev/nvme4n1 /spare/perpap/datasets
-	sudo chown perpap /spare/perpap/datasets
+	sudo mount /dev/nvme4n1 $SPARK_DATASETS
+	sudo chown $USER $SPARK_DATASETS
 fi
 
 # Setup TeraCache device
 if [ $TH ]
 then
 		#if ! mountpoint -q /mnt/spark
-		if ! mountpoint -q /spare/perpap/spark
+		if ! mountpoint -q $TERA_APPLICATIONS_REPO/spark
 		then
 			#sudo mount /dev/${DEVICE_SHFL} /mnt/spark
-			sudo mount /dev/${DEV_SHFL} /spare/perpap/spark
+			sudo mount /dev/${DEV_SHFL} $TERA_APPLICATIONS_REPO/spark
 			# Check if the command executed succesfully
 			retValue=$?
 			message="Mount ${DEV_SHFL} for shuffle and TeraCache" 
 			check ${retValue} "${message}"
 
-      #sudo chown "$(whoami)" /mnt/spark
-      sudo chown "$(whoami)" /spare/perpap/spark
+      #sudo chown "$USER" /mnt/spark
+      sudo chown "$USER" $TERA_APPLICATIONS_REPO/spark
 			# Check if the command executed succesfully
 			retValue=$?
 			#message="Change ownerships /mnt/spark" 
-			message="Change ownerships /spare/perpap/spark" 
+			message="Change ownerships $TERA_APPLICATIONS_REPO/spark" 
 			check ${retValue} "${message}"
 		fi
 
 		#cd /mnt/spark || exit
-		cd /spare/perpap/spark || exit
+		cd $TERA_APPLICATIONS_REPO/spark || exit
 		# if the file does not exist then create it
 		if [ ! -f H2.txt ]
 		then
@@ -180,22 +182,22 @@ then
 	fi
 else
 	#if mountpoint -q /mnt/spark
-	if mountpoint -q /spare/perpap/spark
+	if mountpoint -q $TERA_APPLICATIONS_REPO/spark
 	then
 		exit
 	fi
 	#sudo mount /dev/${DEVICE_SHFL} /mnt/spark
-	sudo mount /dev/${DEV_SHFL} /spare/perpap/spark
+	sudo mount /dev/${DEV_SHFL} $TERA_APPLICATIONS_REPO/spark
 	# Check if the command executed succesfully
 	retValue=$?
-	message="Mount ${DEV_SHFL} /spare/perpap/spark" 
+	message="Mount ${DEV_SHFL} $TERA_APPLICATIONS_REPO/spark" 
 	check ${retValue} "${message}"
 		
 	#sudo chown kolokasis /mnt/spark
-	sudo chown perpap /spare/perpap/spark
+	sudo chown $USER $TERA_APPLICATIONS_REPO/spark
 	# Check if the command executed succesfully
 	retValue=$?
-	message="Change ownerships /spare/perpap/spark" 
+	message="Change ownerships $TERA_APPLICATIONS_REPO/spark" 
 	check ${retValue} "${message}"
 fi
 exit
