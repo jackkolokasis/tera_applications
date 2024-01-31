@@ -15,19 +15,20 @@
 # Dataset size "small" and "large"
 DATA_SIZE=large
 # JAVA Home
-MY_JAVA_HOME="/spare/perpap/teraheap/jdk17u067/build/linux-aarch64-server-release/jdk"
+#MY_JAVA_HOME="/spare/perpap/teraheap/jdk17u067/build/linux-aarch64-server-release/jdk"
+MY_JAVA_HOME=$JAVA_HOME
 #MY_JAVA_HOME="/opt/carvguest/asplos23_ae/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk"
 #MY_JAVA_HOME="/spare/kolokasis/nativeJVM/jdk17u/build/linux-x86_64-server-release/jdk"
 # Directory that contains datasets
 #DATA_HDFS="file:///mnt/datasets/SparkBench"
-DATA_HDFS="file:///spare/perpap/datasets/SparkBench"
+DATA_HDFS="file://$SPARK_DATASETS"
 # Spark Version
 SPARK_VERSION=3.3.0
 # Number of partitions
 NUM_OF_PARTITIONS=256
 # Benchmark repo
 #BENCH_DIR=/opt/carvguest/asplos23_ae/tera_applications
-BENCH_DIR=/spare/perpap/tera_applications
+BENCH_DIR=$TERA_APPLICATIONS_REPO
 # Spark directory
 SPARK_DIR=${BENCH_DIR}/spark/spark-${SPARK_VERSION}
 # Spark master log dir
@@ -46,11 +47,11 @@ GC_THREADS=8
 DEV_SHFL=md1
 # Mount point for shuffle directory
 #MNT_SHFL=/mnt/spark
-MNT_SHFL=/spare/perpap/spark
+MNT_SHFL=${BENCH_DIR}/spark
 # Device for H2
-DEV_H2=nvme3n1
+DEV_H2=$NVME_DEVICE_H2#nvme3n1
 # Mount point for H2 TeraHeap directory
-MNT_H2=/mnt/fmap
+MNT_H2=$MOUNT_POINT_H2#/mnt/fmap
 # Card segment size for H2
 CARD_SIZE=$((8 * 1024))
 # Region size for H2
