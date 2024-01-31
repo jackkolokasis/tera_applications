@@ -16,13 +16,13 @@ set -x
 
 . ./conf.sh
 
+USER=$(whoami)
 ##
 # Description:
 #   Create a cgroup
 setup_cgroup() {
 	# Change user/group IDs to your own
-	#sudo cgcreate -a kolokasis:carvsudo -t kolokasis:carvsudo -g memory:memlim
-	sudo cgcreate -a perpap:carvsudo -t perpap:carvsudo -g memory:memlim
+	sudo cgcreate -a $USER:carvsudo -t $USER:carvsudo -g memory:memlim
 	cgset -r memory.limit_in_bytes="$MEM_BUDGET" memlim
 }
 
