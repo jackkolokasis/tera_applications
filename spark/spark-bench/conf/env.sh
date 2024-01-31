@@ -21,8 +21,8 @@ DATASET_DIR="${DATA_HDFS}/dataset"
 SPARK_VERSION=2.3.0
 [ -z "$SPARK_HOME" ] &&  export SPARK_HOME=$TERA_APPLICATIONS_REPO/spark/spark-3.3.0
 
-#SPARK_MASTER=spark://${master}:7077
-SPARK_MASTER=local[2]
+SPARK_MASTER=spark://${master}:7077
+#SPARK_MASTER=local[2]
 
 SPARK_RPC_ASKTIMEOUT=10000
 # Spark config in environment variable or aruments of spark-submit 
