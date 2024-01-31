@@ -88,8 +88,8 @@ benchmark_dependencies() {
     git clone  https://github.com/synhershko/wikixmlj.git >> "${COMPILE_OUT}" 2>&1
 
     cd wikixmlj || exit
-    mvn package -Dmaven.test.skip=true >> "${COMPILE_OUT}" 2>&1
-    mvn install -Dmaven.test.skip=true >> "${COMPILE_OUT}" 2>&1
+    .${SPARK_DIR}/build/mvn package -Dmaven.test.skip=true >> "${COMPILE_OUT}" 2>&1
+    .${SPARK_DIR}/build/mvn install -Dmaven.test.skip=true >> "${COMPILE_OUT}" 2>&1
     cd - >> "${COMPILE_OUT}" 2>&1 || exit
 
     rm -rf ./wikixmlj >> "${COMPILE_OUT}" 2>&1
@@ -97,7 +97,7 @@ benchmark_dependencies() {
 }
 
 build_benchmarks() {
-  ./spark-bench/bin/build-all.sh "spark3.3.0" > "${COMPILE_OUT}" 2>&1
+  ./spark-bench/bin/build-all.sh $SPARK_VERSION > "${COMPILE_OUT}" 2>&1
   retValue=$?
   message="Build Spark Benchmarks" 
   check ${retValue} "${message}"
