@@ -16,7 +16,6 @@ set -x
 
 . ./conf.sh
 
-USER=$(whoami)
 ##
 # Description:
 #   Create a cgroup

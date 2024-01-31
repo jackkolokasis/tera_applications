@@ -14,13 +14,14 @@
 #
 ###################################################
 
+USER=$(whoami)
 create_ramDisk () {
 	modprobe brd rd_nr=1 rd_size=$1 max_part=1
 	mkfs.xfs /dev/ram0
 	mkdir -p /mnt/ramdisk/
 	mount -t xfs /dev/ram0 /mnt/ramdisk/
 	#chown -R kolokasis:users /mnt/ramdisk
-	chown -R perpap:users /mnt/ramdisk
+	chown -R $USER:users /mnt/ramdisk
 	chmod -R 777 /mnt/ramdisk
 }
 

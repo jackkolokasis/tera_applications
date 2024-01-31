@@ -87,7 +87,7 @@ download_hadoop() {
     local modify_files=(hadoop hdfs mapred rcc yarn)
     for f in "${modify_files[@]}"
     do
-      sed -i 's|/opt/carvguest/asplos23_ae/tera_applications/|'"${TERA_APPS_REPO}"'/|' "$f"
+      sed -i 's|/opt/carvguest/asplos23_ae/tera_applications/|'"${TERA_APPLICATIONS_REPO}"'/|' "$f"
     done
     cd - > /dev/null || exit
     
@@ -98,7 +98,7 @@ download_hadoop() {
     local modify_files=(hadoop-daemons.sh httpfs.sh yarn-daemons.sh)
     for f in "${modify_files[@]}"
     do
-      sed -i 's|/opt/carvguest/asplos23_ae/tera_applications/|'"${TERA_APPS_REPO}"'/|' "$f"
+      sed -i 's|/opt/carvguest/asplos23_ae/tera_applications/|'"${TERA_APPLICATIONS_REPO}"'/|' "$f"
     done
     cd - > /dev/null || exit
 
