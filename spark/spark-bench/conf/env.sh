@@ -18,8 +18,9 @@ DATA_HDFS="file://$MOUNT_POINT_BENCHMARK_DATASETS/SparkBench"
 DATASET_DIR="${DATA_HDFS}/dataset"
 
 # Use this when run on Spark 2.3.0-kolokasis
-SPARK_VERSION=2.3.0
-[ -z "$SPARK_HOME" ] &&  export SPARK_HOME=$TERA_APPLICATIONS_REPO/spark/spark-3.3.0
+#Use the SPARK_VERSION environment variable
+#SPARK_VERSION=3.3.0
+[ -z "$SPARK_HOME" ] &&  export SPARK_HOME=$TERA_APPLICATIONS_REPO/spark/spark-$SPARK_VERSION
 
 SPARK_MASTER=spark://${master}:7077
 #SPARK_MASTER=local[2]
@@ -43,3 +44,4 @@ NUM_OF_PARTITIONS=256
 
 # For running
 NUM_TRIALS=1
+
