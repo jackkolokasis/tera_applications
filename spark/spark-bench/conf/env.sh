@@ -9,11 +9,11 @@ master="ampere"
 
 # A list of machines where the spark cluster is running
 #MC_LIST="sith4-fast"
-#MC_LIST="ampere"
-MC_LIST=""
+MC_LIST=ampere
+#MC_LIST=""
 # Use these inputs for fileio
 #DATA_HDFS=file:///mnt/datasets/SparkBench
-DATA_HDFS=file://$SPARK_DATASETS
+DATA_HDFS="file://$MOUNT_POINT_BENCHMARK_DATASETS/SparkBench"
 # Local dataset optional
 DATASET_DIR="${DATA_HDFS}/dataset"
 
