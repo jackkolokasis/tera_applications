@@ -88,8 +88,8 @@ benchmark_dependencies() {
     git clone  https://github.com/synhershko/wikixmlj.git >> "${COMPILE_OUT}" 2>&1
 
     cd wikixmlj || exit
-    .${SPARK_DIR}/build/mvn package -Dmaven.test.skip=true >> "${COMPILE_OUT}" 2>&1
-    .${SPARK_DIR}/build/mvn install -Dmaven.test.skip=true >> "${COMPILE_OUT}" 2>&1
+    mvn package -Dmaven.test.skip=true >> "${COMPILE_OUT}" 2>&1
+    mvn install -Dmaven.test.skip=true >> "${COMPILE_OUT}" 2>&1
     cd - >> "${COMPILE_OUT}" 2>&1 || exit
 
     rm -rf ./wikixmlj >> "${COMPILE_OUT}" 2>&1
