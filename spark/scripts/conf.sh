@@ -18,13 +18,13 @@ USER=$(whoami)
 DATA_SIZE=large
 # JAVA Home
 #MY_JAVA_HOME="/spare/perpap/teraheap/jdk17u067/build/linux-aarch64-server-release/jdk"
-MY_JAVA_HOME=$TERAHEAP_REPO/$JDK17_RELEASE
+MY_JAVA_HOME=$JDK17_RELEASE
 #MY_JAVA_HOME="/opt/carvguest/asplos23_ae/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk"
 #MY_JAVA_HOME="/spare/kolokasis/nativeJVM/jdk17u/build/linux-x86_64-server-release/jdk"
-# Device for datasets directory
-DEV_BENCHMARK_DATASETS=$NVME_DEVICE_BENCHMARK_DATASETS#/dev/nvme3n1
-# Mount point for datasets directory
-MNT_BENCHMARK_DATASETS=$MOUNT_POINT_BENCHMARK_DATASETS#/mnt/datasets
+# Device for datasets directory : /dev/nvme3n1
+DEV_BENCHMARK_DATASETS=$NVME_DEVICE_BENCHMARK_DATASETS
+# Mount point for datasets directory : /mnt/datasets
+MNT_BENCHMARK_DATASETS=$MOUNT_POINT_BENCHMARK_DATASETS
 # Directory that contains datasets
 #DATA_HDFS="file:///mnt/datasets/SparkBench"
 DATA_HDFS="file://$MNT_BENCHMARK_DATASETS/SparkBench"
@@ -42,23 +42,20 @@ MASTER_LOG_DIR=${SPARK_DIR}/logs
 # Spark master log dir
 MASTER_METRIC_FILE="${SPARK_DIR}/conf/metrics.properties"
 # Spark master node
-#SPARK_MASTER=sith4-fast
 SPARK_MASTER=ampere
 # Spark slave host name
-#SPARK_SLAVE=sith4-fast
 SPARK_SLAVE=ampere
 # Number of garbage collection threads
 GC_THREADS=8
-# Device for shuffle
+# Device for shuffle : /dev/nvme3n1
 #DEV_SHFL=md1
-DEV_SHFL=$NVME_DEVICE_SHUFFLE#/dev/nvme3n1
-# Mount point for shuffle directory
-#MNT_SHFL=/mnt/spark
+DEV_SHFL=$NVME_DEVICE_SHUFFLE
+# Mount point for shuffle directory : /mnt/spark
 MNT_SHFL=$MOUNT_POINT_SHUFFLE
-# Device for H2
-DEV_H2=$NVME_DEVICE_H2#/dev/nvme3n1
-# Mount point for H2 TeraHeap directory
-MNT_H2=$MOUNT_POINT_H2#/mnt/fmap
+#Device for H2: /dev/nvme3n1
+DEV_H2=$NVME_DEVICE_H2
+# Mount point for H2 TeraHeap directory : /mnt/fmap
+MNT_H2=$MOUNT_POINT_H2
 # Card segment size for H2
 CARD_SIZE=$((8 * 1024))
 # Region size for H2
