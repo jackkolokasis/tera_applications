@@ -5,7 +5,7 @@ DIR=$(cd "${DIR}/.."; pwd)
 SPARK_VERSION=${1:-"spark2.3.0"}
 cd "$DIR" || exit
 
-.$SPARK_DIR/build/mvn clean package -P "$SPARK_VERSION"
+. .$SPARK_DIR/build/mvn clean package -P "$SPARK_VERSION"
 
 result=$?
 
