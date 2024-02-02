@@ -23,8 +23,8 @@ export C_INCLUDE_PATH=$TERAHEAP_REPO/tera_malloc/include:$C_INCLUDE_PATH
 export CPLUS_INCLUDE_PATH=$TERAHEAP_REPO/tera_malloc/include:$CPLUS_INCLUDE_PATH
 export TERA_MALLOC_HOME=${PROJECT_DIR}/tera_malloc
 
-LD_PRELOAD=/usr/lib64/libjemalloc.so.1
-export LD_PRELOAD
+#LD_PRELOAD=/usr/lib64/libjemalloc.so.1
+#export LD_PRELOAD
 
 "$@"
 #numactl --cpunodebind=0 "$@"
