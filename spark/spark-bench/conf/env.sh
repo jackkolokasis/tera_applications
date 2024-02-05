@@ -9,7 +9,7 @@ master="ampere"
 # A list of machines where the spark cluster is running
 MC_LIST="ampere"
 # Use these inputs for fileio
-DATA_HDFS=file:///mnt/datasets/SparkBench
+DATA_HDFS=file:///spare/perpap/datasets/SparkBench
 # Local dataset optional
 DATASET_DIR="${DATA_HDFS}/dataset"
 
@@ -27,7 +27,7 @@ SPARK_RDD_COMPRESS=false
 #SPARK_IO_COMPRESSION_CODEC=lzf
 
 # Spark options in system.property or arguments of spark-submit 
-SPARK_EXECUTOR_MEMORY=38g
+SPARK_EXECUTOR_MEMORY=1200g
 SPARK_EXECUTOR_INSTANCES=1
 SPARK_EXECUTOR_CORES=8
 
