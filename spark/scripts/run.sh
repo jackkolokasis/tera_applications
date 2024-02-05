@@ -94,6 +94,8 @@ start_spark() {
 stop_spark() {
   run_cgexec "${SPARK_DIR}"/sbin/stop-all.sh >> "${BENCH_LOG}" 2>&1
   #"${SPARK_DIR}"/sbin/stop-all.sh >> "${BENCH_LOG}" 2>&1
+  #kill all the processes of Spark
+  xargs -a /sys/fs/cgroup/memory/memlim/cgroup.procs kill
 }
 
 ##
@@ -180,7 +182,8 @@ printMsgIteration() {
 download_third_party() {
   if [ ! -d "system_util" ]
   then
-    git clone git@github.com:jackkolokasis/system_util.git >> "${BENCH_LOG}" 2>&1
+    #git clone git@github.com:jackkolokasis/system_util.git >> "${BENCH_LOG}" 2>&1
+    git clone https://github.com/jackkolokasis/system_util.git >> "${BENCH_LOG}" 2>&1
   fi
 }
 
