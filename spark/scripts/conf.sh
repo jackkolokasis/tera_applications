@@ -71,9 +71,9 @@ SPARK_BENCH_DIR=$TERA_APPLICATIONS_REPO/spark/spark-bench
 #Benchmark log
 BENCH_LOG=$TERA_APPLICATIONS_REPO/spark/scripts/log.out
 # Heap size for executors '-Xms' is in GB e.g., 54 -> 54GB
-H1_SIZE=(38)
+H1_SIZE=( 64 )
 # cgset accepts K,M,G and eiB, MiB, GiB units for memory limit
-MEM_BUDGET=54G
+MEM_BUDGET=80G
 # Spark memory fraction: 'spark.memory.storagefraction'
 MEM_FRACTION=( 0.9 )
 # Storage Level
@@ -81,7 +81,7 @@ S_LEVEL=( "MEMORY_ONLY" )
 # TeraCache configuration size in Spark: 'spark.teracache.heap.size'
 H1_H2_SIZE=( 1200 )
 # Running benchmarks
-BENCHMARKS=( "LinearRegression" )
+BENCHMARKS=( "PageRank" )
 # Number of executors
 NUM_EXECUTORS=( 1 )
 # Total Configurations

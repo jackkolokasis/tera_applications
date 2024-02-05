@@ -50,6 +50,8 @@ start_spark() {
 ##
 stop_spark() {
   run_cgexec "${SPARK_DIR}"/sbin/stop-all.sh >> "${BENCH_LOG}" 2>&1
+  #kill all processes of spark
+  xargs -a /sys/fs/cgroup/memory/memlim/cgroup.procs kill
 }
 
 
