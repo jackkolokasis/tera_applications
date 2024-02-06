@@ -18,5 +18,6 @@ export TERA_MALLOC_HOME=${PROJECT_DIR}/tera_malloc
 
 #LD_PRELOAD=/usr/lib64/libjemalloc.so.1
 #export LD_PRELOAD
+
 "$@"
 #numactl --cpunodebind=0 "$@"

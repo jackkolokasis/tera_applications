@@ -59,22 +59,39 @@ update_spark_env() {
 }
 
 update_spark_defaults() {
+  local TH_BYTES=$(echo "(${H1_H2_SIZE} - ${H1_SIZE}) * 1024 * 1024 * 1024" | bc)
+
+  local extra_java_opts="spark.executor.extraJavaOptions -server "
+  extra_java_opts+="-XX:-ClassUnloading -XX:+UseParallelGC -XX:ParallelGCThreads=${GC_THREADS} "
+  extra_java_opts+="-XX:+EnableTeraHeap -XX:TeraHeapSize=${TH_BYTES} -Xms${H1_SIZE}g "
+  extra_java_opts+="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers "
+
+  if $ENABLE_STATS
+  then
+    extra_java_opts+="-XX:+TeraHeapStatistics -Xlogth:teraHeap.txt "
+  fi
+  extra_java_opts+="-XX:TeraHeapPolicy=\"${TERAHEAP_POLICY}\" -XX:TeraStripeSize=${STRIPE_SIZE} "
+  extra_java_opts+="-XX:+ShowMessageBoxOnError "
+
+  local H2_FILE_SZ_BYTES=$(echo "${H2_FILE_SZ} * 1024 * 1024 * 1024" | bc)
+  local H2_PATH="${MNT_H2//\//\\/}\/"
+  extra_java_opts+="-XX:AllocateH2At=\"${H2_PATH}\" -XX:H2FileSize=${H2_FILE_SZ_BYTES} "
+
+  if ${ENABLE_FLEXHEAP}
+  then
+    local MEM_BUDGET_BYTES=$(echo "${MEM_BUDGET%G} * 1024 * 1024 * 1024" | bc)
+    MEM_BUDGET_BYTES=$(echo "${MEM_BUDGET_BYTES} / ${NUM_EXECUTORS}" | bc)
+    extra_java_opts+="-XX:+DynamicHeapResizing -XX:TeraDRAMLimit=${MEM_BUDGET_BYTES} "
+    extra_java_opts+="-XX:TeraResizingPolicy=${FLEXHEAP_POLICY} -XX:TeraCPUStatsPolicy=${CPU_STATS_POLICY} "
+  fi
+  extra_java_opts+=${USER_EXTRA_JAVA_OPTS}
+
   # Change the spark.log.dir
   sed -i '/eventLog.dir/c\spark.eventLog.dir '"${MASTER_LOG_DIR}" spark-defaults.conf
   # Change the spark.metrics.conf
   sed -i '/spark.metrics.conf/c\spark.metrics.conf '"${MASTER_METRIC_FILE}" spark-defaults.conf
-  # Change GC threads
-  sed -i "s/ParallelGCThreads=[0-9]*/ParallelGCThreads=${GC_THREADS}/g" spark-defaults.conf
-  # Change TeraStripeSize
-  sed -i "s|TeraStripeSize=[0-9]*|TeraStripeSize=${STRIPE_SIZE}|g" spark-defaults.conf
-  # Change the minimum heap size
-  # Change only the first -Xms 
-  sed -i -e '0,/-Xms[0-9]*g/ s/-Xms[0-9]*g/-Xms'"${H1_SIZE}"'g/' spark-defaults.conf
-  # Change teraheap (h2) size for Spark
-  sed -i '/teraheap.heap.size/c\spark.teraheap.heap.size '"${H1_H2_SIZE}"'g' spark-defaults.conf
-  TH_BYTES=$(echo "(${H1_H2_SIZE} - ${H1_SIZE}) * 1024 * 1024 * 1024" | bc)
-  # Change TeraHeap size for JVM
-  sed -i "s/TeraHeapSize=[0-9]*/TeraHeapSize=${TH_BYTES}/g" spark-defaults.conf
+  # Change the spark.executor.extraJavaOptions
+  sed -i '/^spark\.executor\.extraJavaOptions/s/.*/'"${extra_java_opts}"'/' spark-defaults.conf
   # Change the spark.memory.fraction
   sed -i '/storageFraction/c\spark.memory.storageFraction '"${MEM_FRACTION}" spark-defaults.conf
 }

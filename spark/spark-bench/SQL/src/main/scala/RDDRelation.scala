@@ -55,6 +55,8 @@ object RDDRelation {
       sl = StorageLevel.MEMORY_AND_DISK_SER
     else if(storageLevel == "MEMORY_AND_DISK")
       sl = StorageLevel.MEMORY_AND_DISK
+    else if(storageLevel == "DISK_ONLY")
+      sl = StorageLevel.DISK_ONLY
     else if(storageLevel == "OFF_HEAP")
       sl = StorageLevel.OFF_HEAP
 	

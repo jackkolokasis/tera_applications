@@ -62,8 +62,8 @@ CARD_SIZE=$((8 * 1024))
 REGION_SIZE=$((256 * 1024 * 1024))
 # Stripe size for H2
 STRIPE_SIZE=$(( REGION_SIZE / CARD_SIZE ))
-# TeraCache file size in GB e.g 800 -> 800GB
-H2_FILE_SZ=800
+# TeraCache file size in GB e.g 700 -> 700GB
+H2_FILE_SZ=700
 # Executor cores
 EXEC_CORES=( 8 )
 # SparkBench directory
@@ -71,9 +71,9 @@ SPARK_BENCH_DIR=$TERA_APPLICATIONS_REPO/spark/spark-bench
 #Benchmark log
 BENCH_LOG=$TERA_APPLICATIONS_REPO/spark/scripts/log.out
 # Heap size for executors '-Xms' is in GB e.g., 54 -> 54GB
-H1_SIZE=( 64 )
+H1_SIZE=( 12 )
 # cgset accepts K,M,G and eiB, MiB, GiB units for memory limit
-MEM_BUDGET=80G
+MEM_BUDGET=32G
 # Spark memory fraction: 'spark.memory.storagefraction'
 MEM_FRACTION=( 0.9 )
 # Storage Level
@@ -83,6 +83,23 @@ H1_H2_SIZE=( 1200 )
 # Running benchmarks
 BENCHMARKS=( "PageRank" )
 # Number of executors
-NUM_EXECUTORS=( 1 )
+NUM_EXECUTORS=( 2 )
 # Total Configurations
 TOTAL_CONFS=${#H1_SIZE[@]}
+# Enable statistics
+ENABLE_STATS=true
+# Choose transfer policy 
+# The available policies are: "DefaultPolicy" and "SparkPrimitivePolicy"
+TERAHEAP_POLICY="SparkPrimitivePolicy"
+# Enable FlexHeap
+ENABLE_FLEXHEAP=true
+# Choose a flexheap policy
+# 0: SimpleStateMachine
+# 1: SimpleWaitVersion
+# 7: Optimized
+FLEXHEAP_POLICY=7
+# We support two policies for calculating I/O wait:
+# 0: we read the /proc/stat
+# 1: we use getrusage()
+CPU_STATS_POLICY=1
+USER_EXTRA_JAVA_OPTS=""

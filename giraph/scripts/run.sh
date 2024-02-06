@@ -96,8 +96,20 @@ start_hadoop_yarn_zkeeper() {
 		local tc_size=$(( (900 - HEAP) * 1024 * 1024 * 1024 ))
 
 		jvm_opts="\t\t<value>-XX:-ClassUnloading -XX:+UseParallelGC "
-		jvm_opts+="-XX:-UseParallelOldGC -XX:ParallelGCThreads=${GC_THREADS} -XX:+EnableTeraHeap -XX:+DynamicHeapResizing "
+		jvm_opts+="-XX:-UseParallelOldGC -XX:ParallelGCThreads=${GC_THREADS} "
+    jvm_opts+="-XX:+EnableTeraHeap "
 		jvm_opts+="-XX:TeraHeapSize=${tc_size} -Xmx900g -Xms${HEAP}g "
+
+    local H2_FILE_SZ_BYTES=$(echo "${TH_FILE_SZ} * 1024 * 1024 * 1024" | bc)
+    local H2_PATH="${TH_DIR//\//\\/}\/"
+    jvm_opts+="-XX:AllocateH2At=\"${H2_PATH}\" -XX:H2FileSize=${H2_FILE_SZ_BYTES} "
+
+    if [ "${DYNAHEAP}" == "true" ]
+    then
+      jvm_opts+="-XX:+DynamicHeapResizing "
+      jvm_opts+="-XX:TeraResizingPolicy=${TERA_RESIZING_POLICY} "
+      jvm_opts+="-XX:TeraDRAMLimit=${TERA_DRAM_LIMIT} "
+    fi
 		jvm_opts+="-XX:-UseCompressedOops " 
 		jvm_opts+="-XX:-UseCompressedClassPointers "
     if [ "${PRINT_STATS}" == "true" ]
@@ -154,7 +166,6 @@ start_hadoop_yarn_zkeeper() {
 ##
 clear_files() {
 	rm -rf "${DATASET_DIR}/hadoop"
-  rm -rf "${TH_DIR}/file.txt"
   rm -rf "${ZOOKEEPER_DIR}/version-2"
   rm -rf "${ZOOKEEPER_DIR}/zookeeper_server.pid"
 }
@@ -165,7 +176,6 @@ clear_files() {
 ##
 create_files() {
   mkdir -p "${DATASET_DIR}/hadoop"
-  fallocate -l ${TH_FILE_SZ}G ${TH_DIR}/file.txt
 }
 
 ##

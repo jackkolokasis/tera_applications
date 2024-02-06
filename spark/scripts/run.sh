@@ -48,9 +48,20 @@ build_async_profiler() {
 
   if [ ! -d async-profiler ]
   then
-    wget https://github.com/async-profiler/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-x64.tar.gz >> "${BENCH_LOG}" 2>&1 
-    tar xf async-profiler-2.9-linux-x64.tar.gz >> "${BENCH_LOG}" 2>&1 
-    mv async-profiler-2.9-linux-x64 async-profiler
+    cpu_arch=$(uname -p)
+    if [[ $cpu_arch == x86_64]]
+    then
+      wget https://github.com/async-profiler/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-x64.tar.gz >> "${BENCH_LOG}" 2>&1 
+      tar xf async-profiler-2.9-linux-x64.tar.gz >> "${BENCH_LOG}" 2>&1 
+      mv async-profiler-2.9-linux-x64 async-profiler
+    elif [[ $cpu_arch == aarch64 ]]
+    then
+      wget https://github.com/async-profiler/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-arm64.tar.gz >> "${BENCH_LOG}" 2>&1 
+      tar xf async-profiler-2.9-linux-arm64.tar.gz >> "${BENCH_LOG}" 2>&1 
+      mv async-profiler-2.9-linux-arm64 async-profiler
+    else
+      echo "Unsupported architecture!"
+    fi
   fi
 
   cd - > /dev/null || exit
@@ -61,7 +72,6 @@ build_async_profiler() {
 #   Create a cgroup
 setup_cgroup() {
 	# Change user/group IDs to your own
-	#sudo cgcreate -a kolokasis:carvsudo -t kolokasis:carvsudo -g memory:memlim
 	sudo cgcreate -a $USER:carvsudo -t $USER:carvsudo -g memory:memlim
 	cgset -r memory.limit_in_bytes="$MEM_BUDGET" memlim
   #sudo cgset -r memory.numa_stat=0 memlim
@@ -84,7 +94,6 @@ run_cgexec() {
 ##
 start_spark() {
   run_cgexec "${SPARK_DIR}"/sbin/start-all.sh >> "${BENCH_LOG}" 2>&1
-  #"${SPARK_DIR}"/sbin/start-all.sh >> "${BENCH_LOG}" 2>&1
 }
 
 ##
@@ -93,7 +102,6 @@ start_spark() {
 ##
 stop_spark() {
   run_cgexec "${SPARK_DIR}"/sbin/stop-all.sh >> "${BENCH_LOG}" 2>&1
-  #"${SPARK_DIR}"/sbin/stop-all.sh >> "${BENCH_LOG}" 2>&1
   #kill all the processes of Spark
   xargs -a /sys/fs/cgroup/memory/memlim/cgroup.procs kill
 }
@@ -182,7 +190,6 @@ printMsgIteration() {
 download_third_party() {
   if [ ! -d "system_util" ]
   then
-    #git clone git@github.com:jackkolokasis/system_util.git >> "${BENCH_LOG}" 2>&1
     git clone https://github.com/jackkolokasis/system_util.git >> "${BENCH_LOG}" 2>&1
   fi
 }
@@ -240,7 +247,8 @@ gen_config_files() {
 ##
 # Function to kill the watch process
 kill_watch() {
-  pkill -f "watch -n 1"
+  #pkill -f "watch -n 1"
+  kill -9 "$(pgrep -f "mem_usage.sh")"
 }
 
 # Check for the input arguments

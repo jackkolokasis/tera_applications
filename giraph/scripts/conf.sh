@@ -1,9 +1,6 @@
 HOSTNAME=sith4-fast
 JAVA_PATH=/spare/kolokasis/dev/teraheap/jdk8u345/build/linux-x86_64-normal-server-release/jdk
-#JAVA_PATH=/opt/carvguest/asplos23_ae/teraheap/jdk8u345/build/linux-x86_64-normal-server-release/jdk
-#JAVA_PATH="/opt/carvguest/asplos23_ae/jdk8u/build/linux-x86_64-normal-server-release/jdk"
 TERAHEAP_REPO=/spare/kolokasis/dev/teraheap
-#TERAHEAP_REPO=/opt/carvguest/asplos23_ae/teraheap
 BENCHMARK_SUITE="/opt/carvguest/asplos23_ae/tera_applications/giraph/graphalytics-platforms-giraph/graphalytics-1.2.0-giraph-0.2-SNAPSHOT"
 BENCHMARK_CONFIG="${BENCHMARK_SUITE}/config"
 LOG="$BENCHMARK_SUITE/report/bench.log"
@@ -38,11 +35,15 @@ DATASET="datagen-9_0-fb"
 #DATASET="datagen-sf3k-fb" 
 # Benchmarks to run
 #BENCHMARKS=( "pr" "bfs" "wcc" "cdlp" "sssp" )
-BENCHMARKS=( "pr" )
+BENCHMARKS=( "cdlp" )
 # Number of executors
 EXECUTORS=1
+# DRAM Limit
+DRAM_LIMIT=55
 # cgset accepts K,M,G and eiB, MiB, GiB units for memory limit
-MEM_BUDGET=55G
+MEM_BUDGET=${DRAM_LIMIT}G
+# Tera DRAM limit
+TERA_DRAM_LIMIT=$((DRAM_LIMIT * 1024 * 1024 * 1024))
 # Total Configurations
 TOTAL_CONFS=1
 # Card segment size for H2
@@ -57,3 +58,15 @@ PRINT_STATS=true
 # Print TeraHeap extended statistics includeing dirty cards. When this
 # flag is enabled the PRINT_STATS should be disabled
 PRINT_EXTENDED_STATS=false
+# These flags are for DynaHeap
+DYNAHEAP=true
+# Resizing policy:
+#   0: Simple policy
+#   1: Simple wait policy
+#   2: Agressive Grow
+#   3: Aggressive Shrink
+#   4: Full optimized wait state
+#   5: Shrink after grow policy
+#   6: Optimize Grow state machine;
+#   7: Full optimized
+TERA_RESIZING_POLICY=7
