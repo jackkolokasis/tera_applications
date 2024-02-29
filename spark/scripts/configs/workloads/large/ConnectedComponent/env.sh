@@ -1,7 +1,7 @@
 # Application parameters
 numV=14722560		#> 32GB
 
-NUM_OF_PARTITIONS=256
+NUM_OF_PARTITIONS=1024
 mu=4.0
 sigma=1.3
 

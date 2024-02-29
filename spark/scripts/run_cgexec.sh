@@ -21,3 +21,4 @@ export TERA_MALLOC_HOME=${PROJECT_DIR}/tera_malloc
 
 "$@"
 #numactl --cpunodebind=0 "$@"
+

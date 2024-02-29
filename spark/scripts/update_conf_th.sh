@@ -62,7 +62,8 @@ update_spark_defaults() {
   local TH_BYTES=$(echo "(${H1_H2_SIZE} - ${H1_SIZE}) * 1024 * 1024 * 1024" | bc)
 
   local extra_java_opts="spark.executor.extraJavaOptions -server "
-  extra_java_opts+="-XX:-ClassUnloading -XX:+UseParallelGC -XX:ParallelGCThreads=${GC_THREADS} "
+  #extra_java_opts+="-XX:-ClassUnloading -XX:DEVICE_H2=\"nvme3n1\" -XX:+UseParallelGC -XX:ParallelGCThreads=${GC_THREADS} "
+  extra_java_opts+="-XX:-ClassUnloading -XX:DEVICE_H2=\"nvme3n1\" -XX:+UseParallelGC -XX:+UseNUMA -XX:ParallelGCThreads=${GC_THREADS} "
   extra_java_opts+="-XX:+EnableTeraHeap -XX:TeraHeapSize=${TH_BYTES} -Xms${H1_SIZE}g "
   extra_java_opts+="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers "
 
@@ -105,7 +106,7 @@ update_spark_bench() {
   sed -i '/SPARK_EXECUTOR_CORES/c\SPARK_EXECUTOR_CORES='"${EXEC_CORES}" env.sh
   sed -i '/SPARK_EXECUTOR_INSTANCES/c\SPARK_EXECUTOR_INSTANCES='"${NUM_EXECUTORS}" env.sh
   sed -i '/STORAGE_LEVEL/c\STORAGE_LEVEL='"${S_LEVEL}" env.sh
-	sed -i '/NUM_OF_PARTITIONS/c\NUM_OF_PARTITIONS='"${NUM_OF_PARTITIONS}" env.sh
+  sed -i '/NUM_OF_PARTITIONS/c\NUM_OF_PARTITIONS='"${NUM_OF_PARTITIONS}" env.sh
 }
 
 # Check for the input arguments

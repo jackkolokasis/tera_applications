@@ -29,14 +29,13 @@ SPARK_RDD_COMPRESS=false
 # Spark options in system.property or arguments of spark-submit 
 SPARK_EXECUTOR_MEMORY=1200g
 SPARK_EXECUTOR_INSTANCES=1
-SPARK_EXECUTOR_CORES=8
+SPARK_EXECUTOR_CORES=20
 
 # Storage levels, see :
 STORAGE_LEVEL=MEMORY_ONLY
 
 # For data generation
-NUM_OF_PARTITIONS=256
-
+NUM_OF_PARTITIONS=480
 # For running
 NUM_TRIALS=1
 

@@ -41,6 +41,28 @@ usage() {
   exit 1
 }
 
+# Function to parse results if execution is errors free
+run_results_parser() {
+  #local app_dir=$1           # The first argument to the function is the directory path
+  local run_dir=$1           # The directory containing the logs of a worker
+  local executors_count=$2   # number of executors
+  local mode=$3              # -t for FlexHeap, -s for Native
+  #local benchmark_dir=$5
+  #./parse_results.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -t
+
+  # Count the number of subdirectories, excluding the directory itself
+  local subdir_count=$(find "$app_dir" -mindepth 1 -maxdepth 1 -type d | wc -l)
+
+  # Check if the number of subdirectories is greater than 1
+  if [ "$subdir_count" -gt 1 ]; then
+    echo "The directory '$run_dir' contains $subdir_count subdirectories."
+  else
+    echo "The directory '$run_dir' contains $subdir_count subdirectory."
+    ./parse_results.sh -d "${run_dir}" -n "${executors_count}" $mode
+  fi
+  ./jvm_error_filter.sh -i $run_dir
+}
+
 build_async_profiler() {
   export JAVA_HOME=${MY_JAVA_HOME}
 
@@ -49,14 +71,14 @@ build_async_profiler() {
   if [ ! -d async-profiler ]
   then
     cpu_arch=$(uname -p)
-    if [[ $cpu_arch == x86_64]]
+    if [ $cpu_arch == x86_64 ]
     then
       wget https://github.com/async-profiler/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-x64.tar.gz >> "${BENCH_LOG}" 2>&1 
       tar xf async-profiler-2.9-linux-x64.tar.gz >> "${BENCH_LOG}" 2>&1 
       mv async-profiler-2.9-linux-x64 async-profiler
-    elif [[ $cpu_arch == aarch64 ]]
+    elif [ $cpu_arch == aarch64 ]
     then
-      wget https://github.com/async-profiler/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-arm64.tar.gz >> "${BENCH_LOG}" 2>&1 
+      wget https://github.com/async-profiler/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-arm64.tar.gz >> "${BENCH_LOG}" 2>&1
       tar xf async-profiler-2.9-linux-arm64.tar.gz >> "${BENCH_LOG}" 2>&1 
       mv async-profiler-2.9-linux-arm64 async-profiler
     else
@@ -190,7 +212,8 @@ printMsgIteration() {
 download_third_party() {
   if [ ! -d "system_util" ]
   then
-    git clone https://github.com/jackkolokasis/system_util.git >> "${BENCH_LOG}" 2>&1
+    #git clone https://github.com/jackkolokasis/system_util.git >> "${BENCH_LOG}" 2>&1
+    git clone https://github.com/perpap/system_util.git >> "${BENCH_LOG}" 2>&1
   fi
 }
 
@@ -259,7 +282,8 @@ do
       ITER=${OPTARG}
       ;;
     o)
-      OUTPUT_PATH=${OPTARG}
+      #OUTPUT_PATH="${OPTARG}/NATIVE_EXECUTORS=${NUM_EXECUTORS}_CORES=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G"
+      OUTPUT_PATH="${OPTARG}/NATIVE"
       ;;
     k)
       kill_back_process
@@ -267,6 +291,8 @@ do
       ;;
     t)
       TH=true
+      # Replace "NATIVE" with "FLEXHEAP"
+      OUTPUT_PATH=${OUTPUT_PATH//NATIVE/FLEXHEAP}
       ;;
     s)
       SERDES=true
@@ -293,9 +319,12 @@ do
 done
 
 # Create directory for the results if do not exist
-TIME=$(date +"%T-%d-%m-%Y")
+#TIME=$(date +"%T-%d-%m-%Y")
+TIME=$(date +"%d-%m-%Y-%T")
 
-OUT="${OUTPUT_PATH}_${TIME}"
+#OUT="${OUTPUT_PATH}_${TIME}"
+OUT="${OUTPUT_PATH}"
+#echo "Create directory OUT=$OUT"
 mkdir -p "${OUT}"
 
 # Enable perf event
@@ -313,19 +342,23 @@ do
   printStartMsg "${benchmark}"
   STARTTIME=$(date +%s)
 
-  mkdir -p "${OUT}/${benchmark}"
+  #mkdir -p "${OUT}/${benchmark}"
+  mkdir -p "${OUT}/${benchmark}/PARTITIONS=${NUM_OF_PARTITIONS}_REGION_SIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G_${TIME}"
 
   # For every iteration
   for ((i=0; i<ITER; i++))
   do
-    mkdir -p "${OUT}/${benchmark}/run${i}"
-      
+    #mkdir -p "${OUT}/${benchmark}/run${i}"
+    mkdir -p "${OUT}/${benchmark}/PARTITIONS=${NUM_OF_PARTITIONS}_REGION_SIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G_${TIME}/run${i}"
     # For every configuration
     for ((j=0; j<TOTAL_CONFS; j++))
     do
-      mkdir -p "${OUT}/${benchmark}/run${i}/conf${j}"
-      RUN_DIR="${OUT}/${benchmark}/run${i}/conf${j}"
+      #mkdir -p "${OUT}/${benchmark}/run${i}/conf${j}"
+      #RUN_DIR="${OUT}/${benchmark}/run${i}/conf${j}"
 
+      mkdir -p "${OUT}/${benchmark}/PARTITIONS=${NUM_OF_PARTITIONS}_REGION_SIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G_${TIME}/run${i}/conf${j}"
+      RUN_DIR="${OUT}/${benchmark}/PARTITIONS=${NUM_OF_PARTITIONS}_REGION_SIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G_${TIME}/run${i}/conf${j}"
+      #echo "RUN_DIR=$RUN_DIR"
 
       # Set configuration
       if [ $SERDES ]
@@ -358,13 +391,13 @@ do
       fi
 
       ./serdes.sh ${RUN_DIR}/serdes ${NUM_EXECUTORS} &
-
+      
       # Enable profiler
       if [ ${PROFILER} ]
       then
         ./profiler.sh ${RUN_DIR}/profile.svg ${NUM_EXECUTORS} &
       fi
-
+      
       # Drop caches
       sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches >> "${BENCH_LOG}" 2>&1
 
@@ -388,6 +421,7 @@ do
       else
         # Run benchmark and save output to tmp_out.txt
         run_cgexec "${SPARK_BENCH_DIR}"/"${benchmark}"/bin/run.sh > "${RUN_DIR}"/tmp_out.txt 2>&1
+        #run_cgexec "${SPARK_BENCH_DIR}"/"${benchmark}"/bin/run.sh
         #"${SPARK_BENCH_DIR}"/"${benchmark}"/bin/run.sh > "${RUN_DIR}"/tmp_out.txt 2>&1
       fi
 
@@ -402,7 +436,7 @@ do
 
       # System statistics stop
       ./system_util/stop_statistics.sh -d "${RUN_DIR}"
-      
+
       stop_spark
 
       delete_cgroup
@@ -437,8 +471,11 @@ do
       then
         TH_METRICS=$(ls -td "${SPARK_DIR}"/work/* | head -n 1)
         cp "${TH_METRICS}"/0/teraHeap.txt "${RUN_DIR}"/
+        #run_results_parser "$RUN_DIR $NUM_EXECUTORS -t
         ./parse_results.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -t
       else
+        #NATIVE_METRICS=$(ls -td "${SPARK_DIR}"/work/* | head -n 1) 
+        #run_results_parser $RUN_DIR $NUM_EXECUTORS -s
         ./parse_results.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -s
       fi
     done
