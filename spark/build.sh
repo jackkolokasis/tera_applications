@@ -67,6 +67,7 @@ build_spark() {
   # Do not use parallel compilation. Spark3.3.0 freeze during
   # compilation. 
   ./build/mvn -DskipTests clean package >> "${COMPILE_OUT}" 2>&1
+  #mvn -DskipTests clean package >> "${COMPILE_OUT}" 2>&1
   retValue=$?
   message="Build Spark" 
   check ${retValue} "${message}"
@@ -76,6 +77,7 @@ build_spark() {
 install_spark() {
   cd "${SPARK_DIR}" || exit
   ./build/mvn -DskipTests clean install >> "${COMPILE_OUT}" 2>&1
+  #mvn -DskipTests clean install >> "${COMPILE_OUT}" 2>&1
   retValue=$?
   message="Install Spark" 
   check ${retValue} "${message}"
@@ -107,7 +109,8 @@ build_benchmarks() {
 clean_all() {
   cd "${SPARK_DIR}" || exit
   ./build/mvn clean >> "${COMPILE_OUT}" 2>&1
-  
+  #mvn clean >> "${COMPILE_OUT}" 2>&1
+
   retValue=$?
   message="Clean Spark" 
   check ${retValue} "${message}"
