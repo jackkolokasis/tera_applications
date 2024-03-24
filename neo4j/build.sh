@@ -61,12 +61,13 @@ prepare_certificates() {
 build_neo4j() {
   if [ ! -d neo4j ]
   then
-    git clone https://github.com/neo4j/neo4j.git --branch 3.5.30 --single-branch
+    git clone https://github.com/neo4j/neo4j.git --branch 5.15.0 --single-branch
   fi
 
   cd "${NEO4J_DIR}" || exit
 
-  mvn -DskipTests clean install >> "${COMPILE_OUT}" 2>&1
+  export MAVEN_OPTS="-Xmx2048m"
+  mvn clean install -DskipTests -T1C -X >> "${COMPILE_OUT}" 2>&1
   retValue=$?
   message="Build Neo4j" 
   check ${retValue} "${message}"
@@ -74,7 +75,7 @@ build_neo4j() {
   cd - > /dev/null || exit
 
   cd "${NEO4J_DIR}"/packaging/standalone/target/ || exit
-  tar xf neo4j-community-3.5.30-SNAPSHOT-unix.tar.gz
+  tar xf neo4j-community-5.15.0-SNAPSHOT-unix.tar.gz
 
   cd - > /dev/null || exit
 }
@@ -130,28 +131,30 @@ build_ldbc_neo4j_bench() {
 }
 
 build_benchmark() {
-  local is_gds_exist
-  is_gds_exist="false"
+  #local is_gds_exist
+  #is_gds_exist="false"
 
-  if [ -d "${HOME}/.m2/repository/org/neo4j/gds/" ]
-  then
-    build_graph_data_science
-    is_gds_exist="true"
-  fi
+  #if [ -d "${HOME}/.m2/repository/org/neo4j/gds/" ]
+  #then
+  #  build_graph_data_science
+  #  is_gds_exist="true"
+  #fi
 
-  if [ $is_gds_exist == "false" ]
-  then
-    build_ldbc_graphalytics
-    build_ldbc_neo4j_bench
+  #if [ $is_gds_exist == "false" ]
+  #then
+  #  build_ldbc_graphalytics
+  #  build_ldbc_neo4j_bench
 
-    build_graph_data_science
-    build_ldbc_graphalytics
-    build_ldbc_neo4j_bench
-  else
-    build_graph_data_science
-    build_ldbc_graphalytics
-    build_ldbc_neo4j_bench
-  fi
+  #  build_graph_data_science
+  #  build_ldbc_graphalytics
+  #  build_ldbc_neo4j_bench
+  #else
+  #  build_graph_data_science
+  #  build_ldbc_graphalytics
+  #  build_ldbc_neo4j_bench
+  #fi
+  build_ldbc_graphalytics
+  build_ldbc_neo4j_bench
 }
 
 # Check for the input arguments
@@ -163,7 +166,7 @@ do
       then
         prepare_certificates
       fi
-      build_neo4j
+      #build_neo4j
       build_benchmark
       ;;
     b)

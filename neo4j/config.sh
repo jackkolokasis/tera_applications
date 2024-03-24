@@ -1,7 +1,8 @@
-export JAVA_HOME=/home1/public/kolokasis/jdk8u/teracache/jdk8u345/build/linux-x86_64-normal-server-release/jdk
-TERA_APPS_REPO="${HOME}/tera_applications"
+export JAVA_HOME=/spare/kolokasis/dev/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk
+#export JAVA_HOME=/usr/java/jdk-17.0.4.1
+TERA_APPS_REPO="/archive/users/kolokasis/tera_applications"
 NEO4J_DIR="${TERA_APPS_REPO}/neo4j/neo4j"
-NEO4J_EXEC_DIR="${NEO4J_DIR}/packaging/standalone/target/neo4j-community-3.5.30-SNAPSHOT/"
+NEO4J_EXEC_DIR="${NEO4J_DIR}/packaging/standalone/target/neo4j-community-5.17.0-SNAPSHOT/"
 DATASET_DIR="/mnt/datasets/graphalytics"
 COMPILE_OUT="${TERA_APPS_REPO}/neo4j/compile.out"
 CUSTOM_JVM=true
