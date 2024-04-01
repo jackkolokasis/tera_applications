@@ -17,9 +17,9 @@
 		<hamcrest.version>1.3</hamcrest.version>
 		<junit.version>4.11</junit.version>
 		<log4j.version>2.5</log4j.version>
-		<neo4j.version>3.5.30</neo4j.version>
-		<neo4j.graph.algorithms.version>3.5.3.4</neo4j.graph.algorithms.version>
-		<neo4j.graph.data.science.version>2.7.0</neo4j.graph.data.science.version>
+		<neo4j.version>5.15.0</neo4j.version>
+		<neo4j.graph.algorithms.version>5.15.0</neo4j.graph.algorithms.version>
+		<neo4j.graph.data.science.version>2.7.0-alpha01</neo4j.graph.data.science.version>
 	</properties>
 
 	<name>Graphalytics Platform Neo4j</name>
