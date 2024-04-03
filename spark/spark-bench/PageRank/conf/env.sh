@@ -1,6 +1,6 @@
 # for preparation 
 numV=16000000 # 32GB
-NUM_OF_PARTITIONS=60
+NUM_OF_PARTITIONS=480
 mu=4.0
 sigma=1.3
 

@@ -15,143 +15,71 @@ delimiter=":"
 
 # Define mappings for H1_SIZE and MEM_BUDGET for each benchmark and EXEC_CORES
 declare -A CONFIG_MAP=(
-: '
     ["LinearRegression${delimiter}1"]="100:160"
+    ["LinearRegression${delimiter}2"]="100:160"
     ["LinearRegression${delimiter}4"]="100:160"
     ["LinearRegression${delimiter}8"]="100:160"
+    ["LinearRegression${delimiter}16"]="100:160"
     ["LinearRegression${delimiter}20"]="100:160"
+    ["LinearRegression${delimiter}32"]="100:160"
     ["LinearRegression${delimiter}40"]="100:160"
-    #["LinearRegression${delimiter}60"]="100:160"
+    ["LinearRegression${delimiter}60"]="100:160"
     ["LinearRegression${delimiter}80"]="100:160"
-    #["LinearRegression${delimiter}100"]="100:160"
+    ["LinearRegression${delimiter}100"]="100:160"
+    ["LinearRegression${delimiter}120"]="100:160"
+    ["LinearRegression${delimiter}140"]="100:160"
     ["LinearRegression${delimiter}160"]="100:160"
-    #["LogisticRegression${delimiter}8"]="100:160"
+    ["LogisticRegression${delimiter}1"]="100:160"
+    ["LogisticRegression${delimiter}2"]="100:160"
+    ["LogisticRegression${delimiter}4"]="100:160"
+    ["LogisticRegression${delimiter}8"]="100:160"
+    ["LogisticRegression${delimiter}16"]="100:160"
     ["LogisticRegression${delimiter}20"]="100:160"
+    ["LogisticRegression${delimiter}32"]="100:160"
     ["LogisticRegression${delimiter}40"]="100:160"
-    #["LogisticRegression${delimiter}60"]="100:160"
+    ["LogisticRegression${delimiter}60"]="100:160"
     ["LogisticRegression${delimiter}80"]="100:160"
-    #["LogisticRegression${delimiter}100"]="100:160"
+    ["LogisticRegression${delimiter}100"]="100:160"
+    ["LogisticRegression${delimiter}120"]="100:160"
+    ["LogisticRegression${delimiter}140"]="100:160"
     ["LogisticRegression${delimiter}160"]="100:160"
-    #["PageRank${delimiter}8"]="100:160"
+    ["PageRank${delimiter}1"]="100:160"
+    ["PageRank${delimiter}2"]="100:160"
+    ["PageRank${delimiter}4"]="100:160"
+    ["PageRank${delimiter}8"]="100:160"
+    ["PageRank${delimiter}16"]="100:160"
     ["PageRank${delimiter}20"]="100:160"
+    ["PageRank${delimiter}32"]="100:160"
     ["PageRank${delimiter}40"]="100:160"
-    #["PageRank${delimiter}60"]="100:160"
+    ["PageRank${delimiter}60"]="100:160"
     ["PageRank${delimiter}80"]="100:160"
-    #["PageRank${delimiter}100"]="100:160"
+    ["PageRank${delimiter}100"]="100:160"
+    ["PageRank${delimiter}120"]="100:160"
+    ["PageRank${delimiter}140"]="100:160"
     ["PageRank${delimiter}160"]="100:160"
-    #["ConnectedComponent${delimiter}8"]="100:160"
+    ["ConnectedComponent${delimiter}1"]="100:160"
+    ["ConnectedComponent${delimiter}2"]="100:160"
+    ["ConnectedComponent${delimiter}4"]="100:160"
+    ["ConnectedComponent${delimiter}8"]="100:160"
+    ["ConnectedComponent${delimiter}16"]="100:160"
     ["ConnectedComponent${delimiter}20"]="100:160"
+    ["ConnectedComponent${delimiter}32"]="100:160"
     ["ConnectedComponent${delimiter}40"]="100:160"
-    #["ConnectedComponent${delimiter}60"]="100:160"
+    ["ConnectedComponent${delimiter}60"]="100:160"
     ["ConnectedComponent${delimiter}80"]="100:160"
-    #["ConnectedComponent${delimiter}100"]="100:160"
+    ["ConnectedComponent${delimiter}100"]="100:160"
+    ["ConnectedComponent${delimiter}120"]="100:160"
+    ["ConnectedComponent${delimiter}140"]="100:160"
     ["ConnectedComponent${delimiter}160"]="100:160"
-'
-    ["LinearRegression${delimiter}1"]="160:220"
-    ["LinearRegression${delimiter}4"]="160:220"
-    ["LinearRegression${delimiter}8"]="160:220"
-    ["LinearRegression${delimiter}20"]="160:220"
-    ["LinearRegression${delimiter}40"]="160:220"
-    #["LinearRegression${delimiter}60"]="160:220"
-    ["LinearRegression${delimiter}80"]="160:220"
-    #["LinearRegression${delimiter}100"]="160:220"
-    ["LinearRegression${delimiter}160"]="160:220"
-    ["LogisticRegression${delimiter}1"]="160:200"
-    ["LogisticRegression${delimiter}4"]="160:200"
-    ["LogisticRegression${delimiter}8"]="160:200"
-    ["LogisticRegression${delimiter}20"]="160:200"
-    ["LogisticRegression${delimiter}40"]="160:200"
-    #["LogisticRegression${delimiter}60"]="160:200"
-    ["LogisticRegression${delimiter}80"]="160:200"
-    #["LogisticRegression${delimiter}100"]="160:200"
-    ["LogisticRegression${delimiter}160"]="160:200"
-    ["PageRank${delimiter}1"]="160:200"
-    ["PageRank${delimiter}4"]="160:200"
-    ["PageRank${delimiter}8"]="160:200"
-    ["PageRank${delimiter}20"]="160:200"
-    ["PageRank${delimiter}40"]="160:200"
-    #["PageRank${delimiter}60"]="160:200"
-    ["PageRank${delimiter}80"]="160:200"
-    #["PageRank${delimiter}100"]="160:200"
-    ["PageRank${delimiter}160"]="160:200"
-    ["ConnectedComponent${delimiter}1"]="160:200"
-    ["ConnectedComponent${delimiter}4"]="160:200"
-    ["ConnectedComponent${delimiter}8"]="160:200"
-    ["ConnectedComponent${delimiter}20"]="160:200"
-    ["ConnectedComponent${delimiter}40"]="160:200"
-    #["ConnectedComponent${delimiter}60"]="160:200"
-    ["ConnectedComponent${delimiter}80"]="160:200"
-    #["ConnectedComponent${delimiter}100"]="160:200"
-    ["ConnectedComponent${delimiter}160"]="160:200"
-: '
-    ["LinearRegression${delimiter}8"]="64:80"
-    ["LinearRegression${delimiter}20"]="64:80"
-    ["LinearRegression${delimiter}40"]="64:80"
-    ["LinearRegression${delimiter}60"]="64:80"
-    ["LinearRegression${delimiter}80"]="64:80"
-    ["LinearRegression${delimiter}100"]="64:80"
-    #["LinearRegression${delimiter}160"]="196:256"
-    ["LogisticRegression${delimiter}8"]="64:80"
-    ["LogisticRegression${delimiter}20"]="64:80"
-    ["LogisticRegression${delimiter}40"]="64:80"
-    ["LogisticRegression${delimiter}60"]="64:80"
-    ["LogisticRegression${delimiter}80"]="64:80"
-    ["LogisticRegression${delimiter}100"]="64:80"
-    #["LogisticRegression${delimiter}160"]="200:256"
-    ["PageRank${delimiter}8"]="64:80"
-    ["PageRank${delimiter}20"]="64:80"
-    ["PageRank${delimiter}40"]="64:80"
-    ["PageRank${delimiter}60"]="64:80"
-    ["PageRank${delimiter}80"]="64:80"
-    ["PageRank${delimiter}100"]="64:80"
-    #["PageRank${delimiter}160"]="196:256"
-    ["ConnectedComponent${delimiter}8"]="64:80"
-    ["ConnectedComponent${delimiter}20"]="64:80"
-    ["ConnectedComponent${delimiter}40"]="64:80"
-    ["ConnectedComponent${delimiter}60"]="64:80"
-    ["ConnectedComponent${delimiter}80"]="64:80"
-    ["ConnectedComponent${delimiter}100"]="64:80"
-    #["ConnectedComponent${delimiter}160"]="196:256"
-'
-: '
-    #["LinearRegression${delimiter}8"]="64:80"
-    ["LinearRegression${delimiter}20"]="80:100"
-    ["LinearRegression${delimiter}40"]="120:148"
-    #["LinearRegression${delimiter}60"]="140:172"
-    ["LinearRegression${delimiter}80"]="176:212"
-    ["LinearRegression${delimiter}100"]="200:256"
-    #["LinearRegression${delimiter}160"]="200:256" #OOM
-    #["LogisticRegression${delimiter}8"]="64:80"
-    ["LogisticRegression${delimiter}20"]="80:100"
-    ["LogisticRegression${delimiter}40"]="120:148"
-    #["LogisticRegression${delimiter}60"]="140:172"
-    ["LogisticRegression${delimiter}80"]="176:212"
-    ["LogisticRegression${delimiter}100"]="200:256"
-    #["LogisticRegression${delimiter}160"]="200:256"
-    #["PageRank${delimiter}8"]="64:80"
-    ["PageRank${delimiter}20"]="80:100"
-    ["PageRank${delimiter}40"]="120:148"
-    #["PageRank${delimiter}60"]="140:172"
-    ["PageRank${delimiter}80"]="176:212"
-    ["PageRank${delimiter}100"]="200:256"
-    #["PageRank${delimiter}160"]="200:256"
-    #["ConnectedComponent${delimiter}8"]="68:84"
-    ["ConnectedComponent${delimiter}20"]="80:100"
-    ["ConnectedComponent${delimiter}40"]="120:148"
-    #["ConnectedComponent${delimiter}60"]="156:192"
-    ["ConnectedComponent${delimiter}80"]="176:212"
-    ["ConnectedComponent${delimiter}100"]="200:256"
-    #["ConnectedComponent${delimiter}160"]="200:256"
-'
 )
 
 #BENCHMARKS=(LinearRegression LogisticRegression PageRank ConnectedComponent)
-BENCHMARKS=(LinearRegression)
-#EXECUTOR_CORES=(20 40 80 160)
-EXECUTOR_CORES=(160 80 40 20 8 4 2 1)
-STORAGE_LEVELS=("MEMORY_ONLY" "MEMORY_AND_DISK")
+BENCHMARKS=("PageRank")
+EXECUTOR_CORES=(40 32 20 16 8 4 2 1)
+#EXECUTOR_CORES=(160 80 40 32 20 16 8 4 2 1)
+#STORAGE_LEVELS=("MEMORY_ONLY" "MEMORY_AND_DISK")
 #STORAGE_LEVELS=("MEMORY_AND_DISK" "MEMORY_ONLY")
-#STORAGE_LEVELS=("MEMORY_AND_DISK")
+STORAGE_LEVELS=("MEMORY_AND_DISK")
 #STORAGE_LEVELS=("MEMORY_ONLY")
 RESULTS_PATH="/spare/perpap/spark_results"
 ITERATIONS=1
@@ -183,10 +111,27 @@ function run_benchmarks(){
       # Middle loop - STORAGE_LEVELS
       for STORAGE_LEVEL in "${STORAGE_LEVELS[@]}"; do
 	  sed -i "s/^S_LEVEL=(.*)/S_LEVEL=(\"$STORAGE_LEVEL\")/" conf.sh
+          if [[ $STORAGE_LEVEL == "MEMORY_AND_DISK" ]]; then
+              #sed -i "s/^MY_JAVA_HOME=.*/MY_JAVA_HOME=${NATIVE_JDK17_AARCH64}/" conf.sh
+              #sed -i "s/MY_JAVA_HOME=.*/MY_JAVA_HOME=\"$NATIVE_JDK17_AARCH64\"/" conf.sh
+              export MY_JAVA_HOME=$NATIVE_JDK17_AARCH64
+          else
+              #sed -i "s/^MY_JAVA_HOME=.*/MY_JAVA_HOME=${TERA_JDK17_AARCH64_RELEASE}/" conf.sh
+              #sed -i "s/MY_JAVA_HOME=.*/MY_JAVA_HOME=\"$TERA_JDK17_AARCH64_RELEASE\"/" conf.sh
+              export MY_JAVA_HOME=$TERA_JDK17_AARCH64_RELEASE
+          fi
+
 	  # Inner loop - EXECUTOR_CORES
 	  for MUTATOR_THREADS in "${EXECUTOR_CORES[@]}"; do
               : '
-              if [[ $BENCHMARK == "LinearRegression" && ( $MUTATOR_THREADS == 8 || $MUTATOR_THREADS == 20 ) ]]; then
+              if [[ $BENCHMARK == "LogisticRegression" && $STORAGE_LEVEL == "MEMORY_ONLY" && $MUTATOR_THREADS -gt 100 ]]; then
+                  continue
+              fi
+              if [[ $BENCHMARK == "ConnectedComponent" && $STORAGE_LEVEL == "MEMORY_ONLY" && $MUTATOR_THREADS -ne 1 ]]; then
+                  continue
+              fi
+              
+              if [[ $STORAGE_LEVEL == "MEMORY_AND_DISK" && $MUTATOR_THREADS -gt 40 ]]; then
                   continue
               fi
               '
