@@ -5,7 +5,7 @@
 # file: update_conf.sh
 #
 # @Author:   Iacovos G. Kolokasis
-# @Version:  27-02-2021 
+# @Version:  04-05-2024 
 # @email:    kolokasis@ics.forth.gr
 #
 # Scrpt to setup the configuration for experiments
@@ -18,7 +18,7 @@
 usage() {
     echo
     echo "Usage:"
-    echo -n "      $0 [option ...] [-k][-h]"
+    echo -n "      $0 [option ...] [-b-h]"
     echo
     echo "Options:"
     echo "      -b  Custom Benchmark"
@@ -67,7 +67,7 @@ update_spark_defaults() {
   # Change the spark.metrics.conf
   sed -i '/spark.metrics.conf/c\spark.metrics.conf '"${MASTER_METRIC_FILE}" spark-defaults.conf
   # Change the spark.executor.extraJavaOptions
-  sed '/^spark\.executor\.extraJavaOptions/s/.*/'"${extra_java_opts}"'/' spark-defaults.conf
+  sed -i '/^spark\.executor\.extraJavaOptions/s/.*/'"${extra_java_opts}"'/' spark-defaults.conf
   # Change the spark.memory.storageFraction
   sed -i '/storageFraction/c\spark.memory.storageFraction '"${MEM_FRACTION}" spark-defaults.conf
 }
@@ -116,6 +116,7 @@ then
 
 	cd - > /dev/null || exit
 
+  # Copy configuration of the workload
   cp "./configs/workloads/${DATA_SIZE}/${BENCHMARKS}/env.sh" \
     "${SPARK_BENCH_DIR}/${BENCHMARKS}/conf"
 

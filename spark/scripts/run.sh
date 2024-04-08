@@ -12,12 +12,11 @@
 #
 ###################################################
 
-set -x
-
 . ./conf.sh
 
 #### Global Variables ####
 CUSTOM_BENCHMARK=false
+RUN_TPCDS=false
 
 # Print error/usage script message
 usage() {
@@ -34,6 +33,7 @@ usage() {
   echo "      -f  Enable profiler tool"
   echo "      -a  Run experiments with high bench"
   echo "      -b  Run experiments with custom benchmark"
+  echo "      -q  Run experiments with TPC-DS workloads"
   echo "      -j  Enable metrics for JIT compiler"
   echo "      -h  Show usage"
   echo
@@ -70,7 +70,7 @@ setup_cgroup() {
 # Description:
 #   Delete a cgroup
 delete_cgroup() {
-	sudo cgdelete memory:memlim
+	sudo cgdelete memory:memlim > /dev/null 2>&1
 }
 
 run_cgexec() {
@@ -237,11 +237,11 @@ gen_config_files() {
 # Function to kill the watch process
 kill_watch() {
   #pkill -f "watch -n 1"
-  kill -9 "$(pgrep -f "mem_usage.sh")"
+  kill -9 "$(pgrep -f "mem_usage.sh")" >/dev/null 2>&1
 }
 
 # Check for the input arguments
-while getopts ":n:o:ktspjfbh" opt
+while getopts ":n:o:ktspjfbqh" opt
 do
   case "${opt}" in
     n)
@@ -272,6 +272,9 @@ do
     b)
       CUSTOM_BENCHMARK=true
       ;;
+    q)
+      RUN_TPCDS=true
+      ;;
     h)
       usage
       ;;
@@ -288,7 +291,7 @@ OUT="${OUTPUT_PATH}_${TIME}"
 mkdir -p "${OUT}"
 
 # Enable perf event
-sudo sh -c 'echo -1 >/proc/sys/kernel/perf_event_paranoid'
+sudo sh -c 'echo -1 >/proc/sys/kernel/perf_event_paranoid' >> /dev/null 2>&1
 
 gen_config_files
 
@@ -355,7 +358,7 @@ do
       fi
 
       # Drop caches
-      sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches >> "${BENCH_LOG}" 2>&1
+      echo 3 | sudo tee -a /proc/sys/vm/drop_caches >> /dev/null 2>&1
 
       # Pmem stats before
       if [[ ${DEV_FMAP} == *pmem* ]]
@@ -368,9 +371,9 @@ do
 
       if [ $CUSTOM_BENCHMARK == "true" ]
       then
-        if [ $SERDES ]
+        if [ $RUN_TPCDS == "true" ]
         then
-          run_cgexec ./custom_benchmarks.sh "${RUN_DIR}" "$SERDES"
+          run_cgexec ./run_tpcds.sh "${RUN_DIR}" "${H1_SIZE[$j]}" "${benchmark}"
         else
           run_cgexec ./custom_benchmarks.sh "${RUN_DIR}" "$SERDES"
         fi
