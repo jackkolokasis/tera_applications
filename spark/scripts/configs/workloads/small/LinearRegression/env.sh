@@ -1,8 +1,8 @@
 # Application parameters #1million points have 200M data size 
 
 NUM_OF_EXAMPLES=20000
+NUM_OF_FEATURES=177777 #< 64GB
 NUM_OF_PARTITIONS=256
-NUM_OF_FEATURES=5555
 
 EPS=0.5
 INTERCEPTS=0.1

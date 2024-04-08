@@ -1,5 +1,5 @@
 # for preparation 
-numV=942240		    #> 2G
+numV=5520960	 #> 12G
 NUM_OF_PARTITIONS=256
 mu=4.0
 sigma=1.3
