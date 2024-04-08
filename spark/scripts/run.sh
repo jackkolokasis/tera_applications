@@ -116,31 +116,9 @@ stop_perf() {
 #   Kill running background processes (jstat, serdes)
 ##
 kill_back_process() {
-  local jstatPID
-  local serdesPID
-  local perfPID
-  
-  jstatPID=$(pgrep jstat)
-  serdesPID=$(pgrep serdes)
-  perfPID=$(pgrep perf)
-
-  # Kill all jstat process
-  for jstat_pid in ${jstatPID}
-  do
-    kill -KILL "${jstat_pid}" >> "${BENCH_LOG}" 2>&1 
-  done
-
-  # Kill all serdes process
-  for serdes_pid in ${serdesPID}
-  do
-    kill -KILL "${serdes_pid}" >> "${BENCH_LOG}" 2>&1
-  done
-
-  # Kill all perf process
-  for perf_id in ${perfPID}
-  do
-    kill -KILL "${perf_id}" >> "${BENCH_LOG}" 2>&1
-  done
+  pkill -f "bash ./mem_usage.sh"
+  pkill -f "bash ./serdes.sh"
+  pkill -f "bash ./jstat.sh"
 }
 
 ##
