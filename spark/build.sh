@@ -142,10 +142,24 @@ benchmark_dependencies() {
 }
 
 build_benchmarks() {
-  ./spark-bench/bin/build-all.sh "spark3.3.0" > "${COMPILE_OUT}" 2>&1
+  ./spark-bench/bin/build-all.sh "spark3.3.0" >> "${COMPILE_OUT}" 2>&1
   retValue=$?
   message="Build Spark Benchmarks" 
   check ${retValue} "${message}"
+}
+
+build_spark_tpcds() {
+  if [[ ! -d ./spark-tpcds ]]
+  then
+    git clone git@github.com:jackkolokasis/spark-tpcds.git >> "${COMPILE_OUT}" 2>&1 
+  fi
+
+  cd ./spark-tpcds || exit
+  ./gradlew jar >> "${COMPILE_OUT}" 2>&1 
+  retValue=$?
+  message="Build Spark TPC-DS" 
+  check ${retValue} "${message}"
+  cd - > /dev/null || exit
 }
 
 clean_all() {
@@ -184,6 +198,7 @@ do
       build_spark
       benchmark_dependencies
       build_benchmarks
+      build_spark_tpcds
       ;;
     s)
       create_cgexec
@@ -194,6 +209,7 @@ do
       create_cgexec
       benchmark_dependencies
       build_benchmarks
+      build_spark_tpcds
       ;;
     i)
       create_cgexec
