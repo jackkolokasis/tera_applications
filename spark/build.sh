@@ -47,15 +47,13 @@ create_cgexec () {
     export PATH=${TERAHEAP_REPO}/allocator/include/:\$PATH
     export C_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:\$C_INCLUDE_PATH
     export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:\$CPLUS_INCLUDE_PATH
-    export LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib:\$LIBRARY_PATH
-    export LD_LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib/:\$LD_LIBRARY_PATH
-    export PATH=${TERAHEAP_REPO}/allocator/include/:\$PATH
-    export C_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:\$C_INCLUDE_PATH
-    export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:\$CPLUS_INCLUDE_PATH
-    #LD_PRELOAD=/usr/lib64/libjemalloc.so.1
-    #export LD_PRELOAD
-    \"\$@\"
-    #numactl --cpunodebind=0 \"\$@\"" >> "${TERA_APPS_REPO}/spark/scripts/run_cgexec.sh"
+
+    export LIBRARY_PATH=${TERAHEAP_REPO}/tera_malloc/lib:\$LIBRARY_PATH
+    export LD_LIBRARY_PATH=${TERAHEAP_REPO}/tera_malloc/lib/:\$LD_LIBRARY_PATH
+    export PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$PATH
+    export C_INCLUDE_PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$C_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$CPLUS_INCLUDE_PATH
+    \"\$@\"" >> "${TERA_APPS_REPO}/spark/scripts/run_cgexec.sh"
 
 
     echo  -n "#!/usr/bin/env bash
@@ -64,15 +62,13 @@ create_cgexec () {
     export PATH=${TERAHEAP_REPO}/allocator/include/:\$PATH
     export C_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:\$C_INCLUDE_PATH
     export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:\$CPLUS_INCLUDE_PATH
-    export LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib:\$LIBRARY_PATH
-    export LD_LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib/:\$LD_LIBRARY_PATH
-    export PATH=${TERAHEAP_REPO}/allocator/include/:\$PATH
-    export C_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:\$C_INCLUDE_PATH
-    export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:\$CPLUS_INCLUDE_PATH
-    #LD_PRELOAD=/usr/lib64/libjemalloc.so.1
-    #export LD_PRELOAD
-    \"\$@\"
-    #numactl --cpunodebind=0 \"\$@\"" >> "${TERA_APPS_REPO}/spark/${SPARK_VERSION}/bin/run_cgexec.sh"
+
+    export LIBRARY_PATH=${TERAHEAP_REPO}/tera_malloc/lib:\$LIBRARY_PATH
+    export LD_LIBRARY_PATH=${TERAHEAP_REPO}/tera_malloc/lib/:\$LD_LIBRARY_PATH
+    export PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$PATH
+    export C_INCLUDE_PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$C_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$CPLUS_INCLUDE_PATH
+    \"\$@\"" >> "${TERA_APPS_REPO}/spark/${SPARK_VERSION}/bin/run_cgexec.sh"
 
     chmod u+x "${TERA_APPS_REPO}/spark/scripts/run_cgexec.sh"
     chmod u+x "${TERA_APPS_REPO}/spark/${SPARK_VERSION}/bin/run_cgexec.sh"
