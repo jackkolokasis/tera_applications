@@ -14,6 +14,8 @@
 
 # Print error/usage script message
 usage() {
+  local exit_code=$1
+
   echo
   echo "Usage:"
   echo -n "      $0 [option ...] [-h]"
@@ -26,7 +28,7 @@ usage() {
   echo "      -h  Show usage"
   echo
 
-  exit 0
+  exit "$exit_code"
 }
 
 ## Export runtime variables
@@ -40,7 +42,7 @@ export_variables() {
 #
 profile_app() {
   local exec_id=$1
-  local output_path=$1
+  local output_path=$2
   ./async-profiler/profiler.sh -d 40000 -i 10ms -o collapsed "${exec_id}" > "${output_path}/profile.txt" 2>/dev/null &
 }
 
@@ -92,11 +94,12 @@ do
       generate_flamegraphs "$OUTPUT_PATH"
       ;;
     h)
-      usage
+      usage 0
       ;;
     *)
-      usage
+      usage 1
       ;;
   esac
-  exit 0
 done
+
+exit 0
