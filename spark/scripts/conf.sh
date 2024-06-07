@@ -17,9 +17,9 @@ USER=$(whoami)
 # Dataset size "small" and "large"
 DATA_SIZE=large
 # JAVA Home
-MY_JAVA_HOME=$NATIVE_JDK17_AARCH64
+#MY_JAVA_HOME=$NATIVE_JDK17_AARCH64
 #MY_JAVA_HOME="/spare/perpap/teraheap/jdk17u067/build/linux-aarch64-server-release/jdk"
-#MY_JAVA_HOME=$TERA_JDK17_AARCH64_RELEASE
+MY_JAVA_HOME=$TERA_JDK17_AARCH64_RELEASE
 #MY_JAVA_HOME="/opt/carvguest/asplos23_ae/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk"
 #MY_JAVA_HOME="/spare/kolokasis/nativeJVM/jdk17u/build/linux-x86_64-server-release/jdk"
 # Device for datasets directory : /dev/nvme3n1
