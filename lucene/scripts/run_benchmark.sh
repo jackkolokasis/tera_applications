@@ -20,14 +20,14 @@ export LD_LIBRARY_PATH=/spare/kolokasis/dev/teraheap/tera_malloc/lib:$LD_LIBRARY
 export PATH=/spare/kolokasis/dev/teraheap/tera_malloc/include/:$PATH
 
 
-#/spare/kolokasis/dev/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} -Xmx"${MX_HEAP_SIZE}"g \
-#  src/EvaluateQueries.java \
-#  -i "${DATASET}" \
-#  -q /mnt/spark/new_real_queries/"${QUERY}" \
-#  -n 50 \
-#  -nq 80000 -nq 7000 \
-#  -r /tmp/queries.txt \
-#  > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+/spare/kolokasis/dev/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+  src/EvaluateQueries.java \
+  -i "${DATASET}" \
+  -q /mnt/spark/new_real_queries/"${QUERY}" \
+  -n 50 \
+  -nq 50000 -nq 7000 -nq 500000 -nq 400 -nq 80000 \
+  -r /tmp/queries.txt \
+  > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
 
 #/spare/kolokasis/dev/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} -Xmx"${MX_HEAP_SIZE}"g -Xms"${MX_HEAP_SIZE}"g \
 #  src/MixEvaluateQueries.java \
@@ -39,16 +39,16 @@ export PATH=/spare/kolokasis/dev/teraheap/tera_malloc/include/:$PATH
 #  -r /tmp/queries.txt \
 #  > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
 
-/spare/kolokasis/dev/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} -Xmx"${MX_HEAP_SIZE}"g \
-  MultiTenantEvaluateQueries \
-  -i "${DATASET}" \
-  -q /mnt/spark/concurrent_queries/HS -q /mnt/spark/concurrent_queries/ML \
-  -q /mnt/spark/concurrent_queries/LS -q /mnt/spark/concurrent_queries/HL \
-  -q /mnt/spark/concurrent_queries/MS -q /mnt/spark/concurrent_queries/HS_ML_LS_HL_MS \
-  -n 50 -n 500000 -n 50 -n 500000 -n 50 \
-  -nq 25000 -nq 7000 -nq 250000 -nq 400 -nq 40000 -nq 315800 \
-  -mxq 25000 -mxq 7000 -mxq 250000 -mxq 400 -mxq 40000 \
-  > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+#/spare/kolokasis/dev/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} -Xmx"${MX_HEAP_SIZE}"g \
+#  MultiTenantEvaluateQueries \
+#  -i "${DATASET}" \
+#  -q /mnt/spark/concurrent_queries/HS -q /mnt/spark/concurrent_queries/ML \
+#  -q /mnt/spark/concurrent_queries/LS -q /mnt/spark/concurrent_queries/HL \
+#  -q /mnt/spark/concurrent_queries/MS -q /mnt/spark/concurrent_queries/HS_ML_LS_HL_MS \
+#  -n 50 -n 500000 -n 50 -n 500000 -n 50 \
+#  -nq 25000 -nq 7000 -nq 250000 -nq 400 -nq 40000 -nq 315800 \
+#  -mxq 25000 -mxq 7000 -mxq 250000 -mxq 400 -mxq 40000 \
+#  > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
 
 #/spare/kolokasis/dev/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} -Xmx"${MX_HEAP_SIZE}"g \
 #  MultiTenantEvaluateQueries \

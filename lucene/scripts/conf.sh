@@ -64,4 +64,11 @@ FLEXHEAP_POLICY=7
 # 1: we use getrusage()
 CPU_STATS_POLICY=1
 #JAVA_OPTS="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseParallelGC -XX:ParallelGCThreads=16 -XX:+AlwaysPreTouch"
-JAVA_OPTS="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseParallelGC -XX:ParallelGCThreads=16 -XX:+EnableFlexHeap -XX:FlexResizingPolicy=2 -XX:+ShowMessageBoxOnError -XX:FlexDRAMLimit=10737418240"
+#JAVA_OPTS="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseParallelGC -XX:ParallelGCThreads=16 -XX:+EnableFlexHeap -XX:FlexResizingPolicy=2 -XX:+ShowMessageBoxOnError -XX:FlexDRAMLimit=10737418240"
+# Options for TeraHeap
+
+local tc_size=$(( (900 - H1_SIZE) * 1024 * 1024 * 1024 ))
+JAVA_OPTS="-XX:-ClassUnloading -XX:+UseParallelGC -XX:ParallelGCThreads=16 -XX:+EnableTeraHeap \
+  -XX:TeraHeapSize=${tc_size} -Xmx=900g -Xms${H1_SIZE}g -XX:-UseCompressedOops -XX:-UseCompressedClassPointers \
+  -XX:+TeraHeapStatistics -Xlogth:teraHeap.txt -XX:TeraHeapPolicy="DefaultPolicy" -XX:TeraStripeSize=${STRIPE_SIZE} \
+  -XX:+ShowMessageBoxOnError -XX:AllocateH2At="/mnt/fmap/" -XX:H2FileSize=751619276800 -XX:TeraCPUStatsPolicy=1"
