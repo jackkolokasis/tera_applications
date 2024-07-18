@@ -10,5 +10,5 @@ Build TeraHeap openJDK17
 
 ### Build only the benchmarks
 ```sh
-./build.sh -a
+./build.sh -b
 ``` 
