@@ -5,4 +5,5 @@ evaluation.
 1. [Spark](./spark/)
 2. [Giraph](./giraph)
 3. [Neo4j](./neo4j)
-4. [Heapothesis](./heapothesys)
+4. [Lucene](./lucene)
+5. [Heapothesis](./heapothesys)

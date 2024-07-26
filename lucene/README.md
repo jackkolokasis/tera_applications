@@ -8,6 +8,11 @@ Build TeraHeap openJDK17
 ./build -a
 ```
 
+### Build only Lucene
+```sh
+./build -l
+```
+
 ### Build only the benchmarks
 ```sh
 ./build.sh -b

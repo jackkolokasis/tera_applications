@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
 
+###################################################
+#
+# file: build.sh
+#
+# @Author:   Iacovos G. Kolokasis
+# @Version:  18-07-2024
+# @email:    kolokasis@ics.forth.gr
+#
+# @brief: Building Lucene and benchmarks
+#
+###################################################
+
 . ./config.sh
 # Check if the last command executed succesfully
 #
@@ -42,43 +54,6 @@ build_lucene() {
   cd - > /dev/null || exit
 }
       
-build_luceneutil_benchmarks() {
-  mkdir -p "$LUCENE_BENCH_HOME"
-
-  pushd "$LUCENE_BENCH_HOME" > /dev/null || exit
-
-  if ! [ -d luceneutil ]
-  then
-    git clone git@github.com:mikemccand/luceneutil.git >> "${COMPILE_OUT}" 2>&1
-    retValue=$?
-    message="Clone Luceneutil Benchmark Suite" 
-    check ${retValue} "${message}"
-  fi
-
-  pushd luceneutil > /dev/null || exit
-
-  python3 src/python/setup.py -download >> "${COMPILE_OUT}" 2>&1
-  retValue=$?
-  message="Download Files" 
-  check ${retValue} "${message}"
-
-  pushd "$LUCENE_BENCH_HOME"/data > /dev/null || exit 
-  xz -d enwiki-20120502-lines-1k-fixed-utf8-with-random-label.txt.lzma >> "${COMPILE_OUT}" 2>&1
-
-  popd > /dev/null || exit
-  popd > /dev/null || exit
-  popd > /dev/null || exit
-
-  pushd "$LUCENE_BENCH_HOME"/lucene_util > /dev/null || exit
-  # Go to this commit that support JDK17
-  git checkout f7a0882
-
-  python3 src
-
-
-  popd > /dev/null || exit
-}
-
 # Print error/usage script message
 usage() {
     echo
@@ -97,19 +72,33 @@ usage() {
 
 # These benchmarks are from Shoaib
 build_benchmarks() {
+  # Fix the classpath in the makefile
+  local jar_files=""
 
-  # Check if the target directory already exists
-  if [ ! -d "$TARGET_DIR" ]; then
-    echo "Directory $TARGET_DIR does not exist. Cloning the repository..."
-    git clone $REPO_URL $TARGET_DIR
-  else
-    echo "Directory $TARGET_DIR already exists. Skipping clone."
-  fi
+  cd ./lucene9.6.0 
 
-  git clone git@carvgit.ics.forth.gr:kolokasis/lucene_benchmarks.git >> "${COMPILE_OUT}" 2>&1
+  # Append jar files
+  for j in $(find "$(pwd)" -name "*.jar"); do
+    if [ -z "$jar_files" ]; then
+      jar_files="$j"
+    else
+      jar_files="$jar_files:$j"
+    fi
+  done
 
-  # Produce jar files
-  ./gradlew assemble
+  cd - > /dev/null || exit
+
+  # Change the classpath variable in the make file
+  sed -i "s|^CLASSPATH=.*|CLASSPATH=${jar_files}|" ${BENCHMARKS_REPO}/Makefile
+
+  cd ${BENCHMARKS_REPO}
+
+  make all >> "${COMPILE_OUT}" 2>&1 
+  retValue=$?
+  message="Compile benchmarks" 
+  check ${retValue} "${message}"
+
+  cd - > /dev/null || exit
 }
   
 echo "-----------------------------------"
