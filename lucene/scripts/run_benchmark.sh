@@ -54,7 +54,7 @@ run_m2() {
     -i "${DATASET}" \
     -q ${QUERIES_DIR}/HS_HL \
     -n 50 \
-    -nq 50000 -nq 400 \
+    -nq 50000 -nq 400 -nq 0 -nq 0 -nq 0 \
     -r /tmp/queries.txt \
     > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
 }
@@ -65,7 +65,7 @@ run_m3() {
     -i "${DATASET}" \
     -q ${QUERIES_DIR}/MS_ML \
     -n 50 \
-    -nq 80000 -nq 7000 \
+    -nq 80000 -nq 7000 -nq 0 -nq 0 -nq 0 \
     -r /tmp/queries.txt \
     > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
 }
@@ -76,7 +76,7 @@ run_m4() {
     -i "${DATASET}" \
     -q ${QUERIES_DIR}/HS -q ${QUERIES_DIR}/ML_HL \
     -n 50 -n 500000 \
-    -nq 50000 -nq 7400 \
+    -nq 50000 -nq 7400 -nq 0 -nq 0 -nq 0 \
     > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
 }
 
