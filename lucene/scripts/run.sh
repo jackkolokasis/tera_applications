@@ -15,10 +15,6 @@
 . ./conf.sh
 TH=false
 
-#### Global Variables ####
-CUSTOM_BENCHMARK=false
-RUN_TPCDS=false
-
 # Print error/usage script message
 usage() {
   echo
