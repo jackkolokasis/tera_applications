@@ -24,15 +24,12 @@ OUTPUT=$1
 processId=""
 numOfExecutors=0
 
-# Loop until the count of "Main" in jps output is 1
-while [ $(jps | grep -c "MultiTenantEvaluateQueries") -ne 1 ]; do
-#while [ $(jps | grep -c "Main") -ne 1 ]; do
+# Loop until the workload starts
+while [ $(jps | grep -c -E "MultiTenantEvaluateQueries|EvaluateQueries") -ne 1 ]; do
   # No op
   :
 done
 
-# Executors
-processId=$(jps | grep "MultiTenantEvaluateQueries" | awk '{print $1}')
-#processId=$(jps | grep "Main" | awk '{print $1}')
+processId=$(jps | grep -E "MultiTenantEvaluateQueries|EvaluateQueries" | awk '{print $1}')
 
 jstat -gcutil "${processId}" 1000 > "${OUTPUT}.txt" &

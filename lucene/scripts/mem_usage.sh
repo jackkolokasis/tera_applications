@@ -14,9 +14,8 @@
 # Output file name
 OUTPUT=$1        
 
-# Loop until the count of "Main" in jps output is 1
-while [ $(jps | grep -c "MultiTenantEvaluateQueries") -ne 1 ]; do
-#while [ $(jps | grep -c "Main") -ne 1 ]; do
+# Loop until the workload starts
+while [ $(jps | grep -c -E "MultiTenantEvaluateQueries|EvaluateQueries") -ne 1 ]; do
   # No op
   :
 done
