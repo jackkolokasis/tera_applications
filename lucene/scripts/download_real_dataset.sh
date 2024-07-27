@@ -15,37 +15,6 @@
 
 . ./config.sh
 
-# Print error/usage script message
-usage() {
-    echo
-    echo "Usage:"
-    echo -n "      $0 [option ...] [-h]"
-    echo
-    echo "Options:"
-    echo "      -i  Path of the produced index by Lucene (e.g., /mnt/fmap/indexOffHeap90GB)"
-    echo "      -h  Show usage"
-    echo
-
-    exit 1
-}
-
-# Check for the input arguments
-while getopts "i:h" opt
-do
-  case "${opt}" in
-    i)
-      LUCENE_INDEX=${OPTARG}
-      ;;
-    h)
-      usage
-      ;;
-    *)
-      usage
-      ;;
-  esac
-done
-
-
 # Check if the last command executed succesfully
 #
 # if executed succesfully, print SUCCEED
@@ -81,10 +50,10 @@ create_index() {
   cat corpus* > ../all_corpus.txt
   cd - > /dev/null || exit
 
-  cd ../benchmarks || exit
+  cd ${BENCH_DIR}/lucene/benchmarks || exit
 
   local lucene_classpath_jars=$(grep '^CLASSPATH *:=' Makefile | awk -F ':=' '{print $2}' | sed 's/^ *//;s/ *$//')
-	java -cp ${lucene_classpath_jars} -Xmx100g src/IndexFiles.java -a st -i ${LUCENE_INDEX} -d ${processed_dir}/../all_corpus.txt
+	java -cp ${lucene_classpath_jars} -Xmx100g src/IndexFiles.java -a st -i ${DATASET} -d ${processed_dir}/../all_corpus.txt
   cd - > /dev/null || exit
 }
 
@@ -148,17 +117,17 @@ create_terms() {
   cp ${terms_dir} ../benchmarks/query-workload/
 }
 
-# Create the queries for the 
+# Create a list of single and double terms queries
 create_queries() {
   local queries_dir="$(pwd)/queries"
   local num_threads=$(lscpu | grep '^CPU(s):' | awk '{print $2}')
 
-  cd ../benchmarks/query-workload/terms || exit
+  cd ${BENCH_DIR}/lucene/benchmarks/query-workload/terms || exit
   split -b 60k LOWT LOWT_PART_
   split -b 60k MEDT MEDT_PART_
   cd - > /dev/null
 
-  cd ../benchmarks/query-workload  || exit
+  cd ${BENCH_DIR}/lucene/benchmarks/query-workload  || exit
   ./query_gen_multicore.sh H 1 ${num_threads} 1250 > ${queries_dir}/H_40k
   ./query_gen_multicore.sh HH 2 ${num_threads} 1250 > ${queries_dir}/HH_40k
   ./query_gen_multicore.sh M 1 ${num_threads} 1250 > ${queries_dir}/M_40k
@@ -168,7 +137,39 @@ create_queries() {
   cd - > /dev/null
 }
 
+# Create the queries for the Lucene workloads
+create_queries_for_workloads() {
+  local queries_dir="$(pwd)/queries"
+
+  head -n 200 ${queries_dir}/H_40k > ${QUERIES_DIR}/HL
+  head -n 200 ${queries_dir}/HH_40k >> ${QUERIES_DIR}/HL
+
+  head -n 25000 ${queries_dir}/H_40k > ${QUERIES_DIR}/HS
+  head -n 25000 ${queries_dir}/HH_40k >> ${QUERIES_DIR}/HS
+
+  head -n 3500 ${queries_dir}/M_40k > ${QUERIES_DIR}/ML
+  head -n 3500 ${queries_dir}/MM_40k >> ${QUERIES_DIR}/ML
+  
+  head -n 40000 ${queries_dir}/M_40k > ${QUERIES_DIR}/MS
+  head -n 40000 ${queries_dir}/MM_40k >> ${QUERIES_DIR}/MS
+  
+  for ((i=0; i<6; i++))
+  do
+    head -n 40000 ${queries_dir}/L_40k >> ${QUERIES_DIR}/LS
+    head -n 40000 ${queries_dir}/LL_40k >> ${QUERIES_DIR}/LS
+  done
+
+  head -n 10000 ${queries_dir}/L_40k >> ${QUERIES_DIR}/LS
+  head -n 10000 ${queries_dir}/LL_40k >> ${QUERIES_DIR}/LS
+
+  cat HS ML LS HL MS > HS_ML_LS_HL_MS
+  cat HS HL > HS_HL
+  cat MS ML > MS_ML
+  cat ML HL > ML_HL
+}
+
 download_dataset
 create_index
 create_terms
 create_queries
+create_queries_for_workloads

@@ -40,10 +40,10 @@ usage() {
 #   Create a cgroup
 setup_cgroup() {
 	# Change user/group IDs to your own
-	sudo cgcreate -a kolokasis:carvsudo -t kolokasis:carvsudo -g memory:memlim
+	sudo cgcreate -a ${LOGIN}:${GROUP_ID} -t ${LOGIN}:${GROUP_ID} -g memory:memlim
 	cgset -r memory.limit_in_bytes="$MEM_BUDGET" memlim
 
-  clean_exorts
+  clean_exports
   
   # Add the proper exports in the script that we use to execute
   # processes under cgroups
@@ -159,9 +159,9 @@ kill_watch() {
   kill -9 "$(pgrep -f "mem_usage.sh")" >/dev/null 2>&1
 }
 
-clean_exorts() {
+clean_exports() {
   # Remove export statements and save the cleaned content back to the file
-  grep -v "^export " ./run_cgexec.sh > ./run_cgexec.sh.tmp
+  grep -v "export " ./run_cgexec.sh > ./run_cgexec.sh.tmp
   mv ./run_cgexec.sh.tmp ./run_cgexec.sh
   chmod +x ./run_cgexec.sh
 }
@@ -244,7 +244,7 @@ do
 
       delete_cgroup
 
-      ./system_util/extract-data.sh -r "${RUN_DIR}" -d "${DEV_DATASET}" -d "${DEV_H2}" >> "${BENCH_LOG}" 2>&1
+      ./system_util/extract-data.sh -r "${RUN_DIR}" -d "${DEV_DATASET}" >> "${BENCH_LOG}" 2>&1
     done
   done
 

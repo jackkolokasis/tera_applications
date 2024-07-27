@@ -1,61 +1,140 @@
 #!/usr/bin/env bash
 
+###################################################
+#
+# file: run_benchmark.sh
+#
+# @Author:   Iacovos G. Kolokasis
+# @Version:  27-07-2024
+# @email:    kolokasis@ics.forth.gr
+#
+###################################################
+
 . ./conf.sh
 
 RUN_DIR=$1
 MX_HEAP_SIZE=$2
 QUERY=$3
 
+CLASSPATH=""
 
-CLASSPATH="/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/libs/lucene-luke-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/libs/lucene-luke-9.6.0-SNAPSHOT-standalone.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-analysis-morfologik-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-core-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/icu4j-70.1.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-analysis-common-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-highlighter-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-analysis-icu-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-analysis-nori-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-sandbox-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/morfologik-fsa-2.1.9.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-analysis-phonetic-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/morfologik-ukrainian-search-4.9.1.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/morfologik-stemming-2.1.9.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-memory-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-analysis-stempel-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-codecs-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-analysis-kuromoji-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-queryparser-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-analysis-opennlp-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-analysis-smartcn-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-backward-codecs-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/opennlp-tools-1.9.1.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-luke-9.6.0-SNAPSHOT-standalone.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/commons-codec-1.13.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-queries-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/morfologik-polish-2.1.9.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-suggest-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/luke/build/lucene-luke-9.6.0-SNAPSHOT/lucene-misc-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/analysis.tests/build/libs/lucene-analysis.tests-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/codecs/build/libs/lucene-codecs-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/core/build/libs/lucene-core-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/spatial-extras/build/libs/lucene-spatial-extras-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/grouping/build/libs/lucene-grouping-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/spatial-test-fixtures/build/libs/lucene-spatial-test-fixtures-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-misc-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-join-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-analysis-phonetic-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-spatial-extras-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-analysis-stempel-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-grouping-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-codecs-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-highlighter-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-sandbox-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-analysis-opennlp-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-analysis-smartcn-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-backward-codecs-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-analysis-icu-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-demo-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-classification-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-analysis-kuromoji-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-monitor-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-luke-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-spatial3d-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-expressions-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-memory-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-replicator-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-suggest-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-queryparser-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-benchmark-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-core-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-facet-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-analysis-common-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-analysis-nori-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-queries-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules/lucene-analysis-morfologik-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules-test-framework/lucene-test-framework-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules-thirdparty/asm-analysis-7.2.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules-thirdparty/antlr4-runtime-4.11.1.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules-thirdparty/commons-codec-1.13.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules-thirdparty/morfologik-ukrainian-search-4.9.1.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules-thirdparty/asm-tree-7.2.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules-thirdparty/hppc-0.9.1.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules-thirdparty/morfologik-fsa-2.1.9.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules-thirdparty/opennlp-tools-1.9.1.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules-thirdparty/icu4j-70.1.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules-thirdparty/morfologik-polish-2.1.9.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules-thirdparty/asm-commons-7.2.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules-thirdparty/asm-7.2.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution/build/packages/lucene-9.6.0-SNAPSHOT-itests/modules-thirdparty/morfologik-stemming-2.1.9.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/queryparser/build/libs/lucene-queryparser-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/demo/build/libs/lucene-demo-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/classification/build/libs/lucene-classification-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/spatial3d/build/libs/lucene-spatial3d-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/sandbox/build/libs/lucene-sandbox-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/monitor/build/libs/lucene-monitor-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/join/build/libs/lucene-join-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/memory/build/libs/lucene-memory-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/analysis/kuromoji/build/libs/lucene-analysis-kuromoji-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/analysis/smartcn/build/libs/lucene-analysis-smartcn-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/analysis/icu/build/libs/lucene-analysis-icu-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/analysis/common/build/libs/lucene-analysis-common-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/analysis/nori/build/libs/lucene-analysis-nori-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/analysis/opennlp/build/libs/lucene-analysis-opennlp-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/analysis/stempel/build/libs/lucene-analysis-stempel-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/analysis/morfologik.tests/build/libs/lucene-analysis-morfologik.tests-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/analysis/phonetic/build/libs/lucene-analysis-phonetic-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/analysis/morfologik/build/libs/lucene-analysis-morfologik-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/expressions/build/libs/lucene-expressions-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/highlighter/build/libs/lucene-highlighter-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/distribution.tests/build/libs/lucene-distribution.tests-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/test-framework/build/libs/lucene-test-framework-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/suggest/build/libs/lucene-suggest-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/benchmark/build/libs/lucene-benchmark-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/replicator/build/libs/lucene-replicator-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/queries/build/libs/lucene-queries-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/misc/build/libs/lucene-misc-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/core.tests/build/libs/lucene-core.tests-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/backward-codecs/build/libs/lucene-backward-codecs-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/lucene/facet/build/libs/lucene-facet-9.6.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/gradle/wrapper/gradle-wrapper.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/dev-tools/missing-doclet/build/libs/missing-doclet-1.0.0-SNAPSHOT.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene9.6.0/buildSrc/build/libs/buildSrc.jar:/home1/public/kolokasis/lucene_bench/dimitris/tera_applications/lucene/lucene_benchmarks/anu_bench/out"
+# Set the classpath
+set_class_path() {
+  local jar_files=""
 
-cd ${BENCH_DIR}/lucene/lucene_benchmarks/anu_bench || exit
+  cd ${BENCH_DIR}/lucene/lucene9.6.0 
 
-export JAVA_HOME=/spare/kolokasis/dev/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk
-export LIBRARY_PATH=/spare/kolokasis/dev/teraheap/allocator/lib:$LIBRARY_PATH
-export LD_LIBRARY_PATH=/spare/kolokasis/dev/teraheap/allocator/lib:$LD_LIBRARY_PATH
-export PATH=/spare/kolokasis/dev/teraheap/allocator/include/:$PATH
-export LIBRARY_PATH=/spare/kolokasis/dev/teraheap/tera_malloc/lib:$LIBRARY_PATH
-export LD_LIBRARY_PATH=/spare/kolokasis/dev/teraheap/tera_malloc/lib:$LD_LIBRARY_PATH
-export PATH=/spare/kolokasis/dev/teraheap/tera_malloc/include/:$PATH
+  # Append jar files
+  for j in $(find "$(pwd)" -name "*.jar"); do
+    if [ -z "$jar_files" ]; then
+      jar_files="$j"
+    else
+      jar_files="$jar_files:$j"
+    fi
+  done
 
+  CLASSPATH=${jar_files}:${BENCH_DIR}/lucene/benchmarks/out
 
-/spare/kolokasis/dev/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
-  src/EvaluateQueries.java \
-  -i "${DATASET}" \
-  -q /mnt/spark/new_real_queries/"${QUERY}" \
-  -n 50 \
-  -nq 50000 -nq 7000 -nq 500000 -nq 400 -nq 80000 \
-  -r /tmp/queries.txt \
-  > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+  cd - > /dev/null || exit
+}
 
-#/spare/kolokasis/dev/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} -Xmx"${MX_HEAP_SIZE}"g -Xms"${MX_HEAP_SIZE}"g \
-#  src/MixEvaluateQueries.java \
-#  -i "${DATASET}" \
-#  -q /mnt/spark/real_queries/"${QUERY}" \
-#  -n 50 \
-#  -mx \
-#  -rl \
-#  -r /tmp/queries.txt \
-#  > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+run_m1() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueries \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/HS_ML_LS_HL_MS \
+    -n 50 \
+    -nq 50000 -nq 7000 -nq 500000 -nq 400 -nq 80000 \
+    -r /tmp/queries.txt \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
 
-#/spare/kolokasis/dev/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} -Xmx"${MX_HEAP_SIZE}"g \
-#  MultiTenantEvaluateQueries \
-#  -i "${DATASET}" \
-#  -q /mnt/spark/concurrent_queries/HS -q /mnt/spark/concurrent_queries/ML \
-#  -q /mnt/spark/concurrent_queries/LS -q /mnt/spark/concurrent_queries/HL \
-#  -q /mnt/spark/concurrent_queries/MS -q /mnt/spark/concurrent_queries/HS_ML_LS_HL_MS \
-#  -n 50 -n 500000 -n 50 -n 500000 -n 50 \
-#  -nq 25000 -nq 7000 -nq 250000 -nq 400 -nq 40000 -nq 315800 \
-#  -mxq 25000 -mxq 7000 -mxq 250000 -mxq 400 -mxq 40000 \
-#  > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+run_m2() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueries \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/HS_HL \
+    -n 50 \
+    -nq 50000 -nq 400 \
+    -r /tmp/queries.txt \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
 
-#/spare/kolokasis/dev/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} -Xmx"${MX_HEAP_SIZE}"g \
-#  MultiTenantEvaluateQueries \
-#  -i "${DATASET}" \
-#  -q /mnt/spark/real_queries/MS -q /mnt/spark/real_queries/ML \
-#  -n 50 -n 500000 \
-#  -nq 80000 -nq 1200 \
-#  > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+run_m3() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueries \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/MS_ML \
+    -n 50 \
+    -nq 80000 -nq 7000 \
+    -r /tmp/queries.txt \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
+
+run_m4() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    MultiTenantEvaluateQueriesWithBatching \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/HS -q ${QUERIES_DIR}/ML_HL \
+    -n 50 -n 500000 \
+    -nq 50000 -nq 7400 \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
+
+run_m5() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    MultiTenantEvaluateQueriesWithBatching \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/MS -q ${QUERIES_DIR}/ML_HL \
+    -n 50 -n 500000 \
+    -nq 80000 -nq 7400 \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
+
+run_m6() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    MultiTenantEvaluateQueriesWithBatching \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/LS -q ${QUERIES_DIR}/ML_HL \
+    -n 50 -n 500000 \
+    -nq 500000 -nq 7400 \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
+
+export_env_variables() {
+  export JAVA_HOME=${JAVA_PATH}
+  export LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib:$LIBRARY_PATH
+  export LD_LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib:$LD_LIBRARY_PATH
+  export PATH=${TERAHEAP_REPO}/allocator/include/:$PATH
+  export LIBRARY_PATH=${TERAHEAP_REPO}/tera_malloc/lib:$LIBRARY_PATH
+  export LD_LIBRARY_PATH=${TERAHEAP_REPO}/tera_malloc/lib:$LD_LIBRARY_PATH
+  export PATH=${TERAHEAP_REPO}/tera_malloc/include/:$PATH
+}
+
+cd ${BENCH_DIR}/lucene/benchmarks || exit
+
+export_env_variables
+set_class_path
+
+case "$QUERY" in
+  M1)
+    run_m1
+    ;;
+  M2)
+    run_m2
+    ;;
+  M3)
+    run_m3
+    ;;
+  M4)
+    run_m4
+    ;;
+  M5)
+    run_m5
+    ;;
+  M6)
+    run_m6
+    ;;
+esac
 
 cd - > /dev/null || exit
