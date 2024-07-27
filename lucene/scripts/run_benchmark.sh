@@ -13,8 +13,7 @@
 . ./conf.sh
 
 RUN_DIR=$1
-MX_HEAP_SIZE=$2
-QUERY=$3
+QUERY=$2
 
 CLASSPATH=""
 

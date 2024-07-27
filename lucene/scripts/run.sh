@@ -234,7 +234,7 @@ do
       # System statistics start
       ./system_util/start_statistics.sh -d "${RUN_DIR}"
 
-      run_cgexec ./run_benchmark.sh "${RUN_DIR}" "${H1_SIZE[$j]}" "${benchmark}"
+      run_cgexec ./run_benchmark.sh "${RUN_DIR}" "${benchmark}"
 
       # Kil watch process
       kill_watch
