@@ -26,7 +26,7 @@ BENCH_DIR=/home1/public/kolokasis/lucene_bench/dimitris/tera_applications
 # Dataset
 DATASET=/mnt/fmap/indexOffHeap90GB
 # Number of garbage collection threads
-GC_THREADS=8
+GC_THREADS=16
 # Device for dataset
 DEV_DATASET=nvme1n1
 # Directory with queries used to run Lucene workloads
@@ -47,16 +47,11 @@ H2_FILE_SZ=700
 BENCH_LOG=${BENCH_DIR}/lucene/scripts/log.out
 # Heap size for executors '-Xms' is in GB e.g., 54 -> 54GB
 H1_SIZE=( 4 )
-MEM_BUDGET=5G
 # cgset accepts K,M,G and eiB, MiB, GiB units for memory limit
-# Running benchmarks
-# M1:
-# M2:
-# M3:
-# M4:
-# M5:
-# M6:
-BENCHMARKS=( "MS_ML" )
+MEM_BUDGET=5G
+# Benchmarks. Possible benchmarks name are:
+# M1, M2, M3, M4, M5, M6
+BENCHMARKS=( "M1" )
 # Total Configurations
 TOTAL_CONFS=${#H1_SIZE[@]}
 # Enable statistics
@@ -75,11 +70,3 @@ FLEXHEAP_POLICY=7
 # 0: we read the /proc/stat
 # 1: we use getrusage()
 CPU_STATS_POLICY=1
-#JAVA_OPTS="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseParallelGC -XX:ParallelGCThreads=16 -XX:+AlwaysPreTouch -Xmx${H1_SIZE}g -Xms${H1_SIZE}g"
-JAVA_OPTS="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseParallelGC -XX:ParallelGCThreads=16 -XX:+EnableFlexHeap -XX:FlexResizingPolicy=2 -XX:+ShowMessageBoxOnError -XX:FlexDRAMLimit=5368709120 -Xmx${H1_SIZE}g "
-# Options for TeraHeap
-#tc_size=$(( (900 - H1_SIZE) * 1024 * 1024 * 1024 ))
-#JAVA_OPTS="-XX:-ClassUnloading -XX:+UseParallelGC -XX:ParallelGCThreads=16 -XX:+EnableTeraHeap \
-#  -XX:TeraHeapSize=${tc_size} -Xmx=900g -Xms${H1_SIZE}g -XX:-UseCompressedOops -XX:-UseCompressedClassPointers \
-#  -XX:+TeraHeapStatistics -Xlogth:teraHeap.txt -XX:TeraHeapPolicy="DefaultPolicy" -XX:TeraStripeSize=${STRIPE_SIZE} \
-#  -XX:+ShowMessageBoxOnError -XX:AllocateH2At="/mnt/fmap/" -XX:H2FileSize=751619276800 -XX:TeraCPUStatsPolicy=1"

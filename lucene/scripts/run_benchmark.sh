@@ -14,8 +14,10 @@
 
 RUN_DIR=$1
 QUERY=$2
+SETUP=$3
 
 CLASSPATH=""
+JAVA_OPTS=""
 
 # Set the classpath
 set_class_path() {
@@ -110,10 +112,49 @@ export_env_variables() {
   export PATH=${TERAHEAP_REPO}/tera_malloc/include/:$PATH
 }
 
+set_java_opts() {
+  case "$SETUP" in
+    "NATIVE")
+      # These are the runtime arguments for runs with vanilla JVM
+      JAVA_OPTS="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers \
+        -XX:+UseParallelGC -XX:ParallelGCThreads=${GC_THREADS} -XX:+AlwaysPreTouch \
+        -Xmx${H1_SIZE}g -Xms${H1_SIZE}g"
+      ;;
+    "FLEXHEAP")
+      # These are the runtime arguments for running with FlexHeap
+      MEM_VALUE=$(echo $MEM_BUDGET | grep -oP '\d+')
+      MEM_UNIT=$(echo $MEM_BUDGET | grep -oP '[A-Za-z]+')
+
+      # Convert to bytes (assuming the unit is 'G' for gigabytes)
+      if [ "$MEM_UNIT" == "G" ]; then
+        DRAMLIMIT=$((MEM_VALUE * 1024 * 1024 * 1024))
+      else
+        DRAMLIMIT=$((MEM_VALUE * 1024 * 1024))
+      fi
+
+      JAVA_OPTS="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers \
+        -XX:+UseParallelGC -XX:ParallelGCThreads=${GC_THREADS} -XX:+EnableFlexHeap \
+        -XX:FlexResizingPolicy=2 -XX:+ShowMessageBoxOnError \
+        -XX:FlexDRAMLimit=${DRAMLIMIT} -Xmx${H1_SIZE}g "
+      ;;
+    "TERAHEAP")
+      # These are the runtime arguments for running with TeraHeap
+      tc_size=$(( (900 - H1_SIZE) * 1024 * 1024 * 1024 ))
+      h2_file_size=$((H2_FILE_SZ * 1024 * 1024 * 1024))
+
+      JAVA_OPTS="-XX:-ClassUnloading -XX:+UseParallelGC -XX:ParallelGCThreads=${GC_THREADS} -XX:+EnableTeraHeap \
+        -XX:TeraHeapSize=${tc_size} -Xmx=900g -Xms${H1_SIZE}g -XX:-UseCompressedOops -XX:-UseCompressedClassPointers \
+        -XX:+TeraHeapStatistics -Xlogth:teraHeap.txt -XX:TeraHeapPolicy="DefaultPolicy" -XX:TeraStripeSize=${STRIPE_SIZE} \
+        -XX:+ShowMessageBoxOnError -XX:AllocateH2At="${MNT_H2}/" -XX:H2FileSize=${h2_file_size} -XX:TeraCPUStatsPolicy=${CPU_STATS_POLICY}"
+      ;;
+  esac
+}
+
 cd ${BENCH_DIR}/lucene/benchmarks || exit
 
 export_env_variables
 set_class_path
+set_java_opts
 
 case "$QUERY" in
   M1)

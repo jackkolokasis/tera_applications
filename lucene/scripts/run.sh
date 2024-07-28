@@ -13,7 +13,7 @@
 ###################################################
 
 . ./conf.sh
-TH=false
+SETUP="NATIVE"
 
 # Print error/usage script message
 usage() {
@@ -24,6 +24,7 @@ usage() {
   echo "Options:"
   echo "      -n  Number of Runs"
   echo "      -o  Output Path"
+  echo "      -f  Enable FlexHeap"
   echo "      -t  Enable TeraHeap"
   echo "      -h  Show usage"
   echo
@@ -163,7 +164,7 @@ clean_exports() {
 }
 
 # Check for the input arguments
-while getopts ":n:o:kth" opt
+while getopts ":n:o:ktfh" opt
 do
   case "${opt}" in
     n)
@@ -177,7 +178,10 @@ do
       exit 1
       ;;
     t)
-      TH=true
+      SETUP="TERAHEAP"
+      ;;
+    f)
+      SETUP="FLEXHEAP"
       ;;
     h)
       usage
@@ -230,7 +234,7 @@ do
       # System statistics start
       ./system_util/start_statistics.sh -d "${RUN_DIR}"
 
-      run_cgexec ./run_benchmark.sh "${RUN_DIR}" "${benchmark}"
+      run_cgexec ./run_benchmark.sh "${RUN_DIR}" "${benchmark}" "${SETUP}"
 
       # Kil watch process
       kill_watch
