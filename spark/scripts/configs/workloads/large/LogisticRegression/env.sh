@@ -3,7 +3,7 @@
 ################# 256GB #######################
 NUM_OF_EXAMPLES=20000
 NUM_OF_FEATURES=711108
-NUM_OF_PARTITIONS=480
+NUM_OF_PARTITIONS=256
 
 ProbOne=0.2
 EPS=0.5

@@ -2,7 +2,7 @@
 
 CPU_ARCH=$(uname -p)
 USER=$(whoami)
-#TERAHEAP_REPO=$TERAHEAP_HOME
+TERAHEAP_REPO=$HOME/teraheap
 
 # Export Allocator
 export LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib:$LIBRARY_PATH
@@ -16,11 +16,13 @@ export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include:$CPLUS_INCLUDE_PATH
 export JAVA_HOME="${TERAHEAP_REPO}/jdk8u345/build/linux-$CPU_ARCH-normal-server-release/jdk"
 #export JAVA_HOME=/spare/$USER/openjdk/jdk8u402-b06
 # Set up the path of TeraHeap applications
-#TERA_APPLICATIONS_REPO=$TERA_APPLICATIONS_HOME
+TERA_APPS_REPO=$HOME/tera_applications
+echo "TERA_APPS_REPO="$TERA_APPS_REPO
 SPARK_VERSION="spark-3.3.0"
 #
 ########################################
 # DO NOT CHANGE THE FOLLOWING VARIABLES
 ########################################
-SPARK_DIR="${TERA_APPLICATIONS_REPO}/spark/${SPARK_VERSION}"
-COMPILE_OUT="${TERA_APPLICATIONS_REPO}/spark/compile.out"
+SPARK_DIR="${TERA_APPS_REPO}/spark/${SPARK_VERSION}"
+echo "SPARK_DIR="$SPARK_DIR
+COMPILE_OUT="${TERA_APPS_REPO}/spark/compile.out"
