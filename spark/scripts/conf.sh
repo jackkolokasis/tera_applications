@@ -26,16 +26,11 @@ TERA_APPLICATIONS_REPO=$HOME/tera_applications
 DATA_SIZE=large
 # JAVA Home
 MY_JAVA_HOME=/home1/private/perpap/teraheap/jdk17u067/build/linux-aarch64-server-release/jdk
-#MY_JAVA_HOME="/spare/perpap/teraheap/jdk17u067/build/linux-aarch64-server-release/jdk"
-#MY_JAVA_HOME=/home1/private/perpap/teraheap/jdk17u067/build/linux-aarch64-server-release/jdk
 # Device for datasets directory : /dev/nvme3n1
 DEV_BENCHMARK_DATASETS=nvme0n1p1
-#DEV_BENCHMARK_DATASETS=nvme0n1p1
 # Mount point for datasets directory : /mnt/datasets
 MNT_BENCHMARK_DATASETS=/spare2/datasets
-#MNT_BENCHMARK_DATASETS=/spare2/perpap/datasets
 # Directory that contains datasets
-#DATA_HDFS="file:///mnt/datasets/SparkBench"
 DATA_HDFS="file://$MNT_BENCHMARK_DATASETS/SparkBench"
 # Spark Version
 SPARK_VERSION=3.3.0
@@ -58,17 +53,12 @@ SPARK_SLAVE=ampere
 GC_THREADS=10
 # Device for shuffle : nvme3n1
 DEV_SHFL=nvme0n1p1
-#DEV_SHFL=nvme0n1p1
 # Mount point for shuffle directory : /mnt/spark
 MNT_SHFL=/spare2/spark
-#MNT_SHFL=/spare2/perpap/fmap
-#MNT_SHFL=$MOUNT_POINT_H2
 #Device for H2: nvme3n1
 DEV_H2=nvme0n1p1
-#DEV_H2=nvme0n1p1
 # Mount point for H2 TeraHeap directory : /mnt/fmap
 MNT_H2=/spare2/fmap
-#MNT_H2=/spare2/perpap/fmap
 # Card segment size for H2
 CARD_SIZE=$((8 * 1024))
 # Region size for H2
@@ -90,12 +80,10 @@ MEM_BUDGET=84G
 # Spark memory fraction: 'spark.memory.storagefraction'
 MEM_FRACTION=(0.9)
 # Storage Level
-#S_LEVEL=("MEMORY_AND_DISK")
 S_LEVEL=("MEMORY_ONLY")
 # TeraCache configuration size in Spark: 'spark.teracache.heap.size'
 H1_H2_SIZE=(1200)
 # Running benchmarks
-#BENCHMARKS=
 BENCHMARKS=("ConnectedComponent")
 # Number of executors
 NUM_EXECUTORS=(1)
@@ -108,7 +96,6 @@ ENABLE_STATS=true
 TERAHEAP_POLICY="SparkPrimitivePolicy"
 # Enable FlexHeap
 ENABLE_FLEXHEAP=true
-#ALLOCATION_MODE=2
 USE_CGROUPS=true
 USE_NUMA=false
 # Choose a flexheap policy

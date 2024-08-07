@@ -25,7 +25,6 @@ usage() {
   echo -n "      $0 [option ...] [-h]"
   echo
   echo "Options:"
-  #echo "      -a  allocation_mode        [0: H1, 1: H1H2, 2: H2H1]"
   echo "      -n  Number of Runs"
   echo "      -o  Output Path"
   echo "      -t  Enable TeraHeap"
