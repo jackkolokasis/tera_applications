@@ -5,7 +5,11 @@
 # file: update_conf.sh
 #
 # @Author:   Iacovos G. Kolokasis
+<<<<<<< HEAD
 # @Version:  27-02-2021
+=======
+# @Version:  04-05-2024 
+>>>>>>> upstream/master
 # @email:    kolokasis@ics.forth.gr
 #
 # Scrpt to setup the configuration for experiments
@@ -17,6 +21,7 @@ set -x
 
 # Print error/usage script message
 usage() {
+<<<<<<< HEAD
   echo
   echo "Usage:"
   echo -n "      $0 [option ...] [-k][-h]"
@@ -27,6 +32,18 @@ usage() {
   echo
 
   exit 1
+=======
+    echo
+    echo "Usage:"
+    echo -n "      $0 [option ...] [-b-h]"
+    echo
+    echo "Options:"
+    echo "      -b  Custom Benchmark"
+    echo "      -h  Show usage"
+    echo
+
+    exit 1
+>>>>>>> upstream/master
 }
 
 update_slave_file() {
@@ -118,6 +135,7 @@ if [ "${CUSTOM_BENCHMARK}" == "false" ]; then
 
   cd - >/dev/null || exit
 
+  # Copy configuration of the workload
   cp "./configs/workloads/${DATA_SIZE}/${BENCHMARKS}/env.sh" \
     "${SPARK_BENCH_DIR}/${BENCHMARKS}/conf"
 

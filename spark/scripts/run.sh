@@ -12,12 +12,11 @@
 #
 ###################################################
 
-set -x
-
 . ./conf.sh
 
 #### Global Variables ####
 CUSTOM_BENCHMARK=false
+RUN_TPCDS=false
 
 # Print error/usage script message
 usage() {
@@ -35,6 +34,7 @@ usage() {
   echo "      -f  Enable profiler tool"
   #echo "      -a  Run experiments with high bench"
   echo "      -b  Run experiments with custom benchmark"
+  echo "      -q  Run experiments with TPC-DS workloads"
   echo "      -j  Enable metrics for JIT compiler"
   echo "      -h  Show usage"
   echo
@@ -101,7 +101,11 @@ setup_cgroup() {
 # Description:
 #   Delete a cgroup
 delete_cgroup() {
+<<<<<<< HEAD
   sudo cgdelete memory:memlim
+=======
+	sudo cgdelete memory:memlim > /dev/null 2>&1
+>>>>>>> upstream/master
 }
 
 run_cgexec() {
@@ -155,6 +159,7 @@ stop_perf() {
 #   Kill running background processes (jstat, serdes)
 ##
 kill_back_process() {
+<<<<<<< HEAD
   local jstatPID
   local serdesPID
   local perfPID
@@ -177,6 +182,11 @@ kill_back_process() {
   for perf_id in ${perfPID}; do
     kill -KILL "${perf_id}" >>"${BENCH_LOG}" 2>&1
   done
+=======
+  pkill -f "bash ./mem_usage.sh"
+  pkill -f "bash ./serdes.sh"
+  pkill -f "bash ./jstat.sh"
+>>>>>>> upstream/master
 }
 
 ##
@@ -270,10 +280,11 @@ gen_config_files() {
 # Function to kill the watch process
 kill_watch() {
   #pkill -f "watch -n 1"
-  kill -9 "$(pgrep -f "mem_usage.sh")"
+  kill -9 "$(pgrep -f "mem_usage.sh")" >/dev/null 2>&1
 }
 
 # Check for the input arguments
+<<<<<<< HEAD
 while getopts ":n:o:ktspjfbh" opt; do
   case "${opt}" in
   n)
@@ -313,6 +324,48 @@ while getopts ":n:o:ktspjfbh" opt; do
   *)
     usage
     ;;
+=======
+while getopts ":n:o:ktspjfbqh" opt
+do
+  case "${opt}" in
+    n)
+      ITER=${OPTARG}
+      ;;
+    o)
+      OUTPUT_PATH=${OPTARG}
+      ;;
+    k)
+      kill_back_process
+      exit 1
+      ;;
+    t)
+      TH=true
+      ;;
+    s)
+      SERDES=true
+      ;;
+    p)
+      PERF_TOOL=true
+      ;;
+    j)
+      JIT=true
+      ;;
+    f)
+      PROFILER=true
+      ;;
+    b)
+      CUSTOM_BENCHMARK=true
+      ;;
+    q)
+      RUN_TPCDS=true
+      ;;
+    h)
+      usage
+      ;;
+    *)
+      usage
+      ;;
+>>>>>>> upstream/master
   esac
 done
 
@@ -326,8 +379,12 @@ OUT="${OUTPUT_PATH}"
 mkdir -p "${OUT}"
 
 # Enable perf event
+<<<<<<< HEAD
 sudo sh -c 'echo -1 >/proc/sys/kernel/perf_event_paranoid'
 sudo sh -c 'echo -0 >/proc/sys/kernel/kptr_restrict'
+=======
+sudo sh -c 'echo -1 >/proc/sys/kernel/perf_event_paranoid' >> /dev/null 2>&1
+>>>>>>> upstream/master
 
 gen_config_files
 
@@ -391,7 +448,11 @@ for benchmark in "${BENCHMARKS[@]}"; do
       fi
 
       # Drop caches
+<<<<<<< HEAD
       sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches >>"${BENCH_LOG}" 2>&1
+=======
+      echo 3 | sudo tee -a /proc/sys/vm/drop_caches >> /dev/null 2>&1
+>>>>>>> upstream/master
 
       # Pmem stats before
       if [[ ${DEV_FMAP} == *pmem* ]]; then
@@ -401,9 +462,17 @@ for benchmark in "${BENCHMARKS[@]}"; do
       # System statistics start
       ./system_util/start_statistics.sh -d "${RUN_DIR}"
 
+<<<<<<< HEAD
       if [ $CUSTOM_BENCHMARK == "true" ]; then
         if [ $SERDES ]; then
           run_cgexec ./custom_benchmarks.sh "${RUN_DIR}" "$SERDES"
+=======
+      if [ $CUSTOM_BENCHMARK == "true" ]
+      then
+        if [ $RUN_TPCDS == "true" ]
+        then
+          run_cgexec ./run_tpcds.sh "${RUN_DIR}" "${H1_SIZE[$j]}" "${benchmark}"
+>>>>>>> upstream/master
         else
           run_cgexec ./custom_benchmarks.sh "${RUN_DIR}" "$SERDES"
         fi
