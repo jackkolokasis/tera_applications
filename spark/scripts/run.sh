@@ -44,12 +44,9 @@ usage() {
 
 # Function to parse results if execution is errors free
 run_results_parser() {
-  #local app_dir=$1           # The first argument to the function is the directory path
   local run_dir=$1         # The directory containing the logs of a worker
   local executors_count=$2 # number of executors
   local mode=$3            # -t for FlexHeap, -s for Native
-  #local benchmark_dir=$5
-  #./parse_results.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -t
 
   # Count the number of subdirectories, excluding the directory itself
   local subdir_count=$(find "$app_dir" -mindepth 1 -maxdepth 1 -type d | wc -l)
@@ -101,11 +98,7 @@ setup_cgroup() {
 # Description:
 #   Delete a cgroup
 delete_cgroup() {
-<<<<<<< HEAD
-  sudo cgdelete memory:memlim
-=======
-	sudo cgdelete memory:memlim > /dev/null 2>&1
->>>>>>> upstream/master
+  sudo cgdelete memory:memlim >/dev/null 2>&1
 }
 
 run_cgexec() {
@@ -159,7 +152,6 @@ stop_perf() {
 #   Kill running background processes (jstat, serdes)
 ##
 kill_back_process() {
-<<<<<<< HEAD
   local jstatPID
   local serdesPID
   local perfPID
@@ -182,11 +174,6 @@ kill_back_process() {
   for perf_id in ${perfPID}; do
     kill -KILL "${perf_id}" >>"${BENCH_LOG}" 2>&1
   done
-=======
-  pkill -f "bash ./mem_usage.sh"
-  pkill -f "bash ./serdes.sh"
-  pkill -f "bash ./jstat.sh"
->>>>>>> upstream/master
 }
 
 ##
@@ -284,14 +271,12 @@ kill_watch() {
 }
 
 # Check for the input arguments
-<<<<<<< HEAD
-while getopts ":n:o:ktspjfbh" opt; do
+while getopts ":n:o:ktspjfbqh" opt; do
   case "${opt}" in
   n)
     ITER=${OPTARG}
     ;;
   o)
-    #OUTPUT_PATH="${OPTARG}/NATIVE_EXECUTORS=${NUM_EXECUTORS}_CORES=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G"
     OUTPUT_PATH="${OPTARG}/NATIVE"
     ;;
   k)
@@ -318,73 +303,28 @@ while getopts ":n:o:ktspjfbh" opt; do
   b)
     CUSTOM_BENCHMARK=true
     ;;
+  q)
+    RUN_TPCDS=true
+    ;;
   h)
     usage
     ;;
   *)
     usage
     ;;
-=======
-while getopts ":n:o:ktspjfbqh" opt
-do
-  case "${opt}" in
-    n)
-      ITER=${OPTARG}
-      ;;
-    o)
-      OUTPUT_PATH=${OPTARG}
-      ;;
-    k)
-      kill_back_process
-      exit 1
-      ;;
-    t)
-      TH=true
-      ;;
-    s)
-      SERDES=true
-      ;;
-    p)
-      PERF_TOOL=true
-      ;;
-    j)
-      JIT=true
-      ;;
-    f)
-      PROFILER=true
-      ;;
-    b)
-      CUSTOM_BENCHMARK=true
-      ;;
-    q)
-      RUN_TPCDS=true
-      ;;
-    h)
-      usage
-      ;;
-    *)
-      usage
-      ;;
->>>>>>> upstream/master
   esac
 done
 
 # Create directory for the results if do not exist
-#TIME=$(date +"%T-%d-%m-%Y")
 TIME=$(date +"%d-%m-%Y-%T")
 
-#OUT="${OUTPUT_PATH}_${TIME}"
 OUT="${OUTPUT_PATH}"
 #echo "Create directory OUT=$OUT"
 mkdir -p "${OUT}"
 
 # Enable perf event
-<<<<<<< HEAD
 sudo sh -c 'echo -1 >/proc/sys/kernel/perf_event_paranoid'
 sudo sh -c 'echo -0 >/proc/sys/kernel/kptr_restrict'
-=======
-sudo sh -c 'echo -1 >/proc/sys/kernel/perf_event_paranoid' >> /dev/null 2>&1
->>>>>>> upstream/master
 
 gen_config_files
 
@@ -397,30 +337,21 @@ for benchmark in "${BENCHMARKS[@]}"; do
   printStartMsg "${benchmark}"
   STARTTIME=$(date +%s)
 
-  #mkdir -p "${OUT}/${benchmark}"
   mkdir -p "${OUT}/${benchmark}/PARTITIONS=${NUM_OF_PARTITIONS}_REGION_SIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G_${TIME}"
 
   # For every iteration
   for ((i = 0; i < ITER; i++)); do
-    #mkdir -p "${OUT}/${benchmark}/run${i}"
     mkdir -p "${OUT}/${benchmark}/PARTITIONS=${NUM_OF_PARTITIONS}_REGION_SIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G_${TIME}/run${i}"
     # For every configuration
     for ((j = 0; j < TOTAL_CONFS; j++)); do
-      #mkdir -p "${OUT}/${benchmark}/run${i}/conf${j}"
-      #RUN_DIR="${OUT}/${benchmark}/run${i}/conf${j}"
-
       mkdir -p "${OUT}/${benchmark}/PARTITIONS=${NUM_OF_PARTITIONS}_REGION_SIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G_${TIME}/run${i}/conf${j}"
       RUN_DIR="${OUT}/${benchmark}/PARTITIONS=${NUM_OF_PARTITIONS}_REGION_SIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G_${TIME}/run${i}/conf${j}"
-      #echo "RUN_DIR=$RUN_DIR"
-
       # Set configuration
       if [ $SERDES ]; then
         ./update_conf.sh -b "${CUSTOM_BENCHMARK}"
       else
         ./update_conf_th.sh -b "${CUSTOM_BENCHMARK}"
       fi
-
-      #setup_cgroup
 
       start_spark
 
@@ -448,11 +379,7 @@ for benchmark in "${BENCHMARKS[@]}"; do
       fi
 
       # Drop caches
-<<<<<<< HEAD
       sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches >>"${BENCH_LOG}" 2>&1
-=======
-      echo 3 | sudo tee -a /proc/sys/vm/drop_caches >> /dev/null 2>&1
->>>>>>> upstream/master
 
       # Pmem stats before
       if [[ ${DEV_FMAP} == *pmem* ]]; then
@@ -462,17 +389,9 @@ for benchmark in "${BENCHMARKS[@]}"; do
       # System statistics start
       ./system_util/start_statistics.sh -d "${RUN_DIR}"
 
-<<<<<<< HEAD
       if [ $CUSTOM_BENCHMARK == "true" ]; then
-        if [ $SERDES ]; then
-          run_cgexec ./custom_benchmarks.sh "${RUN_DIR}" "$SERDES"
-=======
-      if [ $CUSTOM_BENCHMARK == "true" ]
-      then
-        if [ $RUN_TPCDS == "true" ]
-        then
+        if [ $RUN_TPCDS == "true" ]; then
           run_cgexec ./run_tpcds.sh "${RUN_DIR}" "${H1_SIZE[$j]}" "${benchmark}"
->>>>>>> upstream/master
         else
           run_cgexec ./custom_benchmarks.sh "${RUN_DIR}" "$SERDES"
         fi
@@ -525,11 +444,8 @@ for benchmark in "${BENCHMARKS[@]}"; do
       if [ $TH ]; then
         TH_METRICS=$(ls -td "${SPARK_DIR}"/work/* | head -n 1)
         cp "${TH_METRICS}"/0/teraHeap.txt "${RUN_DIR}"/
-        #run_results_parser "$RUN_DIR $NUM_EXECUTORS -t
         ./parse_results.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -t
       else
-        #NATIVE_METRICS=$(ls -td "${SPARK_DIR}"/work/* | head -n 1)
-        #run_results_parser $RUN_DIR $NUM_EXECUTORS -s
         ./parse_results.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -s
       fi
     done
