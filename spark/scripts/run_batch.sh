@@ -198,7 +198,7 @@ function parse_script_arguments() {
 
   # Check for errors in getopt
   if [[ $? -ne 0 ]]; then
-    return ${ERRORS[INVALID_OPTION]} 2>/dev/null || exit ${ERRORS[INVALID_OPTION]}
+    exit ${ERRORS[INVALID_OPTION]}
   fi
 
   # Evaluate the parsed options
@@ -223,7 +223,7 @@ function parse_script_arguments() {
         EXECUTION="s"
       else
         echo "Invalid execution mode; Please provide f|flexheap or n|native"
-        return ${ERRORS[INVALID_OPTION]} 2>/dev/null || exit ${ERRORS[INVALID_OPTION]}
+        exit ${ERRORS[INVALID_OPTION]}
       fi
       shift 2
       ;;
@@ -235,7 +235,7 @@ function parse_script_arguments() {
         JAVA_BUILD=$TERA_JDK17_AARCH64_FASTDEBUG
       else
         echo "Invalid java build; Please provide r|release or f|fastdebug"
-        return ${ERRORS[INVALID_OPTION]} 2>/dev/null || exit ${ERRORS[INVALID_OPTION]}
+        exit ${ERRORS[INVALID_OPTION]}
       fi
       shift 2
       ;;
@@ -330,19 +330,19 @@ function parse_script_arguments() {
       ;;
     *)
       echo "Programming error"
-      return ${ERRORS[PROGRAMMING_ERROR]} 2>/dev/null || exit ${ERRORS[PROGRAMMING_ERROR]} # This will return if sourced, and exit if run as a standalone script
+      exit ${ERRORS[PROGRAMMING_ERROR]} 
       ;;
     esac
   done
 }
 
 function validateIterations() {
-  if [[ ! $ITERATIONS =~ ^[0-9]+$ ]]; then # Validate if iterations is an integer
+  if [[ ! $ITERATIONS =~ ^[0-9]+$ ]]; then 
     echo "iterations:$ITERATIONS is not an integer."
-    return ${ERRORS[NOT_AN_INTEGER]} 2>/dev/null || exit ${ERRORS[NOT_AN_INTEGER]} # This will return if sourced, and exit if run as a standalone script
-  elif [[ $ITERATIONS -lt 1 || $ITERATIONS -gt 5 ]]; then                          # Check if the iterations is within the range 1 to 5
+    exit ${ERRORS[NOT_AN_INTEGER]} 
+  elif [[ $ITERATIONS -lt 1 || $ITERATIONS -gt 5 ]]; then                          
     echo "iterations:$ITERATIONS is not within the range 1 to 5."
-    return ${ERRORS[OUT_OF_RANGE]} 2>/dev/null || exit ${ERRORS[OUT_OF_RANGE]} # This will return if sourced, and exit if run as a standalone script
+    exit ${ERRORS[OUT_OF_RANGE]} 
   fi
 }
 

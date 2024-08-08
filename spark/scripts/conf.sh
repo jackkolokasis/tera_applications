@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -x
+#set -x
 ###################################################
 #
 # file: conf.sh
@@ -25,11 +25,11 @@ TERA_APPLICATIONS_REPO=$HOME/tera_applications
 # Dataset size "small" and "large"
 DATA_SIZE=large
 # JAVA Home
-MY_JAVA_HOME=/home1/private/perpap/teraheap/jdk17u067/build/linux-aarch64-server-release/jdk
+MY_JAVA_HOME=/home1/private/perpap/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk
 # Device for datasets directory : /dev/nvme3n1
-DEV_BENCHMARK_DATASETS=nvme0n1p1
+DEV_BENCHMARK_DATASETS=nvme0n1
 # Mount point for datasets directory : /mnt/datasets
-MNT_BENCHMARK_DATASETS=/spare2/datasets
+MNT_BENCHMARK_DATASETS=/mnt/datasets
 # Directory that contains datasets
 DATA_HDFS="file://$MNT_BENCHMARK_DATASETS/SparkBench"
 # Spark Version
@@ -46,19 +46,19 @@ MASTER_LOG_DIR=${SPARK_DIR}/logs
 # Spark master log dir
 MASTER_METRIC_FILE="${SPARK_DIR}/conf/metrics.properties"
 # Spark master node
-SPARK_MASTER=ampere
+SPARK_MASTER=sith7
 # Spark slave host name
-SPARK_SLAVE=ampere
+SPARK_SLAVE=sith7
 # Number of garbage collection threads
 GC_THREADS=10
 # Device for shuffle : nvme3n1
-DEV_SHFL=nvme0n1p1
+DEV_SHFL=sdb1
 # Mount point for shuffle directory : /mnt/spark
-MNT_SHFL=/spare2/spark
+MNT_SHFL=/mnt/spark
 #Device for H2: nvme3n1
-DEV_H2=nvme0n1p1
+DEV_H2=nvme0n1
 # Mount point for H2 TeraHeap directory : /mnt/fmap
-MNT_H2=/spare2/fmap
+MNT_H2=/mnt/h2
 # Card segment size for H2
 CARD_SIZE=$((8 * 1024))
 # Region size for H2
@@ -68,23 +68,23 @@ STRIPE_SIZE=$((REGION_SIZE / CARD_SIZE))
 # TeraCache file size in GB e.g 700 -> 700GB
 H2_FILE_SZ=1200
 # Executor cores
-EXEC_CORES=(16)
+EXEC_CORES=( 16 )
 # SparkBench directory
 SPARK_BENCH_DIR=$TERA_APPLICATIONS_REPO/spark/spark-bench
 #Benchmark log
 BENCH_LOG=$TERA_APPLICATIONS_REPO/spark/scripts/log.out
 # Heap size for executors '-Xms' is in GB e.g., 54 -> 54GB
-H1_SIZE=(68)
+H1_SIZE=( 200 )
 # cgset accepts K,M,G and eiB, MiB, GiB units for memory limit
-MEM_BUDGET=84G
+MEM_BUDGET=254G
 # Spark memory fraction: 'spark.memory.storagefraction'
 MEM_FRACTION=(0.9)
 # Storage Level
-S_LEVEL=("MEMORY_ONLY")
+S_LEVEL=( "MEMORY_ONLY" )
 # TeraCache configuration size in Spark: 'spark.teracache.heap.size'
 H1_H2_SIZE=(1200)
 # Running benchmarks
-BENCHMARKS=("ConnectedComponent")
+BENCHMARKS=( "PageRank" )
 # Number of executors
 NUM_EXECUTORS=(1)
 # Total Configurations

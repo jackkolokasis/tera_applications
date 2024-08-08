@@ -18,7 +18,11 @@ ERRORS[PROGRAMMING_ERROR]=5
 BENCHMARKS=(ConnectedComponent LinearRegression LogisticRegression PageRank)
 EXEC_CORES=16
 GC_THREADS=10
-#H1_SIZE=64
+H2_MOUNT_POINT=
+SHUFFLE_MOUNT_POINT=
+MASTER=
+SLAVE=
+
 sed -i "s/^EXEC_CORES=(.*)/EXEC_CORES=( $EXEC_CORES )/" conf.sh
 sed -i "s/^GC_THREADS=.*/GC_THREADS=$GC_THREADS/" conf.sh
 sed -i "s/^H1_SIZE=(.*)/H1_SIZE=( 200 )/" conf.sh
@@ -30,6 +34,10 @@ function usage() {
   echo "Usage: $0 [options]"
   echo "Options:"
   echo
+  echo "  -m, --master                        Specify the Spark master; eg. ampere."
+  echo "  -s, --slave                         Specify the Spark slave; eg. ampere."
+  echo "  -f, --h2-dir <path>                 Specify the path of the directory which contains the h2 backing file, eg. /spare2/perpap/fmap"
+  echo "  -p, --shuffle-dir <path>            Specify the path of the directory which contains the spark shuffle directory, eg. /spare2/perpap/spark"
   echo "  -j, --java <path>                   Specify the path for JAVA_HOME enviroment variable"
   echo "  -d, --datasets <path>               Specify the path of the directory which contains the spark datasets, eg. /spare2/datasets"
   echo "  -h, --help                          Display this help message and exit."
@@ -37,18 +45,19 @@ function usage() {
   echo "Examples:"
   echo
   echo "./gen_dataset_batch.sh -d /spare2/datasets"
+  echo "./gen_dataset_batch.sh -m sith2 -s sith2 -f /mnt/perpap/fmap -p /mnt/perpap/spark -j $HOME/openjdk/x86_64/jdk8u422-b05 -d /mnt/perpap/datasets"
 }
 
 function parse_script_arguments() {
-  local OPTIONS=j:d:h
-  local LONGOPTIONS=java:,datasets:,help
+  local OPTIONS=m:s:f:p:j:d:h
+  local LONGOPTIONS=master:,slave:,h2-dir:,shuffle-dir:java:,datasets:,help
 
   # Use getopt to parse the options
   local PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS --name "$0" -- "$@")
 
   # Check for errors in getopt
   if [[ $? -ne 0 ]]; then
-    return ${ERRORS[INVALID_OPTION]} 2>/dev/null || exit ${ERRORS[INVALID_OPTION]}
+    exit ${ERRORS[INVALID_OPTION]}
   fi
 
   # Evaluate the parsed options
@@ -56,6 +65,36 @@ function parse_script_arguments() {
 
   while true; do
     case "$1" in
+    -m | --master)
+      MASTER="$2"
+      sed -i "s|^SPARK_MASTER=.*|SPARK_MASTER=${MASTER}|" conf.sh
+      shift 2
+      ;;
+    -s | --slave)
+      SLAVE="$2"
+      sed -i "s|^SPARK_SLAVE=.*|SPARK_SLAVE=${SLAVE}|" conf.sh
+      shift 2
+      ;;
+    -f | --h2-dir)
+      H2_MOUNT_POINT="$2"
+      # Find the device name using df and process it to remove the /dev/ prefix
+      DEVICE_NAME=$(df "$H2_MOUNT_POINT" | awk 'NR==2 {print $1}' | sed 's|/dev/||')
+      # Update the conf.sh script with the device name for DEV_H2
+      sed -i "s|^DEV_H2=.*|DEV_H2=${DEVICE_NAME}|" conf.sh
+      # Update the conf.sh script with the mount point for MNT_H2
+      sed -i "s|^MNT_H2=.*|MNT_H2=${H2_MOUNT_POINT}|" conf.sh
+      shift 2
+      ;;
+    -p | --shuffle-dir)
+      SHUFFLE_MOUNT_POINT="$2"
+      # Find the device name using df and process it to remove the /dev/ prefix
+      DEVICE_NAME=$(df "$SHUFFLE_MOUNT_POINT" | awk 'NR==2 {print $1}' | sed 's|/dev/||')
+      # Update the conf.sh script with the device name for DEV_SHFL
+      sed -i "s|^DEV_SHFL=.*|DEV_SHFL=${DEVICE_NAME}|" conf.sh
+      # Update the conf.sh script with the mount point for MNT_SHFL
+      sed -i "s|^MNT_SHFL=.*|MNT_SHFL=${SHUFFLE_MOUNT_POINT}|" conf.sh
+      shift 2
+      ;;
     -j | --java)
       if [[ -f "$2"/bin/java ]]; then
         sed -i "s|^MY_JAVA_HOME=.*|MY_JAVA_HOME=$2|" conf.sh
@@ -85,7 +124,7 @@ function parse_script_arguments() {
       ;;
     *)
       echo "Programming error"
-      return ${ERRORS[PROGRAMMING_ERROR]} 2>/dev/null || exit ${ERRORS[PROGRAMMING_ERROR]} # This will return if sourced, and exit if run as a standalone script
+      exit ${ERRORS[PROGRAMMING_ERROR]} 
       ;;
     esac
   done
