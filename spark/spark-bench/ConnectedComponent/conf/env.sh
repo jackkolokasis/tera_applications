@@ -1,13 +1,7 @@
-# application parameters
-#numV=61344			#> 109MB
-#numV=4907520		#> 11GB
+# Application parameters
 numV=14722560		#> 32GB
-#numV=29445120		#> 64GB
-#numV=4000000  # 8GB
-#numV=6000000  # 12GB
-#numV=942240		#> 2GB
 
-NUM_OF_PARTITIONS=256
+NUM_OF_PARTITIONS=480
 mu=4.0
 sigma=1.3
 

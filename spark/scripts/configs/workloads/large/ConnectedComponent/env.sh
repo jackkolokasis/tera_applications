@@ -1,5 +1,5 @@
 # Application parameters
-numV=14722560		#> 32GB
+numV=14722560 #> 32GB
 
 NUM_OF_PARTITIONS=256
 mu=4.0

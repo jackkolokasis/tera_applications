@@ -12,6 +12,8 @@
 #
 ###################################################
 
+USER=$(whoami)
+
 # Check if the last command executed succesfully
 #
 # if executed succesfully, print SUCCEED
@@ -53,19 +55,22 @@ destroy_th() {
 		message="Unmount ${DEVICES[1]}" 
 		check ${retValue} "${message}"
 
-		rm -rf "${MNT_FMAP}"/file.txt
+		#rm -rf "${MNT_FMAP}"/file.txt
+		rm -rf "${MNT_H2}"/H2.txt
 		# Check if the command executed succesfully
 		retValue=$?
 		message="Remove TeraHeap H2 backed-file" 
 		check ${retValue} "${message}"
 	else
-		rm -rf "${MNT_SHFL}"/file.txt
+		#rm -rf "${MNT_SHFL}"/file.txt
+		rm -rf "${MNT_SHFL}"/H2.txt
 		# Check if the command executed succesfully
 		retValue=$?
 		message="Remove TeraHeap H2 backed-file" 
 		check ${retValue} "${message}"
 		
-		sudo umount /mnt/spark
+		#sudo umount /mnt/spark
+		sudo umount "${MNT_SHFL}"
 		# Check if the command executed succesfully
 		retValue=$?
 		message="Unmount ${DEVICES[0]}" 
@@ -77,7 +82,7 @@ destroy_ser() {
 	sudo umount "${MNT_SHFL}"
 	# Check if the command executed succesfully
 	retValue=$?
-	message="Unmount $DEVICE_SHFL" 
+	message="Unmount $DEV_SHFL" 
 	check ${retValue} "${message}"
 }
     
@@ -119,48 +124,54 @@ then
 fi
 
 # Setup Device 
-if ! mountpoint -q /mnt/datasets
+#if ! mountpoint -q /mnt/datasets
+if ! mountpoint -q $MNT_BENCHMARK_DATASETS
 then
-	sudo mount /dev/sdb /mnt/datasets
-	sudo chown kolokasis /mnt/datasets
+	#sudo mount /dev/sdb /mnt/datasets
+	#sudo chown kolokasis /mnt/datasets
+	sudo mount $DEV_BENCHMARK_DATASETS $MNT_BENCHMARK_DATASETS
+	sudo chown $USER $MNT_BENCHMARK_DATASETS
 fi
 
 # Setup TeraCache device
 if [ $TH ]
 then
-		if ! mountpoint -q /mnt/spark
+		#if ! mountpoint -q /mnt/spark
+		if ! mountpoint -q $MOUNT_POINT_SHUFFLE
 		then
-			sudo mount /dev/${DEVICE_SHFL} /mnt/spark
+			#sudo mount /dev/${DEVICE_SHFL} /mnt/spark
+			sudo mount $DEV_SHFL $MOUNT_POINT_SHUFFLE
 			# Check if the command executed succesfully
 			retValue=$?
-			message="Mount ${DEVICE_SHFL} for shuffle and TeraCache" 
+			message="Mount ${DEV_SHFL} for shuffle and TeraCache" 
 			check ${retValue} "${message}"
-
-      sudo chown "$(whoami)" /mnt/spark
+			#sudo chown "$USER" /mnt/spark
+			sudo chown "$USER" $MOUNT_POINT_SHUFFLE
 			# Check if the command executed succesfully
 			retValue=$?
-			message="Change ownerships /mnt/spark" 
+			#message="Change ownerships /mnt/spark" 
+			message="Change ownerships $MOUNT_POINT_SHUFFLE" 
 			check ${retValue} "${message}"
 		fi
 
-		cd /mnt/spark || exit
-
+		#cd /mnt/spark || exit
+		cd $MOUNT_POINT_SHUFFLE || exit
 		# if the file does not exist then create it
-		if [ ! -f file.txt ]
+		if [ ! -f H2.txt ]
 		then
-			fallocate -l ${TH_FILE_SZ}G file.txt
+			fallocate -l ${TH_FILE_SZ}G H2.txt
 			# Check if the command executed succesfully
 			retValue=$?
 			message="Create ${TH_FILE_SZ}G file for TeraCache" 
 			check ${retValue} "${message}"
 		else
-			rm file.txt
+			rm H2.txt
 			# Check if the command executed succesfully
 			retValue=$?
 			message="Remove ${TH_FILE_SZ}G file" 
 			check ${retValue} "${message}"
 			
-			fallocate -l ${TH_FILE_SZ}G file.txt
+			fallocate -l ${TH_FILE_SZ}G H2.txt
 			# Check if the command executed succesfully
 			retValue=$?
 			message="Create ${TH_FILE_SZ}G file for TeraCache" 
@@ -169,20 +180,23 @@ then
 		cd -
 	fi
 else
-	if mountpoint -q /mnt/spark
+	#if mountpoint -q /mnt/spark
+	if mountpoint -q $MOUNT_POINT_SHUFFLE
 	then
 		exit
 	fi
-	sudo mount /dev/${DEVICE_SHFL} /mnt/spark
+	#sudo mount /dev/${DEVICE_SHFL} /mnt/spark
+	sudo mount $DEV_SHFL $MOUNT_POINT_SHUFFLE
 	# Check if the command executed succesfully
 	retValue=$?
-	message="Mount ${DEVICE_SHFL} /mnt/spark" 
+	message="Mount $DEV_SHFL $MOUNT_POINT_SHUFFLE" 
 	check ${retValue} "${message}"
 		
-	sudo chown kolokasis /mnt/spark
+	#sudo chown kolokasis /mnt/spark
+	sudo chown $USER $MOUNT_POINT_SHUFFLE
 	# Check if the command executed succesfully
 	retValue=$?
-	message="Change ownerships /mnt/spark" 
+	message="Change ownerships $MOUNT_POINT_SHUFFLE" 
 	check ${retValue} "${message}"
 fi
 exit

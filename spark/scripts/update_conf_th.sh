@@ -5,7 +5,7 @@
 # file: update_conf_tc.sh
 #
 # @Author:   Iacovos G. Kolokasis
-# @Version:  27-02-2021 
+# @Version:  27-02-2021
 # @email:    kolokasis@ics.forth.gr
 #
 # Scrpt to setup the configuration for experiments
@@ -17,33 +17,33 @@
 
 # Print error/usage script message
 usage() {
-    echo
-    echo "Usage:"
-    echo -n "      $0 [option ...] [-k][-h]"
-    echo
-    echo "Options:"
-    echo "      -i  Minimum Heap Size"
-    echo "      -b  Custom Benchmark"
-    echo "      -h  Show usage"
-    echo
+  echo
+  echo "Usage:"
+  echo -n "      $0 [option ...] [-k][-h]"
+  echo
+  echo "Options:"
+  #echo "      -a  allocation_mode    [0: H1, 1: H1H2, 2: H2H1]"
+  echo "      -i  Minimum Heap Size"
+  echo "      -b  Custom Benchmark"
+  echo "      -h  Show usage"
+  echo
 
-    exit 1
+  exit 1
 }
 
 update_slave_file() {
-  if [ "$SPARK_VERSION" == "2.3.0" ]
-  then
-    echo "${SPARK_SLAVE}" > slaves
+  if [ "$SPARK_VERSION" == "2.3.0" ]; then
+    echo "${SPARK_SLAVE}" >slaves
   else
-    echo "${SPARK_SLAVE}" > workers
+    echo "${SPARK_SLAVE}" >workers
   fi
 }
 
 update_spark_env() {
   # Update JAVA_HOME
   sed -i '/JAVA_HOME/c\JAVA_HOME='"${MY_JAVA_HOME}" spark-env.sh
-  SPARK_WORKER_MEMORY=$(( H1_H2_SIZE * NUM_EXECUTORS ))
-  SPARK_WORKER_CORES=$(( EXEC_CORES * NUM_EXECUTORS ))
+  SPARK_WORKER_MEMORY=$((H1_H2_SIZE * NUM_EXECUTORS))
+  SPARK_WORKER_CORES=$((EXEC_CORES * NUM_EXECUTORS))
   # Change the worker cores
   sed -i '/SPARK_WORKER_CORES/c\SPARK_WORKER_CORES='"${SPARK_WORKER_CORES}" spark-env.sh
   # Change the worker memory
@@ -60,14 +60,17 @@ update_spark_env() {
 
 update_spark_defaults() {
   local TH_BYTES=$(echo "(${H1_H2_SIZE} - ${H1_SIZE}) * 1024 * 1024 * 1024" | bc)
+  local NUMA="-XX:-UseNUMA"
+  if [[ $USE_NUMA == true ]]; then
+    NUMA="-XX:+UseNUMA"
+  fi
 
   local extra_java_opts="spark.executor.extraJavaOptions -server "
-  extra_java_opts+="-XX:-ClassUnloading -XX:+UseParallelGC -XX:ParallelGCThreads=${GC_THREADS} "
+  extra_java_opts+="-XX:-ClassUnloading -XX:DEVICE_H2=${DEV_H2} -XX:+UseParallelGC ${NUMA} -XX:ParallelGCThreads=${GC_THREADS} "
   extra_java_opts+="-XX:+EnableTeraHeap -XX:TeraHeapSize=${TH_BYTES} -Xms${H1_SIZE}g "
   extra_java_opts+="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers "
 
-  if $ENABLE_STATS
-  then
+  if $ENABLE_STATS; then
     extra_java_opts+="-XX:+TeraHeapStatistics -Xlogth:teraHeap.txt "
   fi
   extra_java_opts+="-XX:TeraHeapPolicy=\"${TERAHEAP_POLICY}\" -XX:TeraStripeSize=${STRIPE_SIZE} "
@@ -77,10 +80,15 @@ update_spark_defaults() {
   local H2_PATH="${MNT_H2//\//\\/}\/"
   extra_java_opts+="-XX:AllocateH2At=\"${H2_PATH}\" -XX:H2FileSize=${H2_FILE_SZ_BYTES} "
 
-  if ${ENABLE_FLEXHEAP}
-  then
+  echo "[DEBUGGING] ENABLE_FLEXHEAP=$ENABLE_FLEXHEAP"
+  if ${ENABLE_FLEXHEAP}; then
     local MEM_BUDGET_BYTES=$(echo "${MEM_BUDGET%G} * 1024 * 1024 * 1024" | bc)
     MEM_BUDGET_BYTES=$(echo "${MEM_BUDGET_BYTES} / ${NUM_EXECUTORS}" | bc)
+    : '
+    if [[ $ALLOCATION_MODE == 2 ]]; then
+      extra_java_opts+="-XX:+AllocateH2H1 "
+    fi
+    '
     extra_java_opts+="-XX:+DynamicHeapResizing -XX:TeraDRAMLimit=${MEM_BUDGET_BYTES} "
     extra_java_opts+="-XX:TeraResizingPolicy=${FLEXHEAP_POLICY} -XX:TeraCPUStatsPolicy=${CPU_STATS_POLICY} "
   fi
@@ -105,23 +113,22 @@ update_spark_bench() {
   sed -i '/SPARK_EXECUTOR_CORES/c\SPARK_EXECUTOR_CORES='"${EXEC_CORES}" env.sh
   sed -i '/SPARK_EXECUTOR_INSTANCES/c\SPARK_EXECUTOR_INSTANCES='"${NUM_EXECUTORS}" env.sh
   sed -i '/STORAGE_LEVEL/c\STORAGE_LEVEL='"${S_LEVEL}" env.sh
-	sed -i '/NUM_OF_PARTITIONS/c\NUM_OF_PARTITIONS='"${NUM_OF_PARTITIONS}" env.sh
+  sed -i '/NUM_OF_PARTITIONS/c\NUM_OF_PARTITIONS='"${NUM_OF_PARTITIONS}" env.sh
 }
 
 # Check for the input arguments
-while getopts ":b:h" opt
-do
-    case "${opt}" in
-        b)
-            CUSTOM_BENCHMARK=${OPTARG}
-            ;;
-        h)
-            usage
-            ;;
-        *)
-            usage
-            ;;
-    esac
+while getopts ":b:h" opt; do
+  case "${opt}" in
+  b)
+    CUSTOM_BENCHMARK=${OPTARG}
+    ;;
+  h)
+    usage
+    ;;
+  *)
+    usage
+    ;;
+  esac
 done
 
 # Enter to spark configuration
@@ -133,21 +140,20 @@ update_spark_env
 
 update_spark_defaults
 
-cd - > /dev/null || exit
+cd - >/dev/null || exit
 
-if [ "${CUSTOM_BENCHMARK}" == "false" ]
-then
-	# Enter the spark-bechmarks
-	cd "${SPARK_BENCH_DIR}"/conf/ || exit
+if [ "${CUSTOM_BENCHMARK}" == "false" ]; then
+  # Enter the spark-bechmarks
+  cd "${SPARK_BENCH_DIR}"/conf/ || exit
 
   update_spark_bench
 
-	cd - > /dev/null || exit
+  cd - >/dev/null || exit
 
   cp "./configs/workloads/${DATA_SIZE}/${BENCHMARKS}/env.sh" \
     "${SPARK_BENCH_DIR}/${BENCHMARKS}/conf"
 
-	cd - > /dev/null || exit
+  cd - >/dev/null || exit
 fi
 
 exit

@@ -1,4 +1,4 @@
-# Application parameters #1million points have 200M data size 
+# Application parameters #1million points have 200M data size
 
 ####################### 256GB #######################
 NUM_OF_EXAMPLES=20000

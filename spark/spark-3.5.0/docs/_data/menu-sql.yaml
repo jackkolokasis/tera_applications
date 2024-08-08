@@ -1,0 +1,149 @@
+- text: Getting Started
+  url: sql-getting-started.html
+  subitems:
+    - text: "Starting Point: SparkSession"
+      url: sql-getting-started.html#starting-point-sparksession
+    - text: Creating DataFrames
+      url: sql-getting-started.html#creating-dataframes
+    - text: Untyped Dataset Operations (DataFrame operations)
+      url: sql-getting-started.html#untyped-dataset-operations-aka-dataframe-operations
+    - text: Running SQL Queries Programmatically
+      url: sql-getting-started.html#running-sql-queries-programmatically
+    - text: Global Temporary View
+      url: sql-getting-started.html#global-temporary-view
+    - text: Creating Datasets
+      url: sql-getting-started.html#creating-datasets
+    - text: Interoperating with RDDs
+      url: sql-getting-started.html#interoperating-with-rdds
+    - text: Scalar Functions
+      url: sql-getting-started.html#scalar-functions
+    - text: Aggregate Functions
+      url: sql-getting-started.html#aggregate-functions
+- text: Data Sources
+  url: sql-data-sources.html
+  subitems:
+    - text: "Generic Load/Save Functions"
+      url: sql-data-sources-load-save-functions.html
+    - text: "Generic File Source Options"
+      url: sql-data-sources-generic-options.html
+    - text: Parquet Files
+      url: sql-data-sources-parquet.html
+    - text: ORC Files
+      url: sql-data-sources-orc.html
+    - text: JSON Files
+      url: sql-data-sources-json.html
+    - text: CSV Files
+      url: sql-data-sources-csv.html
+    - text: Text Files
+      url: sql-data-sources-text.html
+    - text: Hive Tables
+      url: sql-data-sources-hive-tables.html
+    - text: JDBC To Other Databases
+      url: sql-data-sources-jdbc.html
+    - text: Avro Files
+      url: sql-data-sources-avro.html
+    - text: Protobuf data
+      url: sql-data-sources-protobuf.html
+    - text: Whole Binary Files
+      url: sql-data-sources-binaryFile.html
+    - text: Troubleshooting
+      url: sql-data-sources-troubleshooting.html
+- text: Performance Tuning
+  url: sql-performance-tuning.html
+  subitems:
+    - text: Caching Data In Memory
+      url: sql-performance-tuning.html#caching-data-in-memory
+    - text: Other Configuration Options
+      url: sql-performance-tuning.html#other-configuration-options
+    - text: Join Strategy Hints for SQL Queries
+      url: sql-performance-tuning.html#join-strategy-hints-for-sql-queries
+    - text: Coalesce Hints for SQL Queries
+      url: sql-performance-tuning.html#coalesce-hints-for-sql-queries
+    - text: Adaptive Query Execution
+      url: sql-performance-tuning.html#adaptive-query-execution
+- text: Distributed SQL Engine
+  url: sql-distributed-sql-engine.html
+  subitems:
+    - text: "Running the Thrift JDBC/ODBC server"
+      url: sql-distributed-sql-engine.html#running-the-thrift-jdbcodbc-server
+    - text: Running the Spark SQL CLI
+      url: sql-distributed-sql-engine.html#running-the-spark-sql-cli
+- text: PySpark Usage Guide for Pandas with Apache Arrow
+  url: sql-pyspark-pandas-with-arrow.html
+- text: Migration Guide
+  url: sql-migration-guide.html
+- text: SQL Reference
+  url: sql-ref.html
+  subitems:
+    - text: ANSI Compliance
+      url: sql-ref-ansi-compliance.html
+    - text: Data Types
+      url: sql-ref-datatypes.html
+    - text: Datetime Pattern
+      url: sql-ref-datetime-pattern.html
+    - text: Number Pattern
+      url: sql-ref-number-pattern.html
+    - text: Functions
+      url: sql-ref-functions.html
+    - text: Identifiers
+      url: sql-ref-identifier.html
+    - text: Literals
+      url: sql-ref-literals.html
+    - text: Null Semantics
+      url: sql-ref-null-semantics.html
+    - text: SQL Syntax
+      url: sql-ref-syntax.html
+      subitems:
+        - text: Data Definition Statements
+          url: sql-ref-syntax.html#ddl-statements
+        - text: Data Manipulation Statements
+          url: sql-ref-syntax.html#dml-statements
+        - text: Data Retrieval(Queries)
+          url: sql-ref-syntax.html#data-retrieval-statements
+        - text: Auxiliary Statements
+          url: sql-ref-syntax.html#auxiliary-statements
+- text: Error Conditions
+  url: sql-error-conditions.html
+  subitems:
+    - text: SQLSTATE Codes
+      url: sql-error-conditions-sqlstates.html
+    - text: CONNECT error class
+      url: sql-error-conditions-connect-error-class.html
+    - text: DATATYPE_MISMATCH error class
+      url: sql-error-conditions-datatype-mismatch-error-class.html
+    - text: INCOMPATIBLE_DATA_FOR_TABLE error class
+      url: sql-error-conditions-incompatible-data-to-table-error-class.html
+    - text: INCOMPLETE_TYPE_DEFINITION error class
+      url: sql-error-conditions-incomplete-type-definition-error-class.html
+    - text: INCONSISTENT_BEHAVIOR_CROSS_VERSION error class
+      url: sql-error-conditions-inconsistent-behavior-cross-version-error-class.html
+    - text: INVALID_FORMAT error class
+      url: sql-error-conditions-invalid-format-error-class.html
+    - text: INVALID_OPTIONS error class
+      url: sql-error-conditions-invalid-options-error-class.html
+    - text: INVALID_PARAMETER_VALUE error class
+      url: sql-error-conditions-invalid-parameter-value-error-class.html
+    - text: INVALID_SCHEMA error class
+      url: sql-error-conditions-invalid-schema-error-class.html
+    - text: INVALID_SUBQUERY_EXPRESSION error class
+      url: sql-error-conditions-invalid-subquery-expression-error-class.html
+    - text: NOT_NULL_CONSTRAINT_VIOLATION error class
+      url: sql-error-conditions-not-null-constraint-violation-error-class.html
+    - text: UNRESOLVED_COLUMN error class
+      url: sql-error-conditions-unresolved-column-error-class.html
+    - text: UNRESOLVED_FIELD error class
+      url: sql-error-conditions-unresolved-field-error-class.html
+    - text: UNRESOLVED_MAP_KEY error class
+      url: sql-error-conditions-unresolved-map-key-error-class.html
+    - text: UNSUPPORTED_DESERIALIZER error class
+      url: sql-error-conditions-unsupported-deserializer-error-class.html
+    - text: UNSUPPORTED_FEATURE error class
+      url: sql-error-conditions-unsupported-feature-error-class.html
+    - text: UNSUPPORTED_GENERATOR error class
+      url: sql-error-conditions-unsupported-generator-error-class.html
+    - text: UNSUPPORTED_SAVE_MODE error class
+      url: sql-error-conditions-unsupported-save-mode-error-class.html
+    - text: UNSUPPORTED_SUBQUERY_EXPRESSION_CATEGORY error class
+      url: sql-error-conditions-unsupported-subquery-expression-category-error-class.html
+    - text: WRONG_NUM_ARGS error class
+      url: sql-error-conditions-wrong-num-args-error-class.html
