@@ -38,5 +38,6 @@ run_benchmark() {
 
 for b in "${BENCHMARKS[@]}"
 do
+  ./monitor_perf_warnings.sh ${RESULT_DIR}/${b}_perf_warnings.txt &
   run_benchmark ${b}
 done
