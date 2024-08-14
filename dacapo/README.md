@@ -8,9 +8,8 @@
 
 ## Run the benchmarks
 ```sh
-# Open run.sh and set the java home
+# Open run.sh and set the variable JAVA_HOME
 
 # Run benchmarks
 ./run.sh <path/to/result/directory>
 ```
-
