@@ -1,4 +1,4 @@
-# for preparation 
+# for preparation
 numV=16000000 # 32GB
 NUM_OF_PARTITIONS=256
 mu=4.0
