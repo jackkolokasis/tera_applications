@@ -1,0 +1,164 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.algolib</groupId>
+  <artifactId>gds-benchmarks</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <properties>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    </properties>
+
+  <dependencies>
+    <!-- Neo4j Embedded Database -->
+    <dependency>
+      <groupId>org.neo4j</groupId>
+      <artifactId>neo4j</artifactId>
+      <version>5.15.0</version>
+      </dependency>
+
+    <dependency>
+      <groupId>org.neo4j</groupId>
+      <artifactId>neo4j-procedure-api</artifactId>
+      <version>5.15.0</version>
+      </dependency>
+    
+    <dependency>
+      <groupId>org.neo4j.gds</groupId>
+      <artifactId>core</artifactId>
+      <version>2.6.0</version>
+      </dependency>
+    
+    <dependency>
+      <groupId>org.neo4j.gds</groupId>
+      <artifactId>algo-common</artifactId>
+      <version>2.6.0</version>
+      </dependency>
+    
+    <dependency>
+      <groupId>org.neo4j.gds</groupId>
+      <artifactId>algo</artifactId>
+      <version>2.6.0</version>
+      </dependency>
+    
+    <dependency>
+      <groupId>org.neo4j.gds</groupId>
+      <artifactId>proc-common</artifactId>
+      <version>2.6.0</version>
+      </dependency>
+
+    <dependency>
+      <groupId>org.neo4j.gds</groupId>
+      <artifactId>proc</artifactId>
+      <version>2.6.0</version>
+      </dependency>
+    
+    <!-- Required by the write execution modes, this artifact is responsible for providing the various exporters -->
+    <dependency>
+      <groupId>org.neo4j.gds</groupId>
+      <artifactId>open-write-services</artifactId>
+      <version>2.6.0</version>
+      </dependency>
+    
+
+
+    <dependency>
+      <groupId>org.neo4j.gds</groupId>
+      <artifactId>model-catalog-api</artifactId>
+      <version>2.6.0</version>
+      </dependency>
+
+    <dependency>
+      <groupId>org.neo4j.gds</groupId>
+      <artifactId>proc-catalog</artifactId>
+      <version>2.6.0</version>
+      </dependency>
+    
+    <dependency>
+      <groupId>org.neo4j.gds</groupId>
+      <artifactId>opengds-procedure-facade</artifactId>
+      <version>2.6.0</version>
+      </dependency>
+
+    <!-- Log4j2 for logging, compatible with Neo4j 5.15 -->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>2.20.0</version>
+      </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.20.0</version>
+      </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <version>2.20.0</version>
+      </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>2.0.9</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-simple</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+    </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Maven Compiler Plugin for Java 17 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+          <source>17</source>
+          <target>17</target>
+          </configuration>
+        </plugin>
+
+      <!-- Maven Shade Plugin to create an uber JAR with all dependencies -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.2.4</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+              </goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>com.algolib.PageRankBenchmark</mainClass> <!-- Main class to run -->
+                  </transformer>
+                </transformers>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude> <!-- Exclude Signature Files -->
+                    <exclude>META-INF/*.DSA</exclude> <!-- Exclude DSA Files -->
+                    <exclude>META-INF/*.RSA</exclude> <!-- Exclude RSA Files -->
+                    </excludes>
+                  </filter>
+                </filters>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </build>
+  </project>
+
