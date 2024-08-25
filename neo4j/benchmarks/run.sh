@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 
-#./load-graph.sh \
+# ./load-graph.sh \
 #  --neo4j-home "/archive/users/kolokasis/tera_applications/neo4j/neo4j/packaging/standalone/target/neo4j-community-5.15.0-SNAPSHOT" \
 #  --input-vertex-path "/mnt/datasets/graphalytics/graphs/cit-Patents.v" \
 #  --input-edge-path "/mnt/datasets/graphalytics/graphs/cit-Patents.e" \
 #  --output-path "/mnt/spark/intermediate/cit-Patents" \
 #  --weighted "false"
-#
-#exit
+
+# cd "/mnt/spark/intermediate/cit-Patents" || exit
+# mv database data
+# cd - >/dev/null || exit 
 
 CLASSPATH="$(find ../neo4j -name "*.jar" | xargs readlink -f | paste -sd ':')"
 #GDS="$(find ~/.m2/repository/org/neo4j/gds/*/2.6.0 -name "*.jar" | paste -sd ':')"
@@ -37,11 +39,14 @@ export CPLUS_INCLUDE_PATH=${PROJECT_DIR}/tera_malloc/include:$CPLUS_INCLUDE_PATH
 export TERA_MALLOC_HOME=${PROJECT_DIR}/tera_malloc
   
 #-cp ./target/gds-benchmarks-1.0-SNAPSHOT-jar-with-dependencies.jar:/archive/users/kolokasis/tera_applications/neo4j/neo4j/community/configuration/target/neo4j-configuration-5.15.0-SNAPSHOT.jar:/archive/users/kolokasis/tera_applications/neo4j/neo4j/community/ssl/target/neo4j-ssl-5.15.0-SNAPSHOT.jar:/archive/users/kolokasis/tera_applications/neo4j/neo4j/community/fulltext-index/target/neo4j-fulltext-index-5.15.0-SNAPSHOT.jar:/archive/users/kolokasis/tera_applications/neo4j/neo4j/packaging/standalone/target/neo4j-community-5.15.0-SNAPSHOT/lib/log4j-core-2.20.0.jar:/archive/users/kolokasis/tera_applications/neo4j/neo4j/packaging/standalone/target/neo4j-community-5.15.0-SNAPSHOT/lib/log4j-api-2.20.0.jar:/archive/users/kolokasis/tera_applications/neo4j/neo4j/packaging/standalone/target/neo4j-community-5.15.0-SNAPSHOT/lib/log4j-layout-template-json-2.20.0.jar \
+#com.algolib.PageRankBenchmark
 
 JAVA_HOME="/home1/public/kolokasis/github/latest_version/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk"
 ${JAVA_HOME}/bin/java \
   -cp ${CLASSPATH} \
-  com.algolib.PageRankBenchmark
+  com.algolib.BenchmarkRunner \
+  --algo sssp \
+  --database_path "/mnt/spark/intermediate/cit-Patents"
 
 #JAVA_HOME="/home1/public/kolokasis/github/latest_version/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk"
 #JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"

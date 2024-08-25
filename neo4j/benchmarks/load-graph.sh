@@ -85,6 +85,6 @@ esac
 
 ${NEO4J_HOME}/bin/neo4j-admin database import full \
   --id-type=INTEGER \
-  --nodes=Vertex="$OUTPUT_PATH/vertex.csv" \
+  --nodes=VID:ID="$OUTPUT_PATH/vertex.csv" \
   --relationships=EDGE="$OUTPUT_PATH/edge.csv" \
   --delimiter=' '
