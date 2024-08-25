@@ -30,18 +30,12 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.gds.pagerank.PageRankWriteProc;
-import org.neo4j.common.DependencyResolver;                                                                          
-import org.neo4j.gds.procedures.*;
-import org.neo4j.graphdb.config.Setting;
-import org.neo4j.gds.procedures.GraphDataScience;
 import org.neo4j.gds.catalog.GraphProjectProc;
 
 
-import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.List;  // <-- Import this to resolve the List symbol
 
 
@@ -53,11 +47,6 @@ public class PageRankBenchmark {
 
   // Set the path to your embedded Neo4j database directory
   private static final Path DATABASE_DIRECTORY = Paths.get("/mnt/spark/intermediate/cit-Patents/database");
-
-  // Define the writeProperty, maxIterations, and dampingFactor for PageRank algorithm
-  private static final String PAGERANK = "pagerankScore"; // Property to store PageRank scores
-  private static final int MAX_ITERATIONS = 20; // Maximum iterations for PageRank
-  private static final float DAMPING_FACTOR = 0.85f; // Damping factor for PageRank
 
   static {
     configureLogging();
