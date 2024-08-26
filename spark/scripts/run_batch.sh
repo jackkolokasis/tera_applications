@@ -127,10 +127,10 @@ function usage() {
   echo "./run_batch.sh -i 3                                       "
   echo "./run_batch.sh -r /spare2/perpap/spark_results              "
   echo "./run_batch.sh -r /spare2/perpap/spark_results -i 3              "
-  echo "./run_batch.sh -f /spare2/perpap/fmap -d /spare2/perpap/datasets -r /spare2/perpap/spark_results -i 3"
-  echo "./run_batch.sh -m ampere -s ampere -b r -f /spare2/perpap/fmap -d /spare2/perpap/datasets -r /spare2/perpap/spark_results -c"
-  echo "./run_batch.sh -m ampere -s ampere -b r -f /spare2/perpap/fmap -d /spare2/perpap/datasets -r /spare2/perpap/spark_results -l asplos_config.sh -c"
-  echo "./run_batch.sh -m ampere -s ampere -b r -f /spare2/perpap/fmap -d /spare2/perpap/datasets -r /spare2/perpap/spark_results -l asplos_config.sh -n -c"
+  echo "./run_batch.sh -f /spare2/perpap/fmap -p /spare2/perpap/spark -d /spare2/perpap/datasets -r /spare2/perpap/spark_results -i 3"
+  echo "./run_batch.sh -m ampere -s ampere -b r -f /spare2/perpap/fmap -p /spare2/perpap/spark -d /spare2/perpap/datasets -r /spare2/perpap/spark_results -c"
+  echo "./run_batch.sh -m ampere -s ampere -b r -f /spare2/perpap/fmap -p /spare2/perpap/spark -d /spare2/perpap/datasets -r /spare2/perpap/spark_results -l asplos_config.sh -c"
+  echo "./run_batch.sh -m ampere -s ampere -b r -f /spare2/perpap/fmap -p /spare2/perpap/spark -d /spare2/perpap/datasets -r /spare2/perpap/spark_results -l asplos_config.sh -n -c"
 }
 
 function run_benchmarks() {

@@ -66,7 +66,7 @@ REGION_SIZE=$((256 * 1024 * 1024))
 # Stripe size for H2
 STRIPE_SIZE=$((REGION_SIZE / CARD_SIZE))
 # TeraCache file size in GB e.g 700 -> 700GB
-H2_FILE_SZ=1200
+H2_FILE_SZ=700
 # Executor cores
 EXEC_CORES=( 16 )
 # SparkBench directory
@@ -84,7 +84,7 @@ S_LEVEL=( "MEMORY_ONLY" )
 # TeraCache configuration size in Spark: 'spark.teracache.heap.size'
 H1_H2_SIZE=(1200)
 # Running benchmarks
-BENCHMARKS=( "PageRank" )
+BENCHMARKS=("LinearRegression")
 # Number of executors
 NUM_EXECUTORS=(1)
 # Total Configurations
