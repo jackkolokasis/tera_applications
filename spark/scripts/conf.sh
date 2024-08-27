@@ -11,25 +11,21 @@
 # Experiments configurations. Setup these
 # configurations before run
 #
-###################################################TERAHEAP_REPO=$HOME/teraheap
-export TERAHEAP_REPO=$HOME/teraheap
-export LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib:${TERAHEAP_REPO}/tera_malloc/lib:$LIBRARY_PATH
-export LD_LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib:${TERAHEAP_REPO}/tera_malloc/lib:$LD_LIBRARY_PATH
-export PATH=${TERAHEAP_REPO}/allocator/include:${TERAHEAP_REPO}/tera_malloc/include:$PATH
-export C_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include:${TERAHEAP_REPO}/tera_malloc/include:$C_INCLUDE_PATH
-export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include:${TERAHEAP_REPO}/tera_malloc/include:$CPLUS_INCLUDE_PATH
-
+###################################################TERAHEAP_HOME=$HOME/teraheap
+#export TERAHEAP_HOME=$HOME/teraheap
+export LIBRARY_PATH=${TERAHEAP_HOME}/allocator/lib:${TERAHEAP_HOME}/tera_malloc/lib:$LIBRARY_PATH
+export LD_LIBRARY_PATH=${TERAHEAP_HOME}/allocator/lib:${TERAHEAP_HOME}/tera_malloc/lib:$LD_LIBRARY_PATH
 USER=$(whoami)
-TERA_APPLICATIONS_REPO=$HOME/tera_applications
+#TERA_APPS_HOME=$TERA_APPS_HOME
 
 # Dataset size "small" and "large"
 DATA_SIZE=large
 # JAVA Home
-MY_JAVA_HOME=/home1/private/perpap/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk
+MY_JAVA_HOME=/spare/s1/perpap/teraheap/jdk17u067/build/linux-aarch64-server-release/jdk
 # Device for datasets directory : /dev/nvme3n1
-DEV_BENCHMARK_DATASETS=nvme0n1
+DEV_BENCHMARK_DATASETS=md1
 # Mount point for datasets directory : /mnt/datasets
-MNT_BENCHMARK_DATASETS=/mnt/datasets
+MNT_BENCHMARK_DATASETS=/spare/s1/perpap/datasets
 # Directory that contains datasets
 DATA_HDFS="file://$MNT_BENCHMARK_DATASETS/SparkBench"
 # Spark Version
@@ -38,27 +34,27 @@ SPARK_VERSION=3.3.0
 NUM_OF_PARTITIONS=256
 # Benchmark repo
 #BENCH_DIR=/opt/carvguest/asplos23_ae/tera_applications
-#BENCH_DIR=$TERA_APPLICATIONS_REPO
+#BENCH_DIR=$TERA_APPS_HOME
 # Spark directory
-SPARK_DIR=$TERA_APPLICATIONS_REPO/spark/spark-${SPARK_VERSION}
+SPARK_DIR=$TERA_APPS_HOME/spark/spark-${SPARK_VERSION}
 # Spark master log dir
 MASTER_LOG_DIR=${SPARK_DIR}/logs
 # Spark master log dir
 MASTER_METRIC_FILE="${SPARK_DIR}/conf/metrics.properties"
 # Spark master node
-SPARK_MASTER=sith7
+SPARK_MASTER=ampere
 # Spark slave host name
-SPARK_SLAVE=sith7
+SPARK_SLAVE=ampere
 # Number of garbage collection threads
-GC_THREADS=10
+GC_THREADS=50
 # Device for shuffle : nvme3n1
-DEV_SHFL=sdb1
+DEV_SHFL=md1
 # Mount point for shuffle directory : /mnt/spark
-MNT_SHFL=/mnt/spark
+MNT_SHFL=/spare/s1/perpap/spark
 #Device for H2: nvme3n1
-DEV_H2=nvme0n1
+DEV_H2=md0
 # Mount point for H2 TeraHeap directory : /mnt/fmap
-MNT_H2=/mnt/h2
+MNT_H2=/spare/s0/perpap/fmap
 # Card segment size for H2
 CARD_SIZE=$((8 * 1024))
 # Region size for H2
@@ -68,19 +64,19 @@ STRIPE_SIZE=$((REGION_SIZE / CARD_SIZE))
 # TeraCache file size in GB e.g 700 -> 700GB
 H2_FILE_SZ=700
 # Executor cores
-EXEC_CORES=( 16 )
+EXEC_CORES=(80)
 # SparkBench directory
-SPARK_BENCH_DIR=$TERA_APPLICATIONS_REPO/spark/spark-bench
+SPARK_BENCH_DIR=$TERA_APPS_HOME/spark/spark-bench
 #Benchmark log
-BENCH_LOG=$TERA_APPLICATIONS_REPO/spark/scripts/log.out
+BENCH_LOG=$TERA_APPS_HOME/spark/scripts/log.out
 # Heap size for executors '-Xms' is in GB e.g., 54 -> 54GB
-H1_SIZE=( 200 )
+H1_SIZE=( 160 )
 # cgset accepts K,M,G and eiB, MiB, GiB units for memory limit
-MEM_BUDGET=254G
+MEM_BUDGET=200G
 # Spark memory fraction: 'spark.memory.storagefraction'
 MEM_FRACTION=(0.9)
 # Storage Level
-S_LEVEL=( "MEMORY_ONLY" )
+S_LEVEL=("MEMORY_ONLY")
 # TeraCache configuration size in Spark: 'spark.teracache.heap.size'
 H1_H2_SIZE=(1200)
 # Running benchmarks
@@ -98,6 +94,7 @@ TERAHEAP_POLICY="SparkPrimitivePolicy"
 ENABLE_FLEXHEAP=true
 USE_CGROUPS=true
 USE_NUMA=false
+SUDOGROUP="amperesudo"
 # Choose a flexheap policy
 # 0: SimpleStateMachine
 # 1: SimpleWaitVersion

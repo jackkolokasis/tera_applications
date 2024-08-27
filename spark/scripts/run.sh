@@ -88,7 +88,7 @@ build_async_profiler() {
 #   Create a cgroup
 setup_cgroup() {
   # Change user/group IDs to your own
-  sudo cgcreate -a $USER:carvsudo -t $USER:carvsudo -g memory:memlim
+  sudo cgcreate -a $USER:$SUDOGROUP -t $USER:$SUDOGROUP -g memory:memlim
   cgset -r memory.limit_in_bytes="$MEM_BUDGET" memlim
   #sudo cgset -r memory.numa_stat=0 memlim
 }

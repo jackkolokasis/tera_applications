@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 BENCHMARKS=("ConnectedComponent" "PageRank" "LinearRegression" "LogisticRegression")
-BENCHMARKS=("LinearRegression" "LogisticRegression")
-
 # Define EXECUTOR_CORES to override the default value in run_batch_v2.sh
 EXECUTOR_CORES=(16 8 4)
 function load_config() {

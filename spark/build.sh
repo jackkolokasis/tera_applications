@@ -14,7 +14,7 @@
 
 . ./config.sh
 echo "JAVA_HOME=$JAVA_HOME"
-echo "TERAHEAP_REPO=$TERAHEAP_REPO"
+echo "TERAHEAP_HOME=$TERAHEAP_HOME"
 # Check if the last command executed succesfully
 #
 # if executed succesfully, print SUCCEED
@@ -31,47 +31,47 @@ check() {
 #touch cg_exec scripts that create global variables
 create_cgexec() {
 
-  if [ -e "${TERA_APPS_REPO}/spark/scripts/run_cgexec.sh" ]; then
-    rm "${TERA_APPS_REPO}/spark/scripts/run_cgexec.sh"
+  if [ -e "${TERA_APPS_HOME}/spark/scripts/run_cgexec.sh" ]; then
+    rm "${TERA_APPS_HOME}/spark/scripts/run_cgexec.sh"
   fi
 
-  if [ -e "${TERA_APPS_REPO}/spark/spark-3.3.0/bin/run_cgexec.sh" ]; then
-    rm "${TERA_APPS_REPO}/spark/spark-3.3.0/bin/run_cgexec.sh"
+  if [ -e "${TERA_APPS_HOME}/spark/spark-3.3.0/bin/run_cgexec.sh" ]; then
+    rm "${TERA_APPS_HOME}/spark/spark-3.3.0/bin/run_cgexec.sh"
   fi
 
-  touch "${TERA_APPS_REPO}/spark/scripts/run_cgexec.sh"
-  touch "${TERA_APPS_REPO}/spark/spark-3.3.0/bin/run_cgexec.sh"
+  touch "${TERA_APPS_HOME}/spark/scripts/run_cgexec.sh"
+  touch "${TERA_APPS_HOME}/spark/spark-3.3.0/bin/run_cgexec.sh"
 
   echo -n "#!/usr/bin/env bash
-    export LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib:\$LIBRARY_PATH
-    export LD_LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib/:\$LD_LIBRARY_PATH
-    export PATH=${TERAHEAP_REPO}/allocator/include/:\$PATH
-    export C_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:\$C_INCLUDE_PATH
-    export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:\$CPLUS_INCLUDE_PATH
+    export LIBRARY_PATH=${TERAHEAP_HOME}/allocator/lib:\$LIBRARY_PATH
+    export LD_LIBRARY_PATH=${TERAHEAP_HOME}/allocator/lib/:\$LD_LIBRARY_PATH
+    export PATH=${TERAHEAP_HOME}/allocator/include/:\$PATH
+    export C_INCLUDE_PATH=${TERAHEAP_HOME}/allocator/include/:\$C_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=${TERAHEAP_HOME}/allocator/include/:\$CPLUS_INCLUDE_PATH
 
-    export LIBRARY_PATH=${TERAHEAP_REPO}/tera_malloc/lib:\$LIBRARY_PATH
-    export LD_LIBRARY_PATH=${TERAHEAP_REPO}/tera_malloc/lib/:\$LD_LIBRARY_PATH
-    export PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$PATH
-    export C_INCLUDE_PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$C_INCLUDE_PATH
-    export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$CPLUS_INCLUDE_PATH
-    \"\$@\"" >>"${TERA_APPS_REPO}/spark/scripts/run_cgexec.sh"
+    export LIBRARY_PATH=${TERAHEAP_HOME}/tera_malloc/lib:\$LIBRARY_PATH
+    export LD_LIBRARY_PATH=${TERAHEAP_HOME}/tera_malloc/lib/:\$LD_LIBRARY_PATH
+    export PATH=${TERAHEAP_HOME}/tera_malloc/include/:\$PATH
+    export C_INCLUDE_PATH=${TERAHEAP_HOME}/tera_malloc/include/:\$C_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=${TERAHEAP_HOME}/tera_malloc/include/:\$CPLUS_INCLUDE_PATH
+    \"\$@\"" >>"${TERA_APPS_HOME}/spark/scripts/run_cgexec.sh"
 
   echo -n "#!/usr/bin/env bash
-    export LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib:\$LIBRARY_PATH
-    export LD_LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib/:\$LD_LIBRARY_PATH
-    export PATH=${TERAHEAP_REPO}/allocator/include/:\$PATH
-    export C_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:\$C_INCLUDE_PATH
-    export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:\$CPLUS_INCLUDE_PATH
+    export LIBRARY_PATH=${TERAHEAP_HOME}/allocator/lib:\$LIBRARY_PATH
+    export LD_LIBRARY_PATH=${TERAHEAP_HOME}/allocator/lib/:\$LD_LIBRARY_PATH
+    export PATH=${TERAHEAP_HOME}/allocator/include/:\$PATH
+    export C_INCLUDE_PATH=${TERAHEAP_HOME}/allocator/include/:\$C_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=${TERAHEAP_HOME}/allocator/include/:\$CPLUS_INCLUDE_PATH
 
-    export LIBRARY_PATH=${TERAHEAP_REPO}/tera_malloc/lib:\$LIBRARY_PATH
-    export LD_LIBRARY_PATH=${TERAHEAP_REPO}/tera_malloc/lib/:\$LD_LIBRARY_PATH
-    export PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$PATH
-    export C_INCLUDE_PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$C_INCLUDE_PATH
-    export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$CPLUS_INCLUDE_PATH
-    \"\$@\"" >>"${TERA_APPS_REPO}/spark/${SPARK_VERSION}/bin/run_cgexec.sh"
+    export LIBRARY_PATH=${TERAHEAP_HOME}/tera_malloc/lib:\$LIBRARY_PATH
+    export LD_LIBRARY_PATH=${TERAHEAP_HOME}/tera_malloc/lib/:\$LD_LIBRARY_PATH
+    export PATH=${TERAHEAP_HOME}/tera_malloc/include/:\$PATH
+    export C_INCLUDE_PATH=${TERAHEAP_HOME}/tera_malloc/include/:\$C_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=${TERAHEAP_HOME}/tera_malloc/include/:\$CPLUS_INCLUDE_PATH
+    \"\$@\"" >>"${TERA_APPS_HOME}/spark/${SPARK_VERSION}/bin/run_cgexec.sh"
 
-  chmod u+x "${TERA_APPS_REPO}/spark/scripts/run_cgexec.sh"
-  chmod u+x "${TERA_APPS_REPO}/spark/${SPARK_VERSION}/bin/run_cgexec.sh"
+  chmod u+x "${TERA_APPS_HOME}/spark/scripts/run_cgexec.sh"
+  chmod u+x "${TERA_APPS_HOME}/spark/${SPARK_VERSION}/bin/run_cgexec.sh"
 }
 
 # Print error/usage script message
