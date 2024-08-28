@@ -32,7 +32,7 @@ public class SingleSourceShortestPath extends GraphAlgorithm {
     // Start the benchmark timer
     long startTime = System.currentTimeMillis();
 
-    final String query = "MATCH (source:VID {VID: 6009541})" +
+    final String query = "MATCH (source:VID {VID: 6})" +
     "CALL gds.allShortestPaths.dijkstra.write('myGraph', {\n" +
     "   sourceNode: id(source),\n" +
     "   writeRelationshipType: 'PATH',\n" +

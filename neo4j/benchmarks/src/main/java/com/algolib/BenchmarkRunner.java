@@ -114,6 +114,7 @@ public class BenchmarkRunner {
     // Initialize the embedded database management service
     System.out.println(databasePath);
     DatabaseManagementService managementService = new DatabaseManagementServiceBuilder(Paths.get(databasePath))
+    .setConfig(GraphDatabaseSettings.pagecache_memory, 1073741824L)
     .setConfig(GraphDatabaseSettings.procedure_allowlist, List.of("apoc.coll.*,apoc.load.*,gds.*"))
     .setConfig(GraphDatabaseSettings.procedure_unrestricted, List.of("apoc.coll.*,apoc.load.*,gds.*"))
     .build();
