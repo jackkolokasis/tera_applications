@@ -2,3 +2,8 @@ neo4j
 compile.out
 ./scripts/system_util
 graph-data-science/
+./benchmarks/.project
+./benchmarks/.classpath
+./benchmarks/.factorypath
+./benchmarks/.settings
+./benchmarks/target

@@ -38,8 +38,6 @@ clean_all() {
   check ${retValue} "${message}"
 
   cd - >> "${COMPILE_OUT}" 2>&1 || exit
-
-  # TODO clean benchmarks
 }
 
 build_neo4j() {
@@ -67,78 +65,24 @@ build_neo4j() {
 build_graph_data_science() {
   if [ ! -d "graph-data-science" ]
   then
-    git clone -b teraheap_2.7 git@github.com:jackkolokasis/graph-data-science.git >> "${COMPILE_OUT}" 2>&1
+    git clone -b teraheap_2.6 git@github.com:jackkolokasis/graph-data-science.git >> "${COMPILE_OUT}" 2>&1
   fi
 
   cd ./graph-data-science || exit
 
-  ./compileAndPublishToMaven.sh >> "${COMPILE_OUT}" 2>&1
+  ./gradlew :open-packaging:shadowCopy -Pneo4jVersion=5.15.0 >> "${COMPILE_OUT}" 2>&1
+
   retValue=$?
-  message="Build and Import GDS to .m2" 
-  check ${retValue} "${message}"
-
-  cd - > /dev/null || exit
-}
-
-build_ldbc_graphalytics() {
-  if [ ! -d "ldbc_graphalytics" ]
-  then
-    git clone git@github.com:jackkolokasis/ldbc_graphalytics.git >> "${COMPILE_OUT}" 2>&1
-    retValue=$?
-    message="Download LDBC Graphalytics Benchmark" 
-    check ${retValue} "${message}"
-  fi
-
-  cd ldbc_graphalytics || exit
-  git checkout huge_heap >> "${COMPILE_OUT}" 2>&1
-
-  mvn clean install -Dmaven.buildNumber.skip >> "${COMPILE_OUT}" 2>&1
-  
-  retValue=$?
-  message="Build LDBC Graphalytics Benchmark" 
-  check ${retValue} "${message}"
-  
-  cd - > /dev/null || exit
-
-  rm -rf ldbc_graphalytics
-}
-
-build_ldbc_neo4j_bench() {
-  cd ./ldbc_graphalytics_platforms_neo4j-master || exit
-  ./init.sh "${DATASET_DIR}" "${NEO4J_EXEC_DIR}" algolib >> "${COMPILE_OUT}" 2>&1
-  
-  retValue=$?
-  message="Build Neo4j Benchmark" 
+  message="Build GDS" 
   check ${retValue} "${message}"
 
   cd - > /dev/null || exit
 }
 
 build_benchmark() {
-  local is_gds_exist
-  is_gds_exist="false"
-
-  if [ -d "${HOME}/.m2/repository/org/neo4j/gds/" ]
-  then
-    build_graph_data_science
-    is_gds_exist="true"
-  fi
-
-  if [ $is_gds_exist == "false" ]
-  then
-    build_ldbc_graphalytics
-    build_ldbc_neo4j_bench
-
-    build_graph_data_science
-    build_ldbc_graphalytics
-    build_ldbc_neo4j_bench
-  else
-    build_graph_data_science
-    build_ldbc_graphalytics
-    build_ldbc_neo4j_bench
-  fi
-  build_ldbc_graphalytics
-  build_ldbc_neo4j_bench
+  cd ./benchmarks || exit
+  mvn clean package >> "${COMPILE_OUT}" 2>&1
+  cd - > /dev/null || exit
 }
 
 # Check for the input arguments
@@ -149,6 +93,7 @@ do
       export JAVA_HOME="${COMMERCIAL_JAVA}"
       build_neo4j
       export JAVA_HOME=${TERAHEAP_JAVA}
+      build_graph_data_science
       build_benchmark
       ;;
     b)
