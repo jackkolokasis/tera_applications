@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 
-. conf.sh
+. ../scripts/conf.sh
 
 RUN_DIR=$1
 WORKLOAD=$2
 
 CLASSPATH="$(find ../neo4j -name "*.jar" | xargs readlink -f | paste -sd ':')"
-#CLASSPATH+=":/archive/users/kolokasis/tera_applications/neo4j/neo4j-graph-data-science-2.6.0.jar"
 CLASSPATH+=":${BENCH_DIR}/neo4j/graph-data-science/build/distributions/open-gds-2.6.0.jar"
 CLASSPATH+=":./target/gds-benchmarks-1.0-SNAPSHOT.jar"
 

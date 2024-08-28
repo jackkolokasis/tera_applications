@@ -5,7 +5,7 @@
 # file: myjstat.sh
 #
 # @Author:  Iacovos G. Kolokasis
-# @Version: 27-02-2022
+# @Version: 04-05-2018
 # @email:   kolokasis@ics.forth.gr
 #
 # @brief    This script use jstat to monitor the
@@ -19,35 +19,17 @@
 
 # Output file name
 OUTPUT=$1        
-NUM_OF_EXECUTORS=$2
-JIT=$3
 
 # Get the proccess id from the running
 processId=""
 numOfExecutors=0
 
-while [ ${numOfExecutors} -lt "${NUM_OF_EXECUTORS}" ] 
-do
-    # Calculate number of executors running
-    numOfExecutors=$(jps | grep -c "BenchmarkRunner")
+# Loop until the workload starts
+while [ $(jps | grep -c -E "BenchmarkRunner") -ne 1 ]; do
+  # No op
+  :
 done
 
-# Executors
-processId=$(jps |\
-    grep "BenchmarkRunner" |\
-    awk '{split($0,array," "); print array[1]}')
+processId=$(jps | grep -E "BenchmarkRunner" | awk '{print $1}')
 
-# Counter
-i=0
-
-for execId in ${processId}
-do
-    jstat -gcutil "${execId}" 1000 > "${OUTPUT}"/jstat.txt &
-
-	if [ "$JIT" -eq 1 ]
-	then
-		jstat -printcompilation "${execId}" 1000 > "${OUTPUT}"/jit_method.txt &
-		jstat -compiler "${execId}" 1000 > "${OUTPUT}"/jit.txt &
-	fi
-    i=$((i + 1))
-done
+jstat -gcutil "${processId}" 1000 > "${OUTPUT}.txt" &
