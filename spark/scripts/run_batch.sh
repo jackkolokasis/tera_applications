@@ -106,6 +106,7 @@ function usage() {
   echo "Usage: $0 [options]"
   echo "Options:"
   echo
+  echo "  -g, --sudo-group                    Specify the sudo group; eg. amperesudo, carvsudo"
   echo "  -m, --master                        Specify the Spark master; eg. ampere."
   echo "  -s, --slave                         Specify the Spark slave; eg. ampere."
   echo "  -e, --execution <execution>         Specify the execution mode; eg. n|native or f|flexheap"
@@ -125,12 +126,12 @@ function usage() {
   echo
   echo "./run_batch.sh                                            "
   echo "./run_batch.sh -i 3                                       "
-  echo "./run_batch.sh -r /spare2/perpap/spark_results              "
-  echo "./run_batch.sh -r /spare2/perpap/spark_results -i 3              "
-  echo "./run_batch.sh -f /spare2/perpap/fmap -d /spare2/perpap/datasets -r /spare2/perpap/spark_results -i 3"
-  echo "./run_batch.sh -m ampere -s ampere -b r -f /spare2/perpap/fmap -d /spare2/perpap/datasets -r /spare2/perpap/spark_results -c"
-  echo "./run_batch.sh -m ampere -s ampere -b r -f /spare2/perpap/fmap -d /spare2/perpap/datasets -r /spare2/perpap/spark_results -l asplos_config.sh -c"
-  echo "./run_batch.sh -m ampere -s ampere -b r -f /spare2/perpap/fmap -d /spare2/perpap/datasets -r /spare2/perpap/spark_results -l asplos_config.sh -n -c"
+  echo "./run_batch.sh -r /spare/s1/perpap/spark_results              "
+  echo "./run_batch.sh -r /spare/s1/perpap/spark_results -i 3              "
+  echo "./run_batch.sh -f /spare/s0/perpap/fmap -p /spare/s1/perpap/spark -d /spare/s1/perpap/datasets -r /spare/s1/perpap/spark_results -i 3"
+  echo "./run_batch.sh -m ampere -s ampere -b r -f /spare/s0/perpap/fmap -p /spare/s1/perpap/spark -d /spare/s1/perpap/datasets -r /spare/s1/perpap/spark_results -c"
+  echo "./run_batch.sh -g amperesudo -m ampere -s ampere -b r -f /spare/s0/perpap/fmap -p /spare/s1/perpap/spark -d /spare/s1/perpap/datasets -r /spare/s1/perpap/spark_results -l asplos_config.sh -c"
+  echo "./run_batch.sh -g amperesudo -m ampere -s ampere -b r -f /spare/s0/perpap/fmap -p /spare/s1/perpap/spark -d /spare/s1/perpap/datasets -r /spare/s1/perpap/spark_results -l asplos_config.sh -n -c"
 }
 
 function run_benchmarks() {
@@ -190,8 +191,8 @@ function run_benchmarks() {
 }
 
 function parse_script_arguments() {
-  local OPTIONS=m:s:e:b:j:f:p:d:r:l:i:nch
-  local LONGOPTIONS=master:,slave:,execution:,build:,jdk:,h2-dir:,shuffle-dir:,datasets:,results:,load-config:,iterations:,numa,cgroups,help
+  local OPTIONS=g:m:s:e:b:j:f:p:d:r:l:i:nch
+  local LONGOPTIONS=sudo-group:,master:,slave:,execution:,build:,jdk:,h2-dir:,shuffle-dir:,datasets:,results:,load-config:,iterations:,numa,cgroups,help
 
   # Use getopt to parse the options
   local PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS --name "$0" -- "$@")
@@ -206,6 +207,11 @@ function parse_script_arguments() {
 
   while true; do
     case "$1" in
+    -g | --sudo-group)
+      SUDOGROUP="$2"
+      sed -i "s|^SUDOGROUP=.*|SUDOGROUP=${SUDOGROUP}|" conf.sh
+      shift 2
+      ;;
     -m | --master)
       MASTER="$2"
       sed -i "s|^SPARK_MASTER=.*|SPARK_MASTER=${MASTER}|" conf.sh

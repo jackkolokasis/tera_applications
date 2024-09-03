@@ -7,8 +7,6 @@ function load_config() {
   # Define mappings for H1_SIZE and MEM_BUDGET for each benchmark and EXEC_CORES
   declare -A CONFIG_MAP=(
     ["LinearRegression${delimiter}4"]="54:70"
-    ["LinearRegression${delimiter}8"]="54:70"
-    ["LinearRegression${delimiter}16"]="54:70"
     ["LogisticRegression${delimiter}4"]="54:70"
     ["LogisticRegression${delimiter}8"]="54:70"
     ["LogisticRegression${delimiter}16"]="54:70"

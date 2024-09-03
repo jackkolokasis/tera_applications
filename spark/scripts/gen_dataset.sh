@@ -18,7 +18,7 @@
 #   Create a cgroup
 setup_cgroup() {
   # Change user/group IDs to your own
-  sudo cgcreate -a $USER:carvsudo -t $USER:carvsudo -g memory:memlim
+  sudo cgcreate -a $USER:$SUDOGROUP -t $USER:$SUDOGROUP -g memory:memlim
   cgset -r memory.limit_in_bytes="$MEM_BUDGET" memlim
 }
 
@@ -38,6 +38,9 @@ run_cgexec() {
 #   Start Spark
 ##
 start_spark() {
+  #echo "Starting SPARK..."
+  #echo "SPARK_DIR=$SPARK_DIR"
+  #echo "BENCH_LOG=$BENCH_LOG"
   run_cgexec "${SPARK_DIR}"/sbin/start-all.sh >>"${BENCH_LOG}" 2>&1
   #"${SPARK_DIR}"/sbin/start-all.sh >>"${BENCH_LOG}" 2>&1
 }

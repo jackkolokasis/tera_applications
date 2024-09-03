@@ -12,9 +12,20 @@
 #
 ###################################################
 
-. ./config.sh
+#. ./config.sh
+
+# Declare an associative array used for error handling
+declare -A ERRORS
+
+# Define the "error" values
+ERRORS[INVALID_OPTION]=1
+ERRORS[INVALID_ARG]=2
+ERRORS[OUT_OF_RANGE]=3
+ERRORS[NOT_AN_INTEGER]=4
+ERRORS[PROGRAMMING_ERROR]=5
+
 echo "JAVA_HOME=$JAVA_HOME"
-echo "TERAHEAP_REPO=$TERAHEAP_REPO"
+echo "TERAHEAP_HOME=$TERAHEAP_HOME"
 # Check if the last command executed succesfully
 #
 # if executed succesfully, print SUCCEED
@@ -31,47 +42,47 @@ check() {
 #touch cg_exec scripts that create global variables
 create_cgexec() {
 
-  if [ -e "${TERA_APPS_REPO}/spark/scripts/run_cgexec.sh" ]; then
-    rm "${TERA_APPS_REPO}/spark/scripts/run_cgexec.sh"
+  if [ -e "${TERA_APPS_HOME}/spark/scripts/run_cgexec.sh" ]; then
+    rm "${TERA_APPS_HOME}/spark/scripts/run_cgexec.sh"
   fi
 
-  if [ -e "${TERA_APPS_REPO}/spark/spark-3.3.0/bin/run_cgexec.sh" ]; then
-    rm "${TERA_APPS_REPO}/spark/spark-3.3.0/bin/run_cgexec.sh"
+  if [ -e "${TERA_APPS_HOME}/spark/spark-3.3.0/bin/run_cgexec.sh" ]; then
+    rm "${TERA_APPS_HOME}/spark/spark-3.3.0/bin/run_cgexec.sh"
   fi
 
-  touch "${TERA_APPS_REPO}/spark/scripts/run_cgexec.sh"
-  touch "${TERA_APPS_REPO}/spark/spark-3.3.0/bin/run_cgexec.sh"
+  touch "${TERA_APPS_HOME}/spark/scripts/run_cgexec.sh"
+  touch "${TERA_APPS_HOME}/spark/spark-3.3.0/bin/run_cgexec.sh"
 
   echo -n "#!/usr/bin/env bash
-    export LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib:\$LIBRARY_PATH
-    export LD_LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib/:\$LD_LIBRARY_PATH
-    export PATH=${TERAHEAP_REPO}/allocator/include/:\$PATH
-    export C_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:\$C_INCLUDE_PATH
-    export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:\$CPLUS_INCLUDE_PATH
+    export LIBRARY_PATH=${TERAHEAP_HOME}/allocator/lib:\$LIBRARY_PATH
+    export LD_LIBRARY_PATH=${TERAHEAP_HOME}/allocator/lib/:\$LD_LIBRARY_PATH
+    export PATH=${TERAHEAP_HOME}/allocator/include/:\$PATH
+    export C_INCLUDE_PATH=${TERAHEAP_HOME}/allocator/include/:\$C_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=${TERAHEAP_HOME}/allocator/include/:\$CPLUS_INCLUDE_PATH
 
-    export LIBRARY_PATH=${TERAHEAP_REPO}/tera_malloc/lib:\$LIBRARY_PATH
-    export LD_LIBRARY_PATH=${TERAHEAP_REPO}/tera_malloc/lib/:\$LD_LIBRARY_PATH
-    export PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$PATH
-    export C_INCLUDE_PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$C_INCLUDE_PATH
-    export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$CPLUS_INCLUDE_PATH
-    \"\$@\"" >>"${TERA_APPS_REPO}/spark/scripts/run_cgexec.sh"
+    export LIBRARY_PATH=${TERAHEAP_HOME}/tera_malloc/lib:\$LIBRARY_PATH
+    export LD_LIBRARY_PATH=${TERAHEAP_HOME}/tera_malloc/lib/:\$LD_LIBRARY_PATH
+    export PATH=${TERAHEAP_HOME}/tera_malloc/include/:\$PATH
+    export C_INCLUDE_PATH=${TERAHEAP_HOME}/tera_malloc/include/:\$C_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=${TERAHEAP_HOME}/tera_malloc/include/:\$CPLUS_INCLUDE_PATH
+    \"\$@\"" >>"${TERA_APPS_HOME}/spark/scripts/run_cgexec.sh"
 
   echo -n "#!/usr/bin/env bash
-    export LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib:\$LIBRARY_PATH
-    export LD_LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib/:\$LD_LIBRARY_PATH
-    export PATH=${TERAHEAP_REPO}/allocator/include/:\$PATH
-    export C_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:\$C_INCLUDE_PATH
-    export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/allocator/include/:\$CPLUS_INCLUDE_PATH
+    export LIBRARY_PATH=${TERAHEAP_HOME}/allocator/lib:\$LIBRARY_PATH
+    export LD_LIBRARY_PATH=${TERAHEAP_HOME}/allocator/lib/:\$LD_LIBRARY_PATH
+    export PATH=${TERAHEAP_HOME}/allocator/include/:\$PATH
+    export C_INCLUDE_PATH=${TERAHEAP_HOME}/allocator/include/:\$C_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=${TERAHEAP_HOME}/allocator/include/:\$CPLUS_INCLUDE_PATH
 
-    export LIBRARY_PATH=${TERAHEAP_REPO}/tera_malloc/lib:\$LIBRARY_PATH
-    export LD_LIBRARY_PATH=${TERAHEAP_REPO}/tera_malloc/lib/:\$LD_LIBRARY_PATH
-    export PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$PATH
-    export C_INCLUDE_PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$C_INCLUDE_PATH
-    export CPLUS_INCLUDE_PATH=${TERAHEAP_REPO}/tera_malloc/include/:\$CPLUS_INCLUDE_PATH
-    \"\$@\"" >>"${TERA_APPS_REPO}/spark/${SPARK_VERSION}/bin/run_cgexec.sh"
+    export LIBRARY_PATH=${TERAHEAP_HOME}/tera_malloc/lib:\$LIBRARY_PATH
+    export LD_LIBRARY_PATH=${TERAHEAP_HOME}/tera_malloc/lib/:\$LD_LIBRARY_PATH
+    export PATH=${TERAHEAP_HOME}/tera_malloc/include/:\$PATH
+    export C_INCLUDE_PATH=${TERAHEAP_HOME}/tera_malloc/include/:\$C_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=${TERAHEAP_HOME}/tera_malloc/include/:\$CPLUS_INCLUDE_PATH
+    \"\$@\"" >>"${TERA_APPS_HOME}/spark/${SPARK_VERSION}/bin/run_cgexec.sh"
 
-  chmod u+x "${TERA_APPS_REPO}/spark/scripts/run_cgexec.sh"
-  chmod u+x "${TERA_APPS_REPO}/spark/${SPARK_VERSION}/bin/run_cgexec.sh"
+  chmod u+x "${TERA_APPS_HOME}/spark/scripts/run_cgexec.sh"
+  chmod u+x "${TERA_APPS_HOME}/spark/${SPARK_VERSION}/bin/run_cgexec.sh"
 }
 
 # Print error/usage script message
@@ -81,11 +92,12 @@ usage() {
   echo -n "      $0 [option ...] [-h]"
   echo
   echo "Options:"
-  echo "      -a  Compile and build both Spark and SparkBench Suite"
-  echo "      -s  Compile and build only Spark"
-  echo "      -b  Compile and build only SparkBench suite"
-  echo "      -c  Clean Spark and SparkBench suite"
-  echo "      -h  Show usage"
+  echo "      -t, --teraheap-home <path>    Specify the TeraHeap home directory."
+  echo "      -a, --all                     Compile and build both Spark and SparkBench Suite."
+  echo "      -s, --spark  	            Compile and build only Spark."
+  echo "      -b, --bench                   Compile and build only SparkBench suite."
+  echo "      -c, --clean                   Clean Spark and SparkBench suite."
+  echo "      -h, --help                    Show usage."
   echo
 
   exit 1
@@ -182,7 +194,7 @@ clean_all() {
 
   cd - >>"${COMPILE_OUT}" 2>&1 || exit
 }
-
+: '
 # Check for the input arguments
 while getopts "asbich" opt; do
 
@@ -221,3 +233,69 @@ while getopts "asbich" opt; do
     ;;
   esac
 done
+'
+function parse_script_arguments() {
+  echo "-----------------------------------"
+  echo "Compilation output messages are here: ${COMPILE_OUT}"
+  echo "-----------------------------------"
+  echo
+  local OPTIONS=t:asbch
+  local LONGOPTIONS=teraheap-home:,all,spark,bench,clean,help
+
+  # Use getopt to parse the options
+  local PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS --name "$0" -- "$@")
+
+  # Check for errors in getopt
+  if [[ $? -ne 0 ]]; then
+    exit ${ERRORS[INVALID_OPTION]}
+  fi
+
+  # Evaluate the parsed options
+  eval set -- "$PARSED"
+
+  while true; do
+    case "$1" in
+    -t | --teraheap-home)
+      TERAHEAP_HOME="$2"
+      sed -i "s|^TERAHEAP_HOME=.*|TERAHEAP_HOME=${TERAHEAP_HOME}|" config.sh
+      . ./config.sh
+      shift 2
+      ;;
+    -a | --all)
+      prepare_certificates
+      build_spark
+      benchmark_dependencies
+      build_benchmarks
+      shift
+      ;;
+    -s | --spark)
+      prepare_certificates
+      build_spark
+      shift	    
+      ;; 
+    -b | --bench)
+      benchmark_dependencies
+      build_benchmarks
+      shift	    
+      ;;
+    -c | --clean)
+      clean_all
+      shift	    
+      ;;
+   -h | --help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      echo "Programming error"
+      exit ${ERRORS[PROGRAMMING_ERROR]} 
+      ;;
+    esac
+  done
+}
+
+parse_script_arguments "$@"

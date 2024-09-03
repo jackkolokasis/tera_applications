@@ -22,6 +22,7 @@ H2_MOUNT_POINT=
 SHUFFLE_MOUNT_POINT=
 MASTER=
 SLAVE=
+SUDOGROUP=
 
 sed -i "s/^EXEC_CORES=(.*)/EXEC_CORES=( $EXEC_CORES )/" conf.sh
 sed -i "s/^GC_THREADS=.*/GC_THREADS=$GC_THREADS/" conf.sh
@@ -34,6 +35,7 @@ function usage() {
   echo "Usage: $0 [options]"
   echo "Options:"
   echo
+  echo "  -g, --sudo-group                    Specify the sudo group; eg. amperesudo, carvsudo"
   echo "  -m, --master                        Specify the Spark master; eg. ampere."
   echo "  -s, --slave                         Specify the Spark slave; eg. ampere."
   echo "  -f, --h2-dir <path>                 Specify the path of the directory which contains the h2 backing file, eg. /spare2/perpap/fmap"
@@ -44,13 +46,13 @@ function usage() {
   echo
   echo "Examples:"
   echo
-  echo "./gen_dataset_batch.sh -d /spare2/datasets"
-  echo "./gen_dataset_batch.sh -m sith2 -s sith2 -f /mnt/perpap/fmap -p /mnt/perpap/spark -j $HOME/openjdk/x86_64/jdk8u422-b05 -d /mnt/perpap/datasets"
+  echo "./gen_dataset_batch.sh -d /spare/s1/perpap/datasets"
+  echo "./gen_dataset_batch.sh -g amperesudo -m ampere -s ampere -f /spare/s0/perpap/fmap -p /spare/s1/perpap/spark -j $HOME/openjdk/x86_64/jdk8u422-b05 -d /spare/s1/perpap/datasets"
 }
 
 function parse_script_arguments() {
-  local OPTIONS=m:s:f:p:j:d:h
-  local LONGOPTIONS=master:,slave:,h2-dir:,shuffle-dir:java:,datasets:,help
+  local OPTIONS=g:m:s:f:p:j:d:h
+  local LONGOPTIONS=sudo-group:,master:,slave:,h2-dir:,shuffle-dir:java:,datasets:,help
 
   # Use getopt to parse the options
   local PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS --name "$0" -- "$@")
@@ -65,6 +67,11 @@ function parse_script_arguments() {
 
   while true; do
     case "$1" in
+    -g | --sudo-group)
+      SUDOGROUP="$2"
+      sed -i "s|^SUDOGROUP=.*|SUDOGROUP=${SUDOGROUP}|" conf.sh
+      shift 2
+      ;;
     -m | --master)
       MASTER="$2"
       sed -i "s|^SPARK_MASTER=.*|SPARK_MASTER=${MASTER}|" conf.sh
