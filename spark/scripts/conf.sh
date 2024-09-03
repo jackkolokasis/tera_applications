@@ -12,16 +12,19 @@
 # configurations before run
 #
 ###################################################TERAHEAP_HOME=$HOME/teraheap
-#export TERAHEAP_HOME=$HOME/teraheap
+USER=$(whoami)
+export TERA_APPS_HOME="$(pwd)/../.."
+export TERAHEAP_HOME=
 export LIBRARY_PATH=${TERAHEAP_HOME}/allocator/lib:${TERAHEAP_HOME}/tera_malloc/lib:$LIBRARY_PATH
 export LD_LIBRARY_PATH=${TERAHEAP_HOME}/allocator/lib:${TERAHEAP_HOME}/tera_malloc/lib:$LD_LIBRARY_PATH
-USER=$(whoami)
-#TERA_APPS_HOME=$TERA_APPS_HOME
+#export PATH=${TERAHEAP_HOME}/allocator/include:${TERAHEAP_HOME}/tera_malloc/include:$PATH
+#export C_INCLUDE_PATH=${TERAHEAP_HOME}/allocator/include:${TERAHEAP_HOME}/tera_malloc/include:$C_INCLUDE_PATH
+#export CPLUS_INCLUDE_PATH=${TERAHEAP_HOME}/allocator/include:${TERAHEAP_HOME}/tera_malloc/include:$CPLUS_INCLUDE_PATH
 
 # Dataset size "small" and "large"
 DATA_SIZE=large
 # JAVA Home
-MY_JAVA_HOME=/spare/s1/perpap/teraheap/jdk17u067/build/linux-aarch64-server-release/jdk
+MY_JAVA_HOME=/home1/private/perpap/openjdk/aarch64/jdk-17.0.10+7
 # Device for datasets directory : /dev/nvme3n1
 DEV_BENCHMARK_DATASETS=md1
 # Mount point for datasets directory : /mnt/datasets
@@ -46,7 +49,7 @@ SPARK_MASTER=ampere
 # Spark slave host name
 SPARK_SLAVE=ampere
 # Number of garbage collection threads
-GC_THREADS=50
+GC_THREADS=10
 # Device for shuffle : nvme3n1
 DEV_SHFL=md1
 # Mount point for shuffle directory : /mnt/spark
@@ -64,19 +67,19 @@ STRIPE_SIZE=$((REGION_SIZE / CARD_SIZE))
 # TeraCache file size in GB e.g 700 -> 700GB
 H2_FILE_SZ=700
 # Executor cores
-EXEC_CORES=(80)
+EXEC_CORES=(16)
 # SparkBench directory
 SPARK_BENCH_DIR=$TERA_APPS_HOME/spark/spark-bench
 #Benchmark log
 BENCH_LOG=$TERA_APPS_HOME/spark/scripts/log.out
 # Heap size for executors '-Xms' is in GB e.g., 54 -> 54GB
-H1_SIZE=( 160 )
+H1_SIZE=( 54 )
 # cgset accepts K,M,G and eiB, MiB, GiB units for memory limit
-MEM_BUDGET=200G
+MEM_BUDGET=70G
 # Spark memory fraction: 'spark.memory.storagefraction'
 MEM_FRACTION=(0.9)
 # Storage Level
-S_LEVEL=("MEMORY_ONLY")
+S_LEVEL=("MEMORY_AND_DISK")
 # TeraCache configuration size in Spark: 'spark.teracache.heap.size'
 H1_H2_SIZE=(1200)
 # Running benchmarks
@@ -91,10 +94,9 @@ ENABLE_STATS=true
 # The available policies are: "DefaultPolicy" and "SparkPrimitivePolicy"
 TERAHEAP_POLICY="SparkPrimitivePolicy"
 # Enable FlexHeap
-ENABLE_FLEXHEAP=true
+ENABLE_FLEXHEAP=false
 USE_CGROUPS=true
-USE_NUMA=false
-SUDOGROUP="amperesudo"
+USE_NUMA=true
 # Choose a flexheap policy
 # 0: SimpleStateMachine
 # 1: SimpleWaitVersion

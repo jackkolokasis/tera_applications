@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -x
+#set -x
 
 # Declare an associative array used for error handling
 declare -A ERRORS
@@ -106,12 +106,13 @@ function usage() {
   echo "Usage: $0 [options]"
   echo "Options:"
   echo
+  echo "  -t, --teraheap-home <path>          Specify the TeraHeap home directory."
   echo "  -g, --sudo-group                    Specify the sudo group; eg. amperesudo, carvsudo"
   echo "  -m, --master                        Specify the Spark master; eg. ampere."
   echo "  -s, --slave                         Specify the Spark slave; eg. ampere."
   echo "  -e, --execution <execution>         Specify the execution mode; eg. n|native or f|flexheap"
   echo "  -b, --build <jvm variant>           Specify the jvm variant for flexheap; r|release, f|fastdebug"
-  echo "  -j, --java <path>                   Specify the java path."
+  echo "  -j, --java <path>                   Specify the java path; eg $TERA_JDK17_AARCH64_RELEASE."
   echo "  -f, --h2-dir <path>                 Specify the path of the directory which contains the h2 backing file, eg. /spare2/perpap/fmap"
   echo "  -p, --shuffle-dir <path>            Specify the path of the directory which contains the spark shuffle directory, eg. /spare2/perpap/spark"
   echo "  -d, --datasets <path>               Specify the path of the directory which contains the spark datasets, eg. /spare2/perpap/datasets"
@@ -132,6 +133,7 @@ function usage() {
   echo "./run_batch.sh -m ampere -s ampere -b r -f /spare/s0/perpap/fmap -p /spare/s1/perpap/spark -d /spare/s1/perpap/datasets -r /spare/s1/perpap/spark_results -c"
   echo "./run_batch.sh -g amperesudo -m ampere -s ampere -b r -f /spare/s0/perpap/fmap -p /spare/s1/perpap/spark -d /spare/s1/perpap/datasets -r /spare/s1/perpap/spark_results -l asplos_config.sh -c"
   echo "./run_batch.sh -g amperesudo -m ampere -s ampere -b r -f /spare/s0/perpap/fmap -p /spare/s1/perpap/spark -d /spare/s1/perpap/datasets -r /spare/s1/perpap/spark_results -l asplos_config.sh -n -c"
+  echo "./run_batch.sh -t /spare/s1/perpap/teraheap -g amperesudo -m ampere -s ampere -b r -f /spare/s0/perpap/fmap -p /spare/s1/perpap/spark -d /spare/s1/perpap/datasets -r /spare/s1/perpap/spark_results -e n -j $TERA_JDK17_AARCH64_RELEASE -l asplos_config.sh -c"
 }
 
 function run_benchmarks() {
@@ -191,8 +193,8 @@ function run_benchmarks() {
 }
 
 function parse_script_arguments() {
-  local OPTIONS=g:m:s:e:b:j:f:p:d:r:l:i:nch
-  local LONGOPTIONS=sudo-group:,master:,slave:,execution:,build:,jdk:,h2-dir:,shuffle-dir:,datasets:,results:,load-config:,iterations:,numa,cgroups,help
+  local OPTIONS=t:g:m:s:e:b:j:f:p:d:r:l:i:nch
+  local LONGOPTIONS=teraheap-home:,sudo-group:,master:,slave:,execution:,build:,jdk:,h2-dir:,shuffle-dir:,datasets:,results:,load-config:,iterations:,numa,cgroups,help
 
   # Use getopt to parse the options
   local PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS --name "$0" -- "$@")
@@ -207,6 +209,11 @@ function parse_script_arguments() {
 
   while true; do
     case "$1" in
+    -t | --teraheap-home)
+      TERAHEAP_HOME="$2"
+      sed -i "s|^TERAHEAP_HOME=.*|TERAHEAP_HOME=${TERAHEAP_HOME}|" conf.sh
+      shift 2
+      ;;
     -g | --sudo-group)
       SUDOGROUP="$2"
       sed -i "s|^SUDOGROUP=.*|SUDOGROUP=${SUDOGROUP}|" conf.sh
