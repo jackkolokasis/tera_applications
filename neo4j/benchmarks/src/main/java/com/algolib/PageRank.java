@@ -13,14 +13,14 @@ import java.util.Map;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
-import org.neo4j.gds.pagerank.PageRankWriteProc;
+import org.neo4j.gds.pagerank.PageRankMutateProc;
 import org.neo4j.gds.catalog.GraphProjectProc;
 
 public class PageRank extends GraphAlgorithm {
 
   // Constructor
   public PageRank(GraphDatabaseService graphDb) {
-    super(graphDb, GraphProjectProc.class, PageRankWriteProc.class);
+    super(graphDb, GraphProjectProc.class, PageRankMutateProc.class);
   }
 
   @Override
@@ -30,10 +30,10 @@ public class PageRank extends GraphAlgorithm {
     // Start the benchmark timer
     long startTime = System.currentTimeMillis();
       
-    final String query = "CALL gds.pageRank.write('myGraph', {\n" +
+    final String query = "CALL gds.pageRank.mutate('myGraph', {\n" +
     "  maxIterations: 10,\n" +
     "  dampingFactor: 0.85,\n" +
-    "  writeProperty: 'pagerank'\n" +
+    "  mutateProperty: 'pagerank'\n" +
     "})\n" +
     "YIELD nodePropertiesWritten AS writtenProperties, ranIterations;";
 

@@ -13,14 +13,14 @@ package com.algolib;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.gds.catalog.GraphProjectProc;
-import org.neo4j.gds.wcc.WccWriteProc;
+import org.neo4j.gds.wcc.WccMutateProc;
 import java.util.Map;
 
 public class WeaklyConnectedComponent extends GraphAlgorithm {
 
   // Constructor
   public WeaklyConnectedComponent(GraphDatabaseService graphDb) {
-    super(graphDb, GraphProjectProc.class, WccWriteProc.class);
+    super(graphDb, GraphProjectProc.class, WccMutateProc.class);
   }
 
   @Override
@@ -30,8 +30,8 @@ public class WeaklyConnectedComponent extends GraphAlgorithm {
     // Start the benchmark timer
     long startTime = System.currentTimeMillis();
       
-    final String query = "CALL gds.wcc.write('myGraph', {\n" +
-    "  writeProperty: 'component'\n" +
+    final String query = "CALL gds.wcc.mutate('myGraph', {\n" +
+    "  mutateProperty: 'componentId'\n" +
     "})\n" +
     "YIELD nodePropertiesWritten AS writtenProperties, componentCount;";
 

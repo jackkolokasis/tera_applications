@@ -15,13 +15,13 @@ package com.algolib;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.gds.catalog.GraphProjectProc;
-import org.neo4j.gds.paths.traverse.BfsStreamProc;
+import org.neo4j.gds.paths.traverse.BfsMutateProc;
 
 public class BreadthFirstSearch extends GraphAlgorithm {
 
   // Constructor
   public BreadthFirstSearch(GraphDatabaseService graphDb) {
-    super(graphDb, GraphProjectProc.class, BfsStreamProc.class);
+    super(graphDb, GraphProjectProc.class, BfsMutateProc.class);
   }
 
   @Override
@@ -32,11 +32,12 @@ public class BreadthFirstSearch extends GraphAlgorithm {
     long startTime = System.currentTimeMillis();
 
     final String query = "MATCH (source:VID {VID: 6009541})" +
-    "CALL gds.bfs.stream('myGraph', {\n" +
-    "   sourceNode: id(source)\n" +
+    "CALL gds.bfs.mutate('myGraph', {\n" +
+    "   sourceNode: id(source),\n" +
+    "   mutateRelationshipType: 'BFS'\n" +
     "})\n" +
-    "YIELD path\n" +
-    "RETURN path";
+    "YIELD relationshipsWritten\n" +
+    "RETURN relationshipsWritten";
 
     Result result = tx.execute(query);
 

@@ -14,7 +14,7 @@ package com.algolib;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.gds.catalog.GraphProjectProc;
-import org.neo4j.gds.paths.singlesource.dijkstra.AllShortestPathsDijkstraWriteProc;
+import org.neo4j.gds.paths.singlesource.dijkstra.AllShortestPathsDijkstraMutateProc;
 
 import java.util.Map;
 
@@ -22,7 +22,7 @@ public class SingleSourceShortestPath extends GraphAlgorithm {
 
   // Constructor
   public SingleSourceShortestPath(GraphDatabaseService graphDb) {
-    super(graphDb, GraphProjectProc.class, AllShortestPathsDijkstraWriteProc.class);
+    super(graphDb, GraphProjectProc.class, AllShortestPathsDijkstraMutateProc.class);
   }
 
   @Override
@@ -33,11 +33,9 @@ public class SingleSourceShortestPath extends GraphAlgorithm {
     long startTime = System.currentTimeMillis();
 
     final String query = "MATCH (source:VID {VID: 6})" +
-    "CALL gds.allShortestPaths.dijkstra.write('myGraph', {\n" +
+    "CALL gds.allShortestPaths.dijkstra.mutate('myGraph', {\n" +
     "   sourceNode: id(source),\n" +
-    "   writeRelationshipType: 'PATH',\n" +
-    "   writeNodeIds: true,\n" +
-    "   writeCosts: true\n" +
+    "   mutateRelationshipType: 'PATH'\n" +
     "})\n" +
     "YIELD relationshipsWritten\n" +
     "RETURN relationshipsWritten";

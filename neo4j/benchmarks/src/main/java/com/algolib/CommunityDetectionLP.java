@@ -14,13 +14,13 @@ import java.util.Map;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.gds.catalog.GraphProjectProc;
-import org.neo4j.gds.labelpropagation.LabelPropagationWriteProc;
+import org.neo4j.gds.labelpropagation.LabelPropagationMutateProc;
 
 public class CommunityDetectionLP extends GraphAlgorithm {
 
   // Constructor
   public CommunityDetectionLP(GraphDatabaseService graphDb) {
-    super(graphDb, GraphProjectProc.class, LabelPropagationWriteProc.class);
+    super(graphDb, GraphProjectProc.class, LabelPropagationMutateProc.class);
   }
 
   @Override
@@ -30,9 +30,9 @@ public class CommunityDetectionLP extends GraphAlgorithm {
     // Start the benchmark timer
     long startTime = System.currentTimeMillis();
       
-    final String query = "CALL gds.labelPropagation.write('myGraph', {\n" +
+    final String query = "CALL gds.labelPropagation.mutate('myGraph', {\n" +
     "  maxIterations: 10,\n" +
-    "  writeProperty: 'community'\n" +
+    "  mutateProperty: 'community'\n" +
     "})\n" +
     "YIELD communityCount, ranIterations;";
 

@@ -251,7 +251,7 @@ do
       # System statistics start
       ./system_util/start_statistics.sh -d "${RUN_DIR}"
 
-      run_cgexec ./run_benchmark.sh "${RUN_DIR}" "${benchmark}"
+      run_cgexec ./run_benchmark.sh "${RUN_DIR}" "${benchmark}" "${H1_SIZE[$j]}"
 
       # Kil watch process
       kill_watch
@@ -261,7 +261,7 @@ do
 
       delete_cgroup
 
-      ./system_util/extract-data.sh -r "${RUN_DIR}" -d "${DEV_DATASET}" >> "${BENCH_LOG}" 2>&1
+      ./system_util/extract-data.sh -r "${RUN_DIR}" -d "${DEV_H2}" -d "${DEV_DATABASE}" >> "${BENCH_LOG}" 2>&1
     done
   done
 
