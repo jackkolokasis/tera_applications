@@ -15,8 +15,8 @@
 # Output file name
 OUTPUT=$1        
 NUM_OF_EXECUTORS=$2
-
-ASYNC_PROF=../../util/async-profiler
+ASYNC_PROF=$3
+#ASYNC_PROF=../../util/async-profiler
 
 # Get the proccess id from the running
 processId=""
@@ -38,7 +38,8 @@ i=0
 
 for execId in ${processId}
 do
-  ${ASYNC_PROF}/profiler.sh -d 40000 -i 10ms -o collapsed "${execId}" > "${OUTPUT}_${i}.txt" 2>/dev/null &
+  #${ASYNC_PROF}/profiler.sh -d 40000 -i 10ms -o collapsed "${execId}" > "${OUTPUT}_${i}.txt" 2>/dev/null &
+  ${ASYNC_PROF} -d 40000 -i 10ms -o collapsed "${execId}" > "${OUTPUT}_${i}.txt" 2>/dev/null &
 
   i=$((i + 1))
 done

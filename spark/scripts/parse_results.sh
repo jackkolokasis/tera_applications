@@ -10,23 +10,87 @@
 #
 ###################################################
 
+# Declare an associative array used for error handling
+declare -A ERRORS
+
+# Define the "error" values
+ERRORS[INVALID_OPTION]=1
+ERRORS[INVALID_ARG]=2
+ERRORS[OUT_OF_RANGE]=3
+ERRORS[NOT_AN_INTEGER]=4
+ERRORS[PROGRAMMING_ERROR]=5
+
+MAJOR_GC_PHASES_PLOT_TITLE=
+
 # Print error/usage script message
 usage() {
-    echo
-    echo "Usage:"
-    echo -n "      $0 [option ...] "
-    echo
+    echo "Usage: $0 [options]"
     echo "Options:"
-    echo "      -d  Directory with results"
-    echo "      -t  Enable TeraHeap"
-    echo "      -s  Enable serialization/deserialization"
-    echo "      -h  Show usage"
     echo
-
+    echo "      -d, --dir <path> 		Specify the directory for storing the results."
+    echo "      -p, --plot <title>           	Specify the plot title for the breakdown of the major gc's phases execution time."
+    echo "      -n, --num-executors <number>    Specify the number of executors."
+    echo "      -t, --teraheap  		Enable TeraHeap."
+    echo "      -s, --serialize  		Enable serialization/deserialization."
+    echo "      -h, --help  			Display this help message and exit."
+    echo
     exit 1
 }
 
+function parse_script_arguments() {
+  local OPTIONS=d:p:n:tsh
+  local LONGOPTIONS=dir:,plot:,num-executors:,teraheap,serialize,help
 
+  # Use getopt to parse the options
+  local PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS --name "$0" -- "$@")
+
+  # Check for errors in getopt
+  if [[ $? -ne 0 ]]; then
+    exit ${ERRORS[INVALID_OPTION]}
+  fi
+
+  # Evaluate the parsed options
+  eval set -- "$PARSED"
+  while true; do
+    case "$1" in
+    -d | --dir)
+      RESULT_DIR="$2"
+      shift 2
+      ;;
+    -p | --plot)
+      MAJOR_GC_PHASES_PLOT_TITLE="$2"
+      shift 2
+      ;;
+    -n | --num-executors)
+      NUM_EXECUTORS="$2"
+      shift 2
+      ;;
+    -t | --teraheap)
+      TH=true
+      shift
+      ;;
+    -s | --serialize)
+      SER=true
+      shift
+      ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      echo "Programming error"
+      exit ${ERRORS[PROGRAMMING_ERROR]} 
+      ;;
+    esac
+  done
+}
+
+parse_script_arguments "$@"
+: '
 # Check for the input arguments
 while getopts "d:n:tsah" opt
 do
@@ -51,27 +115,60 @@ do
             ;;
     esac
 done
-
+'
 TOTAL_TIME=$(tail -n 1 ${RESULT_DIR}/total_time.txt | awk '{split($0,a,","); print a[3]}')
-
+TOTAL_TIME_IN_MILLISECONDS=($(echo "$TOTAL_TIME * 1000" | bc))
 MINOR_GC=()
 MAJOR_GC=()
+#MINOR_GC_IN_MILLISECONDS=()
+#MAJOR_GC_IN_MILLISECONDS=()
 
 for ((i=0; i<NUM_EXECUTORS; i++))
 do
   MINOR_GC+=($(tail -n 1 "${RESULT_DIR}"/jstat_${i}.txt | awk '{print $8}'))
   MAJOR_GC+=($(tail -n 1 "${RESULT_DIR}"/jstat_${i}.txt | awk '{print $10}'))
+  # Convert to milliseconds and append to the arrays
+  #MINOR_GC_IN_MILLISECONDS+=($(echo "$MINOR_GC * 1000" | bc))
+  #MAJOR_GC_IN_MILLISECONDS+=($(echo "$MAJOR_GC * 1000" | bc))
+done
+: '
+# Initialize total execution time variables
+total_minor_gc=0
+total_major_gc=0
+
+# Sum up the execution times in milliseconds for MINOR_GC
+for time in "${MINOR_GC_IN_MILLISECONDS[@]}"
+do
+  total_minor_gc=$(echo "$total_minor_gc + $time" | bc)
 done
 
+# Sum up the execution times in milliseconds for MAJOR_GC
+for time in "${MAJOR_GC_IN_MILLISECONDS[@]}"
+do
+  total_major_gc=$(echo "$total_major_gc + $time" | bc)
+done
+'
 # Caclulate the overheads in TeraHeap card table traversal, marking and adjust phases
 if [ $TH ]
-then
-  TC_CT_TRAVERSAL=$(grep "TC_CT" "${RESULT_DIR}"/teraHeap.txt     | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
-  HEAP_CT_TRAVERSAL=$(grep "HEAP_CT" "${RESULT_DIR}"/teraHeap.txt | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
-  PHASE1=$(grep "PHASE1" "${RESULT_DIR}"/teraHeap.txt             | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
-  PHASE2=$(grep "PHASE2" "${RESULT_DIR}"/teraHeap.txt             | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
-  PHASE3=$(grep "PHASE3" "${RESULT_DIR}"/teraHeap.txt             | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
-  PHASE4=$(grep "PHASE4" "${RESULT_DIR}"/teraHeap.txt             | awk '{print $5}' | awk '{ sum += $1 } END {print sum }')
+then 
+  H1_CT_TRAVERSAL=$(grep "H1_CT_TIME" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $5 } END {print sum }')
+  H2_CT_TRAVERSAL=$(grep "H2_CT_TIME" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $5 } END {print sum }')
+  # Phase 1: H1_MARKING_PHASE
+  PHASE1=$(grep "H1_MARKING_PHASE" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
+  # Phase 2: H1_SUMMARY_PHASE
+  PHASE2_H1_SUMMARY=$(grep "H1_SUMMARY_PHASE" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
+  PHASE2_H2_PRECOMPACT=$(grep "H2_PRECOMPACT" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
+  #PHASE2=$(echo "$PHASE2_H1_SUMMARY + $PHASE2_H2_PRECOMPACT" | bc)
+  # Phase 3: Combined H2_COMPACT_PHASE, H2_ADJUST_BWD_REF_PHASE, H1_ADJUST_ROOTS_PHASE
+  PHASE3_H2_COMPACT=$(grep "H2_COMPACT_PHASE" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
+  PHASE3_H2_ADJUST_BWD_REF=$(grep "H2_ADJUST_BWD_REF" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
+  PHASE3_H1_ADJUST_ROOTS=$(grep "H1_ADJUST_ROOTS" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
+  #PHASE3=$(echo "scale=10; $PHASE3_H2_COMPACT + $PHASE3_H2_ADJUST_BWD_REF + $PHASE3_H1_ADJUST_ROOTS" | bc)
+  PHASE3=$(echo "${PHASE3_H2_COMPACT} + ${PHASE3_H2_ADJUST_BWD_REF} + ${PHASE3_H1_ADJUST_ROOTS}" | bc -l)
+  # Phase 4: H1_COMPACT_PHASE
+  PHASE4=$(grep "H1_COMPACT" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
+  # Phase 5: H2_CLEAR_FWD_TABLE_PHASE
+  PHASE5=$(grep "H2_CLEAR_FWD_TABLE" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
 fi
 
 # Caclulate the serialziation/deserialization overhead
@@ -79,6 +176,8 @@ fi
 for ((i=0; i<NUM_EXECUTORS; i++))
 do
   ../../util/FlameGraph/flamegraph.pl "${RESULT_DIR}"/serdes_"${i}".txt > "${RESULT_DIR}"/profile.svg
+  #../../util/FlameGraph/flamegraph.pl "${RESULT_DIR}"/serdes_"${i}".txt > "${RESULT_DIR}"/profile.html
+
   SER_SAMPLES=$(grep "org/apache/spark/serializer/KryoSerializationStream.writeObject" "${RESULT_DIR}"/profile.svg \
     | awk '{print $2}' \
     | sed 's/,//g' | sed 's/(//g' \
@@ -99,24 +198,34 @@ do
 done
 
 {
-  echo "COMPONENT,TIME(s)"               
-  echo "TOTAL_TIME,${TOTAL_TIME}"
-
+  echo "COMPONENT,TIME(ms)"               
+  #echo "TOTAL_TIME,${TOTAL_TIME}"
+  : '
   for ((i=0; i<NUM_EXECUTORS; i++))
   do
     echo "MINOR_GC,${MINOR_GC[$i]}"
     echo "MAJOR_GC,${MAJOR_GC[$i]}"
   done
+  '
+  printf "TOTAL_TIME : %.3f\n" "${TOTAL_TIME_IN_MILLISECONDS}" 
+  printf "MINOR_GC   : %.3f\n" "$(echo "$MINOR_GC * 1000" | bc)" 
+  printf "MAJOR_GC   : %.3f\n" "$(echo "$MAJOR_GC * 1000" | bc)" 
+  printf "H1_CT_TRAVERSAL_MINOR_GC : %.3f\n" "${H1_CT_TRAVERSAL}"
+  printf "H2_CT_TRAVERSAL_MINOR_GC : %.3f\n" "${H2_CT_TRAVERSAL}" 
+  # Print the total time for each phase 
+  printf "[Phase 1] H1_MARKING_PHASE   : %.3f\n" "$PHASE1"
+  printf "[Phase 2] H1_SUMMARY_PHASE   : %.3f\n" "$PHASE2_H1_SUMMARY"
+  printf "[Phase 2] H2_PRECOMPACT      : %.3f\n" "$PHASE2_H2_PRECOMPACT"
+  printf "[Phase 3] H2_COMPACT + H2_ADJUST_BWD_REF + H1_ADJUST_ROOTS: %.3f\n" "$PHASE3"
+  printf "          H2_COMPACT         : %.3f\n" "${PHASE3_H2_COMPACT}"
+  printf "          H2_ADJUST_BWD_REF  : %.3f\n" "${PHASE3_H2_ADJUST_BWD_REF}"
+  printf "          H1_ADJUST_ROOTS    : %.3f\n" "${PHASE3_H1_ADJUST_ROOTS}"
+  printf "[Phase 4] H1_COMPACT         : %.3f\n" "$PHASE4"
+  printf "[Phase 5] H2_CLEAR_FWD_TABLE : %.3f\n" "$PHASE5"
 
-  echo "TC_MINOR_GC,${TC_CT_TRAVERSAL}"
-  echo "HEAP_MINOR_GC,${HEAP_CT_TRAVERSAL}"
-  echo "PHASE1_FGC,${PHASE1}"
-  echo "PHASE2_FGC,${PHASE2}"
-  echo "PHASE3_FGC,${PHASE3}"
-  echo "PHASE4_FGC,${PHASE4}"
   for ((i=0; i<NUM_EXECUTORS; i++))
   do
-    echo "SERSES,${SERDES[$i]}"
+    echo "SERDES,${SERDES[$i]}"
   done
 } >> "${RESULT_DIR}"/result.csv
 
@@ -128,6 +237,22 @@ done
 
 if [ $TH ]
 then
+  {
+    # Print the total time for each phase into a .csv file
+    printf "TOTAL_MAJOR_GC_TIME,%.3f\n" "$(echo "$MAJOR_GC * 1000" | bc)"
+    printf "H1_MARKING_PHASE,%.3f\n" "$PHASE1"
+    printf "H1_SUMMARY_PHASE,%.3f\n" "$PHASE2_H1_SUMMARY"
+    printf "H2_COMPACT, %.3f\n" "${PHASE3_H2_COMPACT}"
+    printf "H2_ADJUST_BWD_REF,%.3f\n" "${PHASE3_H2_ADJUST_BWD_REF}"
+    printf "H1_ADJUST_ROOTS,%.3f\n" "${PHASE3_H1_ADJUST_ROOTS}"
+    printf "H1_COMPACT,%.3f\n" "$PHASE4"
+    printf "H2_CLEAR_FWD_TABLE,%.3f\n" "$PHASE5"
+  } >> "${RESULT_DIR}"/$MAJOR_GC_PHASES_PLOT_TITLE.csv
+ 
+  #source flexheap/bin/activate 
+  python3 gc_execution_time_plot.py $MAJOR_GC_PHASES_PLOT_TITLE "${RESULT_DIR}"/$MAJOR_GC_PHASES_PLOT_TITLE.csv "${RESULT_DIR}"
+  #deactivate
+
   {
     grep "TOTAL_TRANS_OBJ" "${RESULT_DIR}"/teraHeap.txt | awk '{print $3","$5}'
     grep "TOTAL_FORWARD_PTRS" "${RESULT_DIR}"/teraHeap.txt | awk '{print $3","$5}'

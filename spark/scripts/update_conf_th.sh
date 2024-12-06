@@ -64,9 +64,14 @@ update_spark_defaults() {
   if [[ $USE_NUMA == true ]]; then
     NUMA="-XX:+UseNUMA"
   fi
+  local PARALLEL_H2_ALLOCATOR="-XX:-UseParallelH2Allocator"
+  if [[ $USE_PARALLEL_H2_ALLOCATOR == true ]]; then
+    PARALLEL_H2_ALLOCATOR="-XX:+UseParallelH2Allocator"
+  fi
+  
 
   local extra_java_opts="spark.executor.extraJavaOptions -server "
-  extra_java_opts+="-XX:-ClassUnloading -XX:DEVICE_H2=${DEV_H2} -XX:+UseParallelGC ${NUMA} -XX:ParallelGCThreads=${GC_THREADS} "
+  extra_java_opts+="-XX:-ClassUnloading -XX:DEVICE_H2=${DEV_H2} -XX:+UseParallelGC ${PARALLEL_H2_ALLOCATOR} ${NUMA} -XX:ParallelGCThreads=${GC_THREADS} "
   extra_java_opts+="-XX:+EnableTeraHeap -XX:TeraHeapSize=${TH_BYTES} -Xms${H1_SIZE}g "
   extra_java_opts+="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers "
 

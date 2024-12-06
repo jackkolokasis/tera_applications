@@ -17,7 +17,7 @@
 #### Global Variables ####
 CUSTOM_BENCHMARK=false
 RUN_TPCDS=false
-
+PROFILER_PATH=
 # Print error/usage script message
 usage() {
   echo
@@ -64,17 +64,28 @@ build_async_profiler() {
   export JAVA_HOME=${MY_JAVA_HOME}
 
   cd ../../util/ || exit
+  PROFILER_PATH=$(pwd)/async-profiler
 
   if [ ! -d async-profiler ]; then
     cpu_arch=$(uname -p)
     if [ $cpu_arch == x86_64 ]; then
+      wget https://github.com/async-profiler/async-profiler/releases/download/v3.0/async-profiler-3.0-linux-x64.tar.gz >>"${BENCH_LOG}" 2>&1
+      tar xf async-profiler-3.0-linux-x64.tar.gz >>"${BENCH_LOG}" 2>&1
+      mv async-profiler-3.0-linux-x64 async-profiler
+      : '
       wget https://github.com/async-profiler/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-x64.tar.gz >>"${BENCH_LOG}" 2>&1
       tar xf async-profiler-2.9-linux-x64.tar.gz >>"${BENCH_LOG}" 2>&1
       mv async-profiler-2.9-linux-x64 async-profiler
+      '
     elif [ $cpu_arch == aarch64 ]; then
+      wget https://github.com/async-profiler/async-profiler/releases/download/v3.0/async-profiler-3.0-linux-arm64.tar.gz >>"${BENCH_LOG}" 2>&1
+      tar xf async-profiler-3.0-linux-arm64.tar.gz >>"${BENCH_LOG}" 2>&1
+      mv async-profiler-3.0-linux-arm64 async-profiler
+      : '
       wget https://github.com/async-profiler/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-arm64.tar.gz >>"${BENCH_LOG}" 2>&1
       tar xf async-profiler-2.9-linux-arm64.tar.gz >>"${BENCH_LOG}" 2>&1
       mv async-profiler-2.9-linux-arm64 async-profiler
+      '
     else
       echo "Unsupported architecture!"
     fi
@@ -227,7 +238,13 @@ printStartMsg() {
   echo
   echo "EXPERIMENTS"
   echo
-  echo "      WORKLOAD : $1"
+  echo "      WORKLOAD   : $1"
+  echo "      EXECUTORS  : $2"
+  echo "      MUTATORS   : $3"
+  echo "      GC_THREADS : $4"
+  echo "      H1_SIZE    : $5G"
+  echo "      H1_H2_SIZE : $6G"
+  echo "      MEM_BUDGET : $7G"
   echo -n "      ITERATION: "
 }
 
@@ -284,9 +301,14 @@ while getopts ":n:o:ktspjfbqh" opt; do
     ;;
   t)
     TH=true
-    # Replace "NATIVE" with "FLEXHEAP"
-    OUTPUT_PATH=${OUTPUT_PATH//NATIVE/FLEXHEAP}
-    ;;
+    if [ $ENABLE_FLEXHEAP ]; then
+        # Replace "NATIVE" with "FLEXHEAP"
+        OUTPUT_PATH=${OUTPUT_PATH//NATIVE/FLEXHEAP}
+    else
+        # Replace "NATIVE" with "TERAHEAP"
+        OUTPUT_PATH=${OUTPUT_PATH//NATIVE/TERAHEAP}
+    fi 
+    ;; 
   s)
     SERDES=true
     ;;
@@ -333,9 +355,9 @@ build_async_profiler
 
 # Run each benchmark
 for benchmark in "${BENCHMARKS[@]}"; do
-  printStartMsg "${benchmark}"
+  printStartMsg "${benchmark}" "${NUM_EXECUTORS}" "${EXEC_CORES}" "${GC_THREADS}" "${H1_SIZE}" "${H1_H2_SIZE}" "${MEM_BUDGET}"
   STARTTIME=$(date +%s)
-
+  major_gc_phases_plot_title="${benchmark}_PARTITIONS=${NUM_OF_PARTITIONS}_REGIONSIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G"
   mkdir -p "${OUT}/${benchmark}/PARTITIONS=${NUM_OF_PARTITIONS}_REGION_SIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G_${TIME}"
 
   # For every iteration
@@ -370,11 +392,14 @@ for benchmark in "${BENCHMARKS[@]}"; do
         ./perf.sh ${RUN_DIR}/perf ${NUM_EXECUTORS} &
       fi
 
-      ./serdes.sh ${RUN_DIR}/serdes ${NUM_EXECUTORS} &
+      #./serdes.sh ${RUN_DIR}/serdes ${NUM_EXECUTORS} &
+      #./serdes.sh ${RUN_DIR}/serdes ${NUM_EXECUTORS} ${PROFILER_PATH}/bin/asprof &
 
       # Enable profiler
       if [ ${PROFILER} ]; then
-        ./profiler.sh ${RUN_DIR}/profile.svg ${NUM_EXECUTORS} &
+        #./profiler.sh ${RUN_DIR}/profile.svg ${NUM_EXECUTORS} ${PROFILER_PATH}/bin/asprof &
+        #./profiler.sh ${RUN_DIR}/profile.html ${NUM_EXECUTORS} ${PROFILER_PATH}/bin/asprof &
+	./profiler.sh ${RUN_DIR}/serdes ${NUM_EXECUTORS} ${PROFILER_PATH}/bin/asprof &
       fi
 
       # Drop caches
@@ -428,8 +453,8 @@ for benchmark in "${BENCHMARKS[@]}"; do
 
       # Copy the confifuration to the directory with the results
       cp ./conf.sh "${RUN_DIR}"/
-
-      if [ $CUSTOM_BENCHMARK == "false" ]; then
+      echo "SPARK_BENCH_DIR=$SPARK_BENCH_DIR" 
+      if [[ $CUSTOM_BENCHMARK == "false" ]]; then
         # Save the total duration of the benchmark execution
         tail -n 1 "${SPARK_BENCH_DIR}"/num/bench-report.dat >>"${RUN_DIR}"/total_time.txt
       fi
@@ -443,7 +468,7 @@ for benchmark in "${BENCHMARKS[@]}"; do
       if [ $TH ]; then
         TH_METRICS=$(ls -td "${SPARK_DIR}"/work/* | head -n 1)
         cp "${TH_METRICS}"/0/teraHeap.txt "${RUN_DIR}"/
-        ./parse_results.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -t
+        ./parse_results.sh -p "${major_gc_phases_plot_title}" -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -t
       else
         ./parse_results.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -s
       fi

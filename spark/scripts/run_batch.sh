@@ -29,6 +29,7 @@ MASTER=
 SLAVE=
 EXECUTION="t"
 JDK_PATH=
+PROFILER=
 
 # Define a "delimiter" to simulate multidimensional associative arrays
 delimiter=":"
@@ -99,7 +100,7 @@ declare -A CONFIG_MAP=(
 )
 
 # Backup original conf.sh
-cp conf.sh conf.sh.backup
+#cp conf.sh conf.sh.backup
 
 # Function to display usage message
 function usage() {
@@ -110,7 +111,7 @@ function usage() {
   echo "  -g, --sudo-group                    Specify the sudo group; eg. amperesudo, carvsudo"
   echo "  -m, --master                        Specify the Spark master; eg. ampere."
   echo "  -s, --slave                         Specify the Spark slave; eg. ampere."
-  echo "  -e, --execution <execution>         Specify the execution mode; eg. n|native or f|flexheap"
+  echo "  -e, --execution <execution>         Specify the execution mode; eg. f|flexheap or t|teraheap or n|native "
   echo "  -b, --build <jvm variant>           Specify the jvm variant for flexheap; r|release, f|fastdebug"
   echo "  -j, --java <path>                   Specify the java path; eg $TERA_JDK17_AARCH64_RELEASE."
   echo "  -f, --h2-dir <path>                 Specify the path of the directory which contains the h2 backing file, eg. /spare2/perpap/fmap"
@@ -119,8 +120,10 @@ function usage() {
   echo "  -r, --results <path>                Specify the path of SparkBench's results. eg. /spare/perpap/spark_results"
   echo "  -l, --load-config <path>            Specify the path of a script containing the configurations of each benchmark."
   echo "  -i, --iterations                    Specify the number of iterations for running the benchmarks."
+  echo "  -a, --parallel-h2-allocator         Use parallel H2 allocator"
   echo "  -n, --numa                          Use NUMA via -XX:+UseNUMA"
   echo "  -c, --cgroups                       Use cgroups"
+  echo "  -o, --profiler                      Use profiler"
   echo "  -h, --help                          Display this help message and exit."
   echo
   echo "Examples:"
@@ -185,7 +188,7 @@ function run_benchmarks() {
         sed -i "s/^GC_THREADS=.*/GC_THREADS=$GC_THREADS/" conf.sh
 
         # Execute run.sh with conditional flags based on EXECUTION
-        ./run.sh -n $ITERATIONS -o $RESULTS_PATH "-$EXECUTION"
+        ./run.sh -n $ITERATIONS -o $RESULTS_PATH "-$EXECUTION" "-$PROFILER"
       done
     done
   done
@@ -193,8 +196,8 @@ function run_benchmarks() {
 }
 
 function parse_script_arguments() {
-  local OPTIONS=t:g:m:s:e:b:j:f:p:d:r:l:i:nch
-  local LONGOPTIONS=teraheap-home:,sudo-group:,master:,slave:,execution:,build:,jdk:,h2-dir:,shuffle-dir:,datasets:,results:,load-config:,iterations:,numa,cgroups,help
+  local OPTIONS=t:g:m:s:e:b:j:f:p:d:r:l:i:ancoh
+  local LONGOPTIONS=teraheap-home:,sudo-group:,master:,slave:,execution:,build:,jdk:,h2-dir:,shuffle-dir:,datasets:,results:,load-config:,iterations:,parallel-h2-allocator,numa,cgroups,profiler,help
 
   # Use getopt to parse the options
   local PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS --name "$0" -- "$@")
@@ -232,6 +235,10 @@ function parse_script_arguments() {
     -e | --execution)
       if [[ "$2" == "f" || "$2" == "flexheap" ]]; then
         EXECUTION="t"
+	sed -i "s|^ENABLE_FLEXHEAP=.*|ENABLE_FLEXHEAP=true|" conf.sh
+      elif [[ "$2" == "t" || "$2" == "teraheap" ]]; then
+        EXECUTION="t"
+        sed -i "s|^ENABLE_FLEXHEAP=.*|ENABLE_FLEXHEAP=false|" conf.sh
       elif [[ "$2" == "n" || "$2" == "native" ]]; then
         EXECUTION="s"
       else
@@ -255,8 +262,10 @@ function parse_script_arguments() {
     -j | --jdk)
       if [[ -f "$2"/bin/java ]]; then
         JDK_PATH="$2"
+      elif [[ -f $TERAHEAP_HOME/"$2"/bin/java ]]; then
+        JDK_PATH=$TERAHEAP_HOME/"$2"
       else
-        echo "Error: '$JDK_PATH/bin/java' does not exist."
+        echo "Error: '$TERAHEAP_HOME/$JDK_PATH/bin/java' does not exist."
         exit 1
       fi
       shift 2
@@ -325,12 +334,20 @@ function parse_script_arguments() {
       validateIterations
       shift 2
       ;;
+    -a | --parallel-h2-allocator)
+      sed -i "s/^USE_PARALLEL_H2_ALLOCATOR=.*/USE_PARALLEL_H2_ALLOCATOR=true/" conf.sh
+      shift
+      ;;
     -n | --numa)
       sed -i "s/^USE_NUMA=.*/USE_NUMA=true/" conf.sh
       shift
       ;;
     -c | --cgroups)
       sed -i "s/^USE_CGROUPS=.*/USE_CGROUPS=true/" conf.sh
+      shift
+      ;;
+    -o | --profiler)
+      PROFILER="f"
       shift
       ;;
     -h | --help)
@@ -363,5 +380,5 @@ parse_script_arguments "$@"
 run_benchmarks
 
 # Restore the original conf.sh to leave no side effects
-cp conf.sh.backup conf.sh
-rm conf.sh.backup
+#cp conf.sh.backup conf.sh
+#rm conf.sh.backup

@@ -1,18 +1,23 @@
 #!/usr/bin/env bash
 BENCHMARKS=("ConnectedComponent" "PageRank" "LinearRegression" "LogisticRegression")
-
+#BENCHMARKS=("LogisticRegression" "LinearRegression")
 # Define EXECUTOR_CORES to override the default value in run_batch_v2.sh
 EXECUTOR_CORES=(16 8 4)
+#EXECUTOR_CORES=(160 80 40)
+#EXECUTOR_CORES=(20 10)
+
 function load_config() {
   local delimiter=":"
   # Define mappings for H1_SIZE and MEM_BUDGET for each benchmark and EXEC_CORES
   declare -A CONFIG_MAP=(
     ["LinearRegression${delimiter}4"]="54:70"
     ["LinearRegression${delimiter}8"]="54:70"
-    ["LinearRegression${delimiter}16"]="54:70"
+    ["LinearRegression${delimiter}16"]="54:70" 
+#    ["LinearRegression${delimiter}16"]="54:70"   # NATIVE OOM
     ["LogisticRegression${delimiter}4"]="54:70"
     ["LogisticRegression${delimiter}8"]="54:70"
     ["LogisticRegression${delimiter}16"]="54:70"
+#    ["LogisticRegression${delimiter}16"]="54:70"  # NATIVE OOM
     ["PageRank${delimiter}4"]="64:80"
     ["PageRank${delimiter}8"]="64:80"
     ["PageRank${delimiter}16"]="64:80"
