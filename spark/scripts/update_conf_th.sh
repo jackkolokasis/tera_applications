@@ -64,20 +64,24 @@ update_spark_defaults() {
   if [[ $USE_NUMA == true ]]; then
     NUMA="-XX:+UseNUMA"
   fi
-  local PARALLEL_H2_ALLOCATOR="-XX:-UseParallelH2Allocator"
-  if [[ $USE_PARALLEL_H2_ALLOCATOR == true ]]; then
-    PARALLEL_H2_ALLOCATOR="-XX:+UseParallelH2Allocator"
+  local PARALLEL_H2_PRECOMPACT="-XX:-EnableParallelH2PreCompact"
+  if [[ $ENABLE_PARALLEL_H2_PRECOMPACT == true ]]; then
+    PARALLEL_H2_PRECOMPACT="-XX:+EnableParallelH2PreCompact"
   fi
-  
+  local PARALLEL_H2_COMPACT="-XX:-EnableParallelH2Compact"
+  if [[ $ENABLE_PARALLEL_H2_COMPACT == true ]]; then
+    PARALLEL_H2_COMPACT="-XX:+EnableParallelH2Compact"
+  fi
 
   local extra_java_opts="spark.executor.extraJavaOptions -server "
-  extra_java_opts+="-XX:-ClassUnloading -XX:DEVICE_H2=${DEV_H2} -XX:+UseParallelGC ${PARALLEL_H2_ALLOCATOR} ${NUMA} -XX:ParallelGCThreads=${GC_THREADS} "
+  extra_java_opts+="-XX:-ClassUnloading -XX:DEVICE_H2=${DEV_H2} -XX:+UseParallelGC ${PARALLEL_H2_PRECOMPACT} ${PARALLEL_H2_COMPACT} ${NUMA} -XX:ParallelGCThreads=${GC_THREADS} "
   extra_java_opts+="-XX:+EnableTeraHeap -XX:TeraHeapSize=${TH_BYTES} -Xms${H1_SIZE}g "
   extra_java_opts+="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers "
 
   if $ENABLE_STATS; then
     extra_java_opts+="-XX:+TeraHeapStatistics -Xlogth:teraHeap.txt "
   fi
+  extra_java_opts+="-XX:TeraHeapWritePolicy=\"${TERAHEAP_WRITE_POLICY}\" "
   extra_java_opts+="-XX:TeraHeapPolicy=\"${TERAHEAP_POLICY}\" -XX:TeraStripeSize=${STRIPE_SIZE} "
   extra_java_opts+="-XX:+ShowMessageBoxOnError "
 

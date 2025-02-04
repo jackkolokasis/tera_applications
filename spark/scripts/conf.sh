@@ -90,6 +90,9 @@ NUM_EXECUTORS=(1)
 TOTAL_CONFS=${#H1_SIZE[@]}
 # Enable statistics
 ENABLE_STATS=true
+# Choose H2 write policy
+# The available policies are: "AsyncWritePolicy" and "SyncWritePolicy"
+TERAHEAP_WRITE_POLICY=AsyncWritePolicy
 # Choose transfer policy
 # The available policies are: "DefaultPolicy" and "SparkPrimitivePolicy"
 TERAHEAP_POLICY="SparkPrimitivePolicy"
@@ -97,7 +100,9 @@ TERAHEAP_POLICY="SparkPrimitivePolicy"
 ENABLE_FLEXHEAP=true
 USE_CGROUPS=false
 USE_NUMA=false
-USE_PARALLEL_H2_ALLOCATOR=true
+#USE_PARALLEL_H2_ALLOCATOR=true
+ENABLE_PARALLEL_H2_COMPACT=false
+ENABLE_PARALLEL_H2_PRECOMPACT=false
 # Choose a flexheap policy
 # 0: SimpleStateMachine
 # 1: SimpleWaitVersion

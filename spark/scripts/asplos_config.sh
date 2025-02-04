@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 BENCHMARKS=("ConnectedComponent" "PageRank" "LinearRegression" "LogisticRegression")
-#BENCHMARKS=("LogisticRegression" "LinearRegression")
+#BENCHMARKS=("ConnectedComponent")
 # Define EXECUTOR_CORES to override the default value in run_batch_v2.sh
 EXECUTOR_CORES=(16 8 4)
+#EXECUTOR_CORES=(16)
+
 #EXECUTOR_CORES=(160 80 40)
 #EXECUTOR_CORES=(20 10)
 

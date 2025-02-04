@@ -23,6 +23,7 @@ DATASETS_MOUNT_POINT=
 H2_MOUNT_POINT=
 SHUFFLE_MOUNT_POINT=
 ITERATIONS=1
+#H2_ALLOCATOR_MODE=0 #0:Serial, 1:Parallel_H2PreCompact, 2:Paralell_H2Compact, 3:Parallel_H2PreCompact + Parallel_H2Compact
 CONFIG_FILE=
 JAVA_BUILD="release"
 MASTER=
@@ -120,7 +121,8 @@ function usage() {
   echo "  -r, --results <path>                Specify the path of SparkBench's results. eg. /spare/perpap/spark_results"
   echo "  -l, --load-config <path>            Specify the path of a script containing the configurations of each benchmark."
   echo "  -i, --iterations                    Specify the number of iterations for running the benchmarks."
-  echo "  -a, --parallel-h2-allocator         Use parallel H2 allocator"
+  echo "  -w, --write-to-t2-policy <policy>   The available policies are: 'AsyncWritePolicy', 'SyncWritePolicy', 'FmapWritePolicy', 'DefaultWritePolicy'"
+  echo "  -a, --h2-allocator <mode>           The available modes are: [0:Serial, 1:Parallel_H2PreCompact, 2:Paralell_H2Compact, 3:Parallel_H2PreCompact + Parallel_H2Compact]"
   echo "  -n, --numa                          Use NUMA via -XX:+UseNUMA"
   echo "  -c, --cgroups                       Use cgroups"
   echo "  -o, --profiler                      Use profiler"
@@ -196,8 +198,8 @@ function run_benchmarks() {
 }
 
 function parse_script_arguments() {
-  local OPTIONS=t:g:m:s:e:b:j:f:p:d:r:l:i:ancoh
-  local LONGOPTIONS=teraheap-home:,sudo-group:,master:,slave:,execution:,build:,jdk:,h2-dir:,shuffle-dir:,datasets:,results:,load-config:,iterations:,parallel-h2-allocator,numa,cgroups,profiler,help
+  local OPTIONS=t:g:m:s:e:b:j:f:p:d:r:l:i:w:a:ncoh
+  local LONGOPTIONS=teraheap-home:,sudo-group:,master:,slave:,execution:,build:,jdk:,h2-dir:,shuffle-dir:,datasets:,results:,load-config:,iterations:,write-to-h2-policy:,h2-allocator:,numa,cgroups,profiler,help
 
   # Use getopt to parse the options
   local PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS --name "$0" -- "$@")
@@ -334,9 +336,32 @@ function parse_script_arguments() {
       validateIterations
       shift 2
       ;;
-    -a | --parallel-h2-allocator)
-      sed -i "s/^USE_PARALLEL_H2_ALLOCATOR=.*/USE_PARALLEL_H2_ALLOCATOR=true/" conf.sh
-      shift
+    -w | --write-to-h2-policy)
+      WRITE_POLICY="$2"
+      sed -i "s/^TERAHEAP_WRITE_POLICY=.*/TERAHEAP_WRITE_POLICY=${WRITE_POLICY}/" conf.sh
+      shift 2
+      ;;
+    -a | --h2-allocator)
+      #H2_ALLOCATOR_MODE="$2"
+      #validateH2AllocatorMode
+      if [[ "$2" -eq 0 ]]; then
+        sed -i "s/^ENABLE_PARALLEL_H2_PRECOMPACT=.*/ENABLE_PARALLEL_H2_PRECOMPACT=false/" conf.sh
+        sed -i "s/^ENABLE_PARALLEL_H2_COMPACT=.*/ENABLE_PARALLEL_H2_COMPACT=false/" conf.sh
+      elif [[ "$2" -eq 1 ]]; then
+        sed -i "s/^ENABLE_PARALLEL_H2_PRECOMPACT=.*/ENABLE_PARALLEL_H2_PRECOMPACT=true/" conf.sh
+        sed -i "s/^ENABLE_PARALLEL_H2_COMPACT=.*/ENABLE_PARALLEL_H2_COMPACT=false/" conf.sh
+      elif [[ "$2" -eq 2 ]]; then
+        sed -i "s/^ENABLE_PARALLEL_H2_PRECOMPACT=.*/ENABLE_PARALLEL_H2_PRECOMPACT=false/" conf.sh
+        sed -i "s/^ENABLE_PARALLEL_H2_COMPACT=.*/ENABLE_PARALLEL_H2_COMPACT=true/" conf.sh
+      elif [[ "$2" -eq 3 ]]; then
+        sed -i "s/^ENABLE_PARALLEL_H2_PRECOMPACT=.*/ENABLE_PARALLEL_H2_PRECOMPACT=true/" conf.sh
+        sed -i "s/^ENABLE_PARALLEL_H2_COMPACT=.*/ENABLE_PARALLEL_H2_COMPACT=true/" conf.sh
+      else
+        echo "Invalid H2_ALLOCATOR_MODE ; Please provide 0:Serial, 1:Parallel_H2PreCompact, 2:Paralell_H2Compact, 3:Parallel_H2PreCompact + Parallel_H2Compact"
+        exit ${ERRORS[INVALID_OPTION]}
+      fi
+      #sed -i "s/^USE_PARALLEL_H2_ALLOCATOR=.*/USE_PARALLEL_H2_ALLOCATOR=true/" conf.sh
+      shift 2
       ;;
     -n | --numa)
       sed -i "s/^USE_NUMA=.*/USE_NUMA=true/" conf.sh
@@ -365,7 +390,17 @@ function parse_script_arguments() {
     esac
   done
 }
-
+: '
+function validateH2AllocatorMode() {
+  if [[ ! $H2_ALLOCATOR_MODE =~ ^[0-9]+$ ]]; then 
+    echo "H2_ALLOCATOR_MODE:$H2_ALLOCATOR_MODE is not an integer."
+    exit ${ERRORS[NOT_AN_INTEGER]} 
+  elif [[ $H2_ALLOCATOR_MODE -lt 0 || $H2_ALLOCATOR_MODE -gt 3 ]]; then                          
+    echo "H2_ALLOCATOR_MODE:$H2_ALLOCATOR_MODE is not within the range 0 to 3."
+    exit ${ERRORS[OUT_OF_RANGE]} 
+  fi
+}
+'
 function validateIterations() {
   if [[ ! $ITERATIONS =~ ^[0-9]+$ ]]; then 
     echo "iterations:$ITERATIONS is not an integer."

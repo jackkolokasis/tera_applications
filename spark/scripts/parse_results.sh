@@ -161,6 +161,8 @@ then
   #PHASE2=$(echo "$PHASE2_H1_SUMMARY + $PHASE2_H2_PRECOMPACT" | bc)
   # Phase 3: Combined H2_COMPACT_PHASE, H2_ADJUST_BWD_REF_PHASE, H1_ADJUST_ROOTS_PHASE
   PHASE3_H2_COMPACT=$(grep "H2_COMPACT_PHASE" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
+  #H2_COMPACT_GROUP_REGION_LOCK_TIME=$(grep "H2_COMPACT_GROUP_REGION_LOCK_TIME" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $5 } END {print sum }')
+  #H2_COMPACT_REGION_LOCK_TIME=$(grep "H2_COMPACT_REGION_LOCK_TIME" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $5 } END {print sum }')
   PHASE3_H2_ADJUST_BWD_REF=$(grep "H2_ADJUST_BWD_REF" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
   PHASE3_H1_ADJUST_ROOTS=$(grep "H1_ADJUST_ROOTS" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
   #PHASE3=$(echo "scale=10; $PHASE3_H2_COMPACT + $PHASE3_H2_ADJUST_BWD_REF + $PHASE3_H1_ADJUST_ROOTS" | bc)
@@ -218,6 +220,8 @@ done
   printf "[Phase 2] H2_PRECOMPACT      : %.3f\n" "$PHASE2_H2_PRECOMPACT"
   printf "[Phase 3] H2_COMPACT + H2_ADJUST_BWD_REF + H1_ADJUST_ROOTS: %.3f\n" "$PHASE3"
   printf "          H2_COMPACT         : %.3f\n" "${PHASE3_H2_COMPACT}"
+  #printf "          GROUP_REGION_LOCK  : %.3f\n" "${H2_COMPACT_GROUP_REGION_LOCK_TIME}"
+  #printf "          REGION_LOCK        : %.3f\n" "${H2_COMPACT_REGION_LOCK_TIME}"
   printf "          H2_ADJUST_BWD_REF  : %.3f\n" "${PHASE3_H2_ADJUST_BWD_REF}"
   printf "          H1_ADJUST_ROOTS    : %.3f\n" "${PHASE3_H1_ADJUST_ROOTS}"
   printf "[Phase 4] H1_COMPACT         : %.3f\n" "$PHASE4"
@@ -234,12 +238,14 @@ done
   echo "DESER_SAMPLES,${DESER_SAMPLES}"
   echo "APP_THREAD_SAMPLES,${APP_THREAD_SAMPLES}"
 } >> "${RESULT_DIR}"/serdes.csv
-
+: '
 if [ $TH ]
 then
   {
     # Print the total time for each phase into a .csv file
-    printf "TOTAL_MAJOR_GC_TIME,%.3f\n" "$(echo "$MAJOR_GC * 1000" | bc)"
+    printf "TOTAL_TIME,%.3f\n" "$(echo "$TOTAL_TIME")"
+    printf "MINOR_GC,%.3f\n" "$(echo "$MINOR_GC")"
+    printf "MAJOR_GC,%.3f\n" "$(echo "$MAJOR_GC")"
     printf "H1_MARKING_PHASE,%.3f\n" "$PHASE1"
     printf "H1_SUMMARY_PHASE,%.3f\n" "$PHASE2_H1_SUMMARY"
     printf "H2_COMPACT, %.3f\n" "${PHASE3_H2_COMPACT}"
@@ -261,7 +267,7 @@ then
     grep "DISTRIBUTION" "${RESULT_DIR}"/teraHeap.txt |tail -n 1 |awk '{print $5 " " $6 " " $7 " " $8 " " $9 " " $10 " " $11 " " $12" " $13 " " $14 " " $15}'
   } >> "${RESULT_DIR}"/statistics.csv
 fi
-
+'
 # Read the Utilization from system.csv file
 USR_UTIL_PER=$(grep "USR_UTIL" "${RESULT_DIR}"/system.csv |awk -F ',' '{print $2}')
 SYS_UTIL_PER=$(grep "SYS_UTIL" "${RESULT_DIR}"/system.csv |awk -F ',' '{print $2}')
@@ -280,3 +286,35 @@ IOW_TIME=$( echo "${TOTAL_TIME} * ${IO_UTIL_PER} / 100" | bc -l )
   echo "SYS_TIME,${SYS_TIME}"
   echo "IOW_TIME,${IOW_TIME}"
 } >> "${RESULT_DIR}"/result.csv
+
+if [ $TH ]
+then
+  {
+    # Print the total time for each phase into a .csv file
+    printf "TOTAL_TIME,%.3f\n" "$(echo "$TOTAL_TIME")"
+    printf "MINOR_GC,%.3f\n" "$(echo "$MINOR_GC")"
+    printf "MAJOR_GC,%.3f\n" "$(echo "$MAJOR_GC")"
+    printf "H1_MARKING_PHASE,%.3f\n" "$(echo "$PHASE1 / 1000" | bc)"
+    printf "H1_SUMMARY_PHASE,%.3f\n" "$(echo "$PHASE2_H1_SUMMARY / 1000" | bc)"
+    printf "H2_COMPACT, %.3f\n" "$(echo "$PHASE3_H2_COMPACT / 1000" | bc)" 
+    printf "H2_ADJUST_BWD_REF,%.3f\n" "$(echo "$PHASE3_H2_ADJUST_BWD_REF / 1000" | bc)"
+    printf "H1_ADJUST_ROOTS,%.3f\n" "$(echo "$PHASE3_H1_ADJUST_ROOTS / 1000" | bc)"
+    printf "H1_COMPACT,%.3f\n" "$(echo "$PHASE4 / 1000" | bc)"
+    printf "H2_CLEAR_FWD_TABLE,%.3f\n" "$(echo "$PHASE5 / 1000" | bc)"
+    printf "USR_TIME, %.3f\n" "${USR_TIME}"
+    printf "SYS_TIME, %.3f\n" "${SYS_TIME}"
+    printf "IOW_TIME, %.3f\n" "${IOW_TIME}"
+  } >> "${RESULT_DIR}"/$MAJOR_GC_PHASES_PLOT_TITLE.csv
+ 
+  #source flexheap/bin/activate 
+  python3 gc_execution_time_plot.py $MAJOR_GC_PHASES_PLOT_TITLE "${RESULT_DIR}"/$MAJOR_GC_PHASES_PLOT_TITLE.csv "${RESULT_DIR}"
+  #deactivate
+
+  {
+    grep "TOTAL_TRANS_OBJ" "${RESULT_DIR}"/teraHeap.txt | awk '{print $3","$5}'
+    grep "TOTAL_FORWARD_PTRS" "${RESULT_DIR}"/teraHeap.txt | awk '{print $3","$5}'
+    grep "TOTAL_BACK_PTRS" "${RESULT_DIR}"/teraHeap.txt | awk '{print $3","$5}'
+    grep "DUMMY" "${RESULT_DIR}"/teraHeap.txt | awk '{sum+=$6} END {print "DUMMY_OBJ_SIZE(GB),"sum*8/1024/1024}'
+    grep "DISTRIBUTION" "${RESULT_DIR}"/teraHeap.txt |tail -n 1 |awk '{print $5 " " $6 " " $7 " " $8 " " $9 " " $10 " " $11 " " $12" " $13 " " $14 " " $15}'
+  } >> "${RESULT_DIR}"/statistics.csv
+fi
