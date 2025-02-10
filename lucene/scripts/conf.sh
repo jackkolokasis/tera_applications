@@ -16,11 +16,11 @@
 # USER
 LOGIN=$(whoami)
 # Group ID for the cgroups
-GROUP_ID=carvsudo
+GROUP_ID=sudo
 # JAVA Home
-JAVA_PATH="/home1/public/kolokasis/github/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk"
+JAVA_PATH="/home1/public/kolokasis/github/latest_version/teraheap/jdk17u067/build/linux-x86_64-server-release/jdk"
 # Repo to TeraHeap
-TERAHEAP_REPO="/home1/public/kolokasis/github/teraheap"
+TERAHEAP_REPO="/home1/public/kolokasis/github/latest_version/teraheap"
 # Benchmark repo
 BENCH_DIR=/home1/public/kolokasis/lucene_bench/dimitris/tera_applications
 # Dataset
@@ -30,7 +30,7 @@ GC_THREADS=16
 # Device for dataset
 DEV_DATASET=nvme1n1
 # Directory with queries used to run Lucene workloads
-QUERIES_DIR=${TERAHEAP_REPO}/lucene/scripts/queries
+QUERIES_DIR=${BENCH_DIR}/lucene/scripts/queries
 # Device for H2
 DEV_H2=nvme0n1
 # Mount point for H2 TeraHeap directory
@@ -51,7 +51,8 @@ H1_SIZE=( 4 )
 MEM_BUDGET=5G
 # Benchmarks. Possible benchmarks name are:
 # M1, M2, M3, M4, M5, M6
-BENCHMARKS=( "M1" )
+# BENCHMARKS=( "M1" "M2" "M3" "M4" "M5" "M6" )
+BENCHMARKS=( "M10" )
 # Total Configurations
 TOTAL_CONFS=${#H1_SIZE[@]}
 # Enable statistics
@@ -65,8 +66,9 @@ ENABLE_FLEXHEAP=true
 # 0: SimpleStateMachine
 # 1: SimpleWaitVersion
 # 7: Optimized
-FLEXHEAP_POLICY=7
+FLEXHEAP_POLICY=5
 # We support two policies for calculating I/O wait:
 # 0: we read the /proc/stat
 # 1: we use getrusage()
+RESIZING_STEP=0.2
 CPU_STATS_POLICY=1

@@ -102,6 +102,83 @@ run_m6() {
     > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
 }
 
+run_m7() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueries \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/LS \
+    -n 50 \
+    -nq 500000 -nq 0 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
+
+run_m8() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueriesPerPhase \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/ML_HL \
+    -n 50 \
+    -nq 7000 -nq 400 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
+
+run_m9() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueriesPerPhase \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/HS_HL \
+    -n 50 \
+    -nq 50000 -nq 400 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
+
+run_m10() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueriesPerPhase \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/ML_HS_LS_HL \
+    -n 50 \
+    -nq 7000 -nq 50000 -nq 500000 -nq 400 -nq 0 \
+    -r /tmp/queries.txt \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+  }
+
+run_m11() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueriesPerPhase \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/ML_HL \
+    -n 50 \
+    -nq 7000 -nq 400 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+  }
+
+run_m12() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueriesPerPhase \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/HS_LS \
+    -n 50 \
+    -nq 50000 -nq 500000 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+  }
+
+# For benchmarks
+run_m15() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    MultiTenantEvaluateQueriesWithBatching \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/LS -q ${QUERIES_DIR}/MS -q ${QUERIES_DIR}/HS -q ${QUERIES_DIR}/ML_HL \
+    -n 50 -n 50 -n 50 -n 500000 \
+    -nq 500000 -nq 80000 -nq 50000 -nq 7400 \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
+
 export_env_variables() {
   export JAVA_HOME=${JAVA_PATH}
   export LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib:$LIBRARY_PATH
@@ -119,6 +196,9 @@ set_java_opts() {
       JAVA_OPTS="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers \
         -XX:+UseParallelGC -XX:ParallelGCThreads=${GC_THREADS} -XX:+AlwaysPreTouch \
         -Xmx${H1_SIZE}g -Xms${H1_SIZE}g"
+      # JAVA_OPTS="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers \
+      #   -XX:+UseG1GC -XX:ConcGCThreads=5 -XX:ParallelGCThreads=${GC_THREADS} -XX:+AlwaysPreTouch \
+      #   -Xmx${H1_SIZE}g -Xms${H1_SIZE}g"
       ;;
     "FLEXHEAP")
       # These are the runtime arguments for running with FlexHeap
@@ -134,8 +214,8 @@ set_java_opts() {
 
       JAVA_OPTS="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers \
         -XX:+UseParallelGC -XX:ParallelGCThreads=${GC_THREADS} -XX:+EnableFlexHeap \
-        -XX:FlexResizingPolicy=2 -XX:+ShowMessageBoxOnError \
-        -XX:FlexDRAMLimit=${DRAMLIMIT} -Xmx${H1_SIZE}g "
+        -XX:FlexResizingPolicy=${FLEXHEAP_POLICY} -XX:+ShowMessageBoxOnError \
+        -XX:FlexDRAMLimit=${DRAMLIMIT} -Xmx${H1_SIZE}g -XX:+AdaptiveResizingStep -XX:ResizingStep=${RESIZING_STEP} "
       ;;
     "TERAHEAP")
       # These are the runtime arguments for running with TeraHeap
@@ -174,6 +254,24 @@ case "$QUERY" in
     ;;
   M6)
     run_m6
+    ;;
+  M7)
+    run_m7
+    ;;
+  M8)
+    run_m8
+    ;;
+  M9)
+    run_m9
+    ;;
+  M10)
+    run_m10
+    ;;
+  M11)
+    run_m11
+    ;;
+  M12)
+    run_m12
     ;;
 esac
 

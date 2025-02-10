@@ -196,6 +196,7 @@ done
 TIME=$(date +"%T-%d-%m-%Y")
 
 OUT="${OUTPUT_PATH}_${TIME}"
+OUT=$(pwd)/${OUT} 
 mkdir -p "${OUT}"
 
 download_third_party
@@ -216,7 +217,6 @@ do
     # For every configuration
     for ((j=0; j<TOTAL_CONFS; j++))
     do
-      OUT=$(pwd)/${OUT} 
       mkdir -p "${OUT}/${benchmark}/run${i}/conf${j}"
       RUN_DIR="${OUT}/${benchmark}/run${i}/conf${j}"
 

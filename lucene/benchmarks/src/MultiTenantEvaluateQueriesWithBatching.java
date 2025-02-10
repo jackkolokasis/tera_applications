@@ -50,6 +50,7 @@ public class MultiTenantEvaluateQueriesWithBatching {
   public static final int LARGE_QUERIES = 500000;
   public static final int MIX_QUERY_THREADS = 16;
   public static final int THREADS_PER_QUERY_TYPE = 16;
+  public static final long startTime = System.currentTimeMillis();
 
   private static void exit(String msg) {
     System.out.println(msg);
@@ -123,7 +124,7 @@ public class MultiTenantEvaluateQueriesWithBatching {
 
       if (i == queriesFile.size() - 1) {
         batchQueriesTask = new EvalBatchQueriesTask(queriesFile.get(i), searcher,
-          noOfResults.get(i), queryExecutionTimes, startQueryNo, MIX_QUERY_THREADS);
+          noOfResults.get(i), queryExecutionTimes, startQueryNo, MIX_QUERY_THREADS, startTime);
         batchQueriesTask.start();
         continue;
       }
