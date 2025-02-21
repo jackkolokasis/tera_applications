@@ -33,7 +33,7 @@ function usage() {
   echo
   echo "./jvm_error_filter.sh -b /spare/perpap/spark_results/FLEXHEAP/LinearRegression"
   echo "./jvm_error_filter.sh -b /spare/perpap/spark_results/FLEXHEAP/LinearRegression/run0/conf0/tmp_out.txt"
-  echo "./jvm_error_filter.sh -b /spare/perpap/spark_results/FLEXHEAP/LinearRegression -d 14-07"
+  echo "./jvm_error_filter.sh -b /spare/s1/perpap/spark_results/FLEXHEAP/ConnectedComponent -d 12-02-2025-00:00:00"
   echo "./jvm_error_filter.sh -w /spare/perpap/tera_applications/spark/spark-3.3.0/work/app-20240219160335-0000 -b /spare/perpap/spark_results/FLEXHEAP/LinearRegression"
   echo "./jvm_error_filter.sh -w /spare/perpap/tera_applications/spark/spark-3.3.0/work/app-20240219160335-0000 -b /spare/perpap/spark_results/FLEXHEAP/LinearRegression/run0/conf0/tmp_out.txt"
 }

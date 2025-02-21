@@ -28,7 +28,7 @@ CONFIG_FILE=
 JAVA_BUILD="release"
 MASTER=
 SLAVE=
-EXECUTION="t"
+EXECUTION="t" #t|teraheap f|flexheap n|native
 JDK_PATH=
 PROFILER=
 
@@ -147,10 +147,10 @@ function run_benchmarks() {
 
   if [[ $EXECUTION == "s" ]]; then
     STORAGE_LEVELS=("MEMORY_AND_DISK")
-    sed -i "s|^ENABLE_FLEXHEAP=.*|ENABLE_FLEXHEAP=false|" conf.sh
+    #sed -i "s|^ENABLE_FLEXHEAP=.*|ENABLE_FLEXHEAP=false|" conf.sh
   else
     STORAGE_LEVELS=("MEMORY_ONLY")
-    sed -i "s|^ENABLE_FLEXHEAP=.*|ENABLE_FLEXHEAP=true|" conf.sh
+    #sed -i "s|^ENABLE_FLEXHEAP=.*|ENABLE_FLEXHEAP=true|" conf.sh
   fi
 
   # Outer loop - BENCHMARKS
@@ -190,7 +190,8 @@ function run_benchmarks() {
         sed -i "s/^GC_THREADS=.*/GC_THREADS=$GC_THREADS/" conf.sh
 
         # Execute run.sh with conditional flags based on EXECUTION
-        ./run.sh -n $ITERATIONS -o $RESULTS_PATH "-$EXECUTION" "-$PROFILER"
+        #./run.sh -i $ITERATIONS -o $RESULTS_PATH "-$EXECUTION" "-$PROFILER"
+        ./run.sh -i $ITERATIONS -o $RESULTS_PATH -e $EXECUTION "-$PROFILER"
       done
     done
   done
@@ -236,15 +237,18 @@ function parse_script_arguments() {
       ;;
     -e | --execution)
       if [[ "$2" == "f" || "$2" == "flexheap" ]]; then
-        EXECUTION="t"
-	sed -i "s|^ENABLE_FLEXHEAP=.*|ENABLE_FLEXHEAP=true|" conf.sh
+        EXECUTION="f"
+	#sed -i "s|^ENABLE_FLEXHEAP=.*|ENABLE_FLEXHEAP=true|" conf.sh
+        sed -i "s/^ENABLE_FLEXHEAP=.*/ENABLE_FLEXHEAP=true/" conf.sh
       elif [[ "$2" == "t" || "$2" == "teraheap" ]]; then
         EXECUTION="t"
-        sed -i "s|^ENABLE_FLEXHEAP=.*|ENABLE_FLEXHEAP=false|" conf.sh
+        #sed -i "s|^ENABLE_FLEXHEAP=.*|ENABLE_FLEXHEAP=false|" conf.sh
+	sed -i "s/^ENABLE_FLEXHEAP=.*/ENABLE_FLEXHEAP=false/" conf.sh
       elif [[ "$2" == "n" || "$2" == "native" ]]; then
         EXECUTION="s"
+        sed -i "s/^ENABLE_FLEXHEAP=.*/ENABLE_FLEXHEAP=false/" conf.sh
       else
-        echo "Invalid execution mode; Please provide f|flexheap or n|native"
+        echo "Invalid execution mode; Please provide: [f|flexheap] | [t|teraheap] [n|native]"
         exit ${ERRORS[INVALID_OPTION]}
       fi
       shift 2

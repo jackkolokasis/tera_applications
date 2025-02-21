@@ -30,6 +30,7 @@ usage() {
     echo "      -d, --dir <path> 		Specify the directory for storing the results."
     echo "      -p, --plot <title>           	Specify the plot title for the breakdown of the major gc's phases execution time."
     echo "      -n, --num-executors <number>    Specify the number of executors."
+    echo "      -g, --gc-threads <number>       Specify the number of gc threads."
     echo "      -t, --teraheap  		Enable TeraHeap."
     echo "      -s, --serialize  		Enable serialization/deserialization."
     echo "      -h, --help  			Display this help message and exit."
@@ -38,8 +39,8 @@ usage() {
 }
 
 function parse_script_arguments() {
-  local OPTIONS=d:p:n:tsh
-  local LONGOPTIONS=dir:,plot:,num-executors:,teraheap,serialize,help
+  local OPTIONS=d:p:n:g:tsh
+  local LONGOPTIONS=dir:,plot:,num-executors:,gc-threads:,teraheap,serialize,help
 
   # Use getopt to parse the options
   local PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS --name "$0" -- "$@")
@@ -63,6 +64,10 @@ function parse_script_arguments() {
       ;;
     -n | --num-executors)
       NUM_EXECUTORS="$2"
+      shift 2
+      ;;
+    -g | --gc-threads)
+      GC_THREADS="$2"
       shift 2
       ;;
     -t | --teraheap)
@@ -120,6 +125,20 @@ TOTAL_TIME=$(tail -n 1 ${RESULT_DIR}/total_time.txt | awk '{split($0,a,","); pri
 TOTAL_TIME_IN_MILLISECONDS=($(echo "$TOTAL_TIME * 1000" | bc))
 MINOR_GC=()
 MAJOR_GC=()
+PHASE3_H2_COMPACT_MOVED_OBJECTS_PER_GC_THREAD=()
+PHASE3_H2_COMPACT_MOVED_BYTES_PER_GC_THREAD=()
+PHASE3_H2_COMPACT_TOTAL_BUFFER_INSERT_ELAPSED_TIME=
+PHASE3_H2_COMPACT_TOTAL_BUFFER_INSERT_OPERATIONS=
+PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_ELAPSED_TIME=
+PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_OPERATIONS=
+: '
+PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_FRAGMENTATION_ELAPSED_TIME=
+PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_FRAGMENTATION_OPERATIONS=
+PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_NOFREESPACE_ELAPSED_TIME=
+PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_NOFREESPACE_OPERATIONS=
+PHASE3_H2_COMPACT_TOTAL_ASYNC_REQUEST_ELAPSED_TIME=
+PHASE3_H2_COMPACT_TOTAL_ASYNC_REQUEST_OPERATIONS=
+'
 #MINOR_GC_IN_MILLISECONDS=()
 #MAJOR_GC_IN_MILLISECONDS=()
 
@@ -131,6 +150,12 @@ do
   #MINOR_GC_IN_MILLISECONDS+=($(echo "$MINOR_GC * 1000" | bc))
   #MAJOR_GC_IN_MILLISECONDS+=($(echo "$MAJOR_GC * 1000" | bc))
 done
+for ((i=0; i<GC_THREADS; i++))
+do
+  PHASE3_H2_COMPACT_MOVED_OBJECTS_PER_GC_THREAD+=($(grep "H2_COMPACT_MOVED_OBJECTS_PER_GC_THREAD($i)" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $5 } END {print sum }'))
+  PHASE3_H2_COMPACT_MOVED_BYTES_PER_GC_THREAD+=($(grep "H2_COMPACT_MOVED_BYTES_PER_GC_THREAD($i)" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $5 } END {print sum }'))
+done
+
 : '
 # Initialize total execution time variables
 total_minor_gc=0
@@ -161,6 +186,18 @@ then
   #PHASE2=$(echo "$PHASE2_H1_SUMMARY + $PHASE2_H2_PRECOMPACT" | bc)
   # Phase 3: Combined H2_COMPACT_PHASE, H2_ADJUST_BWD_REF_PHASE, H1_ADJUST_ROOTS_PHASE
   PHASE3_H2_COMPACT=$(grep "H2_COMPACT_PHASE" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
+  PHASE3_H2_COMPACT_TOTAL_BUFFER_INSERT_ELAPSED_TIME=$(grep "H2_COMPACT_BUFFER_INSERT_ELAPSED_TIME" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
+  PHASE3_H2_COMPACT_TOTAL_BUFFER_INSERT_OPERATIONS=$(grep "H2_COMPACT_TOTAL_BUFFER_INSERT_OPERATIONS" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $5 } END { print sum }')
+  PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_ELAPSED_TIME=$(grep "H2_COMPACT_FLUSH_BUFFER_ELAPSED_TIME" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
+  PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_OPERATIONS=$(grep "H2_COMPACT_TOTAL_FLUSH_BUFFER_OPERATIONS" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $5 } END { print sum }')
+  : '
+  PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_FRAGMENTATION_ELAPSED_TIME=$(grep "H2_COMPACT_FLUSH_BUFFER_FRAGMENTATION_ELAPSED_TIME" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
+  PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_FRAGMENTATION_OPERATIONS=$(grep "H2_COMPACT_TOTAL_FLUSH_BUFFER_FRAGMENTATION_OPERATIONS" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $5 } END { print sum }')
+  PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_NOFREESPACE_ELAPSED_TIME=$(grep "H2_COMPACT_FLUSH_BUFFER_NOFREESPACE_ELAPSED_TIME" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
+  PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_NOFREESPACE_OPERATIONS=$(grep "H2_COMPACT_TOTAL_FLUSH_BUFFER_NOFREESPACE_OPERATIONS" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $5 } END { print sum }')
+  PHASE3_H2_COMPACT_TOTAL_ASYNC_REQUEST_ELAPSED_TIME=$(grep "H2_COMPACT_ASYNC_REQUEST_ELAPSED_TIME" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
+  PHASE3_H2_COMPACT_TOTAL_ASYNC_REQUEST_OPERATIONS=$(grep "H2_COMPACT_TOTAL_ASYNC_REQUEST_OPERATIONS" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $5 } END { print sum }')
+  '
   #H2_COMPACT_GROUP_REGION_LOCK_TIME=$(grep "H2_COMPACT_GROUP_REGION_LOCK_TIME" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $5 } END {print sum }')
   #H2_COMPACT_REGION_LOCK_TIME=$(grep "H2_COMPACT_REGION_LOCK_TIME" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $5 } END {print sum }')
   PHASE3_H2_ADJUST_BWD_REF=$(grep "H2_ADJUST_BWD_REF" "${RESULT_DIR}"/teraHeap.txt | awk '{ sum += $4 } END { print sum }')
@@ -294,18 +331,18 @@ then
     printf "TOTAL_TIME,%.3f\n" "$(echo "$TOTAL_TIME")"
     printf "MINOR_GC,%.3f\n" "$(echo "$MINOR_GC")"
     printf "MAJOR_GC,%.3f\n" "$(echo "$MAJOR_GC")"
-    printf "H1_MARKING_PHASE,%.3f\n" "$(echo "$PHASE1 / 1000" | bc)"
-    printf "H1_SUMMARY_PHASE,%.3f\n" "$(echo "$PHASE2_H1_SUMMARY / 1000" | bc)"
-    printf "H2_COMPACT, %.3f\n" "$(echo "$PHASE3_H2_COMPACT / 1000" | bc)" 
-    printf "H2_ADJUST_BWD_REF,%.3f\n" "$(echo "$PHASE3_H2_ADJUST_BWD_REF / 1000" | bc)"
-    printf "H1_ADJUST_ROOTS,%.3f\n" "$(echo "$PHASE3_H1_ADJUST_ROOTS / 1000" | bc)"
-    printf "H1_COMPACT,%.3f\n" "$(echo "$PHASE4 / 1000" | bc)"
-    printf "H2_CLEAR_FWD_TABLE,%.3f\n" "$(echo "$PHASE5 / 1000" | bc)"
+    printf "H1_MARKING_PHASE,%.3f\n" "$(echo "$PHASE1 / 1000" | bc -l )"
+    printf "H1_SUMMARY_PHASE,%.3f\n" "$(echo "$PHASE2_H1_SUMMARY / 1000" | bc -l )"
+    printf "H2_COMPACT, %.3f\n" "$(echo "$PHASE3_H2_COMPACT / 1000" | bc)"
+    printf "H2_ADJUST_BWD_REF,%.3f\n" "$(echo "$PHASE3_H2_ADJUST_BWD_REF / 1000" | bc -l )"
+    printf "H1_ADJUST_ROOTS,%.3f\n" "$(echo "$PHASE3_H1_ADJUST_ROOTS / 1000" | bc -l )"
+    printf "H1_COMPACT,%.3f\n" "$(echo "$PHASE4 / 1000" | bc -l )"
+    printf "H2_CLEAR_FWD_TABLE,%.3f\n" "$(echo "$PHASE5 / 1000" | bc -l )"
     printf "USR_TIME, %.3f\n" "${USR_TIME}"
     printf "SYS_TIME, %.3f\n" "${SYS_TIME}"
     printf "IOW_TIME, %.3f\n" "${IOW_TIME}"
   } >> "${RESULT_DIR}"/$MAJOR_GC_PHASES_PLOT_TITLE.csv
- 
+
   #source flexheap/bin/activate 
   python3 gc_execution_time_plot.py $MAJOR_GC_PHASES_PLOT_TITLE "${RESULT_DIR}"/$MAJOR_GC_PHASES_PLOT_TITLE.csv "${RESULT_DIR}"
   #deactivate
@@ -317,4 +354,33 @@ then
     grep "DUMMY" "${RESULT_DIR}"/teraHeap.txt | awk '{sum+=$6} END {print "DUMMY_OBJ_SIZE(GB),"sum*8/1024/1024}'
     grep "DISTRIBUTION" "${RESULT_DIR}"/teraHeap.txt |tail -n 1 |awk '{print $5 " " $6 " " $7 " " $8 " " $9 " " $10 " " $11 " " $12" " $13 " " $14 " " $15}'
   } >> "${RESULT_DIR}"/statistics.csv
+fi
+
+if [ $TH ]
+then
+  {
+    for ((i=0; i<GC_THREADS; i++))
+    do
+        echo "H2_COMPACT_MOVED_OBJECTS_PER_GC_THREAD($i),${PHASE3_H2_COMPACT_MOVED_OBJECTS_PER_GC_THREAD[$i]}"
+	echo "H2_COMPACT_MOVED_BYTES_PER_GC_THREAD($i),${PHASE3_H2_COMPACT_MOVED_BYTES_PER_GC_THREAD[$i]}"
+    done
+  } >> "${RESULT_DIR}"/h2_objects_statistics.csv
+fi
+
+if [ $TH ]
+then
+{
+      echo "H2_COMPACT_TOTAL_BUFFER_INSERT_ELAPSED_TIME,${PHASE3_H2_COMPACT_TOTAL_BUFFER_INSERT_ELAPSED_TIME}"
+      echo "H2_COMPACT_TOTAL_BUFFER_INSERT_OPERATIONS,${PHASE3_H2_COMPACT_TOTAL_BUFFER_INSERT_OPERATIONS}"
+      echo "H2_COMPACT_TOTAL_FLUSH_BUFFER_ELAPSED_TIME,${PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_ELAPSED_TIME}"
+      echo "H2_COMPACT_TOTAL_FLUSH_BUFFER_OPERATIONS,${PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_OPERATIONS}"
+      : '
+      echo "H2_COMPACT_TOTAL_FLUSH_BUFFER_FRAGMENTATION_ELAPSED_TIME,${PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_FRAGMENTATION_ELAPSED_TIME}"
+      echo "H2_COMPACT_TOTAL_FLUSH_BUFFER_FRAGMENTATION_OPERATIONS,${PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_FRAGMENTATION_OPERATIONS}"
+      echo "H2_COMPACT_TOTAL_FLUSH_BUFFER_NOFREESPACE_ELAPSED_TIME,${PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_NOFREESPACE_ELAPSED_TIME}"
+      echo "H2_COMPACT_TOTAL_FLUSH_BUFFER_NOFREESPACE_OPERATIONS,${PHASE3_H2_COMPACT_TOTAL_FLUSH_BUFFER_NOFREESPACE_OPERATIONS}"
+      echo "H2_COMPACT_TOTAL_ASYNC_REQUEST_ELAPSED_TIME,${PHASE3_H2_COMPACT_TOTAL_ASYNC_REQUEST_ELAPSED_TIME}"
+      echo "H2_COMPACT_TOTAL_ASYNC_REQUEST_OPERATIONS,${PHASE3_H2_COMPACT_TOTAL_ASYNC_REQUEST_OPERATIONS}"
+'
+  } >> "${RESULT_DIR}"/h2_operations_statistics.csv
 fi

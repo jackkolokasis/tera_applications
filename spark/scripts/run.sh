@@ -14,10 +14,19 @@
 
 . ./conf.sh
 
+# Define the "error" values
+ERRORS[INVALID_OPTION]=1
+ERRORS[INVALID_ARG]=2
+ERRORS[OUT_OF_RANGE]=3
+ERRORS[NOT_AN_INTEGER]=4
+ERRORS[PROGRAMMING_ERROR]=5
+
 #### Global Variables ####
 CUSTOM_BENCHMARK=false
 RUN_TPCDS=false
 PROFILER_PATH=
+#TH=false
+#SERDES=false
 # Print error/usage script message
 usage() {
   echo
@@ -25,17 +34,17 @@ usage() {
   echo -n "      $0 [option ...] [-h]"
   echo
   echo "Options:"
-  echo "      -n  Number of Runs"
-  echo "      -o  Output Path"
-  echo "      -t  Enable TeraHeap"
-  echo "      -s  Enable serialization/deserialization"
-  echo "      -p  Enable perf tool"
-  echo "      -f  Enable profiler tool"
+  echo "      -i, --iterations <runs>  Number of Runs"
+  echo "      -o, --output <path>      Output Path"
+  echo "      -t, --teraheap           Enable TeraHeap"
+  echo "      -s, --spark-native       Enable serialization/deserialization"
+  echo "      -p, --perf-tool          Enable perf tool"
+  echo "      -f, --profiler           Enable profiler tool"
   #echo "      -a  Run experiments with high bench"
-  echo "      -b  Run experiments with custom benchmark"
-  echo "      -q  Run experiments with TPC-DS workloads"
-  echo "      -j  Enable metrics for JIT compiler"
-  echo "      -h  Show usage"
+  echo "      -b, --custom-benchmark   Run experiments with custom benchmark"
+  echo "      -q, --run-tpcds          Run experiments with TPC-DS workloads"
+  echo "      -j, --jit                Enable metrics for JIT compiler"
+  echo "      -h, --help               Show usage"
   echo
 
   exit 1
@@ -286,14 +295,15 @@ kill_watch() {
   kill -9 "$(pgrep -f "mem_usage.sh")" >/dev/null 2>&1
 }
 
+: '
 # Check for the input arguments
-while getopts ":n:o:ktspjfbqh" opt; do
+while getopts ":i:o:ktspjfbqh" opt; do
   case "${opt}" in
-  n)
+  i)
     ITER=${OPTARG}
     ;;
   o)
-    OUTPUT_PATH="${OPTARG}/NATIVE"
+    OUTPUT_PATH="${OPTARG}"
     ;;
   k)
     kill_back_process
@@ -303,10 +313,10 @@ while getopts ":n:o:ktspjfbqh" opt; do
     TH=true
     if [ $ENABLE_FLEXHEAP ]; then
         # Replace "NATIVE" with "FLEXHEAP"
-        OUTPUT_PATH=${OUTPUT_PATH//NATIVE/FLEXHEAP}
+        OUTPUT_PATH="${OUTPUT_PATH}/FLEXHEAP"
     else
         # Replace "NATIVE" with "TERAHEAP"
-        OUTPUT_PATH=${OUTPUT_PATH//NATIVE/TERAHEAP}
+        OUTPUT_PATH="${OUTPUT_PATH}/TERAHEAP"
     fi 
     ;; 
   s)
@@ -335,12 +345,103 @@ while getopts ":n:o:ktspjfbqh" opt; do
     ;;
   esac
 done
+'
+function parse_script_arguments() {
+  local OPTIONS=i:o:e:kpjfbqh
+  local LONGOPTIONS=iterations:,output:,execution:,kill-background-process,perf-tool,jit,profiler,custom-benchmark,run-tpcds,help
+
+  # Use getopt to parse the options
+  local PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS --name "$0" -- "$@")
+
+  # Check for errors in getopt
+  if [[ $? -ne 0 ]]; then
+    exit ${ERRORS[INVALID_OPTION]}
+  fi
+
+  # Evaluate the parsed options
+  eval set -- "$PARSED"
+
+  while true; do
+    case "$1" in
+    -i | --iterations)
+      ITER="$2"
+      #validateIterations
+      shift 2
+      ;;
+    -o | --ouput)
+      OUTPUT_PATH="$2"
+      shift 2
+      ;;
+    -e | --execution)
+      if [[ "$2" == "f" || "$2" == "t" ]]; then
+        TH=true
+      elif [[ "$2" == "s" ]]; then
+        SERDES=true
+      fi    
+      shift 2
+      ;;
+    -k | --kill-background-process)
+      kill_back_process
+      exit 1
+      #shift
+      ;;
+    -p | --perf-tool)
+      PERF_TOOL=true
+      shift
+      ;;
+    -j | --jit)
+      JIT=true
+      shift
+      ;;
+    -f | --profiler)
+      PROFILER=true
+      shift
+      ;;
+    -b | --custom-benchmark)
+      CUSTOM_BENCHMARK=true
+      shift
+      ;;
+    -q | --run-tpcds)
+      RUN_TPCDS=true
+      shift
+      ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      echo "Programming error"
+      exit ${ERRORS[PROGRAMMING_ERROR]} 
+      ;;
+    esac
+  done
+}
+
+parse_script_arguments "$@"
 
 # Create directory for the results if do not exist
 TIME=$(date +"%d-%m-%Y-%T")
+#. conf.sh
+
+if [[ $TH == "true" ]]; then
+    if [[ $ENABLE_FLEXHEAP == "true" ]]; then
+        OUTPUT_PATH="${OUTPUT_PATH}/FLEXHEAP"
+    else
+	OUTPUT_PATH="${OUTPUT_PATH}/TERAHEAP"
+    fi 
+else
+    OUTPUT_PATH="${OUTPUT_PATH}/NATIVE"
+fi 
+
+#echo "OUTPUT_PATH=$OUTPUT_PATH"
+#exit 1
 
 OUT="${OUTPUT_PATH}"
-#echo "Create directory OUT=$OUT"
+echo "Create directory OUT=$OUT"
 mkdir -p "${OUT}"
 
 # Enable perf event
@@ -468,7 +569,7 @@ for benchmark in "${BENCHMARKS[@]}"; do
       if [ $TH ]; then
         TH_METRICS=$(ls -td "${SPARK_DIR}"/work/* | head -n 1)
         cp "${TH_METRICS}"/0/teraHeap.txt "${RUN_DIR}"/
-        ./parse_results.sh -p "${major_gc_phases_plot_title}" -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -t
+        ./parse_results.sh -p "${major_gc_phases_plot_title}" -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -g "${GC_THREADS}" -t
       else
         ./parse_results.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -s
       fi
