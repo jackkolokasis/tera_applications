@@ -49,7 +49,7 @@ SPARK_MASTER=ampere
 # Spark slave host name
 SPARK_SLAVE=ampere
 # Number of garbage collection threads
-GC_THREADS=10
+GC_THREADS=8
 # Device for shuffle : nvme3n1
 DEV_SHFL=md1
 # Mount point for shuffle directory : /mnt/spark
@@ -67,7 +67,7 @@ STRIPE_SIZE=$((REGION_SIZE / CARD_SIZE))
 # TeraCache file size in GB e.g 700 -> 700GB
 H2_FILE_SZ=1000
 # Executor cores
-EXEC_CORES=(16)
+EXEC_CORES=(8)
 # SparkBench directory
 SPARK_BENCH_DIR=$TERA_APPS_HOME/spark/spark-bench
 #Benchmark log
@@ -98,11 +98,11 @@ TERAHEAP_WRITE_POLICY=AsyncWritePolicy
 TERAHEAP_POLICY="DefaultPolicy"
 # Enable FlexHeap
 ENABLE_FLEXHEAP=false
-USE_CGROUPS=true
+USE_CGROUPS=false
 USE_NUMA=false
 #USE_PARALLEL_H2_ALLOCATOR=true
 ENABLE_PARALLEL_H2_COMPACT=true
-ENABLE_PARALLEL_H2_PRECOMPACT=false
+ENABLE_PARALLEL_H2_PRECOMPACT=true
 # Choose a flexheap policy
 # 0: SimpleStateMachine
 # 1: SimpleWaitVersion
