@@ -57,13 +57,20 @@ update_spark_env() {
 }
 
 update_spark_defaults() {
-  local extra_java_opts="spark.executor.extraJavaOptions -server "
-  local NUMA="-XX:-UseNUMA"
-  if [[ $USE_NUMA == true ]]; then
-    NUMA="-XX:+UseNUMA"
+  local GARBAGE_COLLECTOR=""
+  if [[ $GC == "native_g1" ]]; then
+    GARBAGE_COLLECTOR="-XX:+UseG1GC"
+  elif [[ $GC == "native_ps" ]]; then
+    GARBAGE_COLLECTOR="-XX:+UseParallelGC"
+  else
+    GARBAGE_COLLECTOR="-XX:+UseG1GC"
   fi
-  extra_java_opts+="-XX:-ClassUnloading -XX:+UseParallelGC ${NUMA} -XX:ParallelGCThreads=${GC_THREADS} "
-  extra_java_opts+="-XX:-ResizeTLAB -XX:-UseCompressedOops -XX:-UseCompressedClassPointers "
+  
+  local extra_java_opts="spark.executor.extraJavaOptions -server "  
+  #extra_java_opts+="-XX:-ClassUnloading -XX:+UseParallelGC ${NUMA} -XX:ParallelGCThreads=${GC_THREADS} "
+  extra_java_opts+="${GARBAGE_COLLECTOR} -XX:ParallelGCThreads=${GC_THREADS} -XX:ConcGCThreads=$((GC_THREADS / 4)) "
+  extra_java_opts+="-XX:-ResizeTLAB -XX:-ClassUnloading -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:-ClassUnloadingWithConcurrentMark "
+  #extra_java_opts+="-XX:G1HeapWastePercent=0 -XX:G1MixedGCLiveThresholdPercent=100 -XX:InitiatingHeapOccupancyPercent=10 -XX:-G1UseAdaptiveIHOP -XX:G1OldCSetRegionThresholdPercent=100 -XX:-ClassUnloadingWithConcurrentMark  "
   extra_java_opts+=${USER_EXTRA_JAVA_OPTS}
 
   # Change the spark.log.dir
@@ -72,6 +79,8 @@ update_spark_defaults() {
   sed -i '/spark.metrics.conf/c\spark.metrics.conf '"${MASTER_METRIC_FILE}" spark-defaults.conf
   # Change the spark.executor.extraJavaOptions
   sed -i '/^spark\.executor\.extraJavaOptions/s/.*/'"${extra_java_opts}"'/' spark-defaults.conf
+  #sed -i '/spark\.executor\.extraJavaOptions/c\spark\.executor\.extraJavaOptions '"${extra_java_opts}" spark-defaults.conf
+  
   # Change the spark.memory.storageFraction
   sed -i '/storageFraction/c\spark.memory.storageFraction '"${MEM_FRACTION}" spark-defaults.conf
 }
@@ -86,6 +95,14 @@ update_spark_bench() {
   sed -i '/SPARK_EXECUTOR_INSTANCES/c\SPARK_EXECUTOR_INSTANCES='"${NUM_EXECUTORS}" env.sh
   sed -i '/STORAGE_LEVEL/c\STORAGE_LEVEL='"${S_LEVEL}" env.sh
   sed -i '/NUM_OF_PARTITIONS/c\NUM_OF_PARTITIONS='"${NUM_OF_PARTITIONS}" env.sh
+}
+
+update_spark_benchmarks(){
+ for BENCHMARK in "${BENCHMARKS[@]}"; do
+     cd "./configs/workloads/${DATA_SIZE}/${BENCHMARK}/"
+     sed -i '/NUM_OF_PARTITIONS/c\NUM_OF_PARTITIONS='"${NUM_OF_PARTITIONS}" env.sh
+     cd - >/dev/null || exit
+ done
 }
 
 # Check for the input arguments
@@ -111,6 +128,7 @@ update_spark_defaults
 cd - >/dev/null || exit
 
 if [ "${CUSTOM_BENCHMARK}" == "false" ]; then
+  update_spark_benchmarks
   # Enter the spark-bechmarks
   cd "${SPARK_BENCH_DIR}"/conf/ || exit
 

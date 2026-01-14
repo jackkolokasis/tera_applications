@@ -15,6 +15,8 @@
 
 . ./conf.sh
 
+PER_EXECUTOR_H1_H2_SIZE=$((H1_H2_SIZE / NUM_EXECUTORS))
+
 # Print error/usage script message
 usage() {
   echo
@@ -43,6 +45,7 @@ update_spark_env() {
   # Update JAVA_HOME
   sed -i '/JAVA_HOME/c\JAVA_HOME='"${MY_JAVA_HOME}" spark-env.sh
   SPARK_WORKER_MEMORY=$((H1_H2_SIZE * NUM_EXECUTORS))
+  #SPARK_WORKER_MEMORY=$H1_H2_SIZE
   SPARK_WORKER_CORES=$((EXEC_CORES * NUM_EXECUTORS))
   # Change the worker cores
   sed -i '/SPARK_WORKER_CORES/c\SPARK_WORKER_CORES='"${SPARK_WORKER_CORES}" spark-env.sh
@@ -61,9 +64,19 @@ update_spark_env() {
 update_spark_defaults() {
   local TH_BYTES=$(echo "(${H1_H2_SIZE} - ${H1_SIZE}) * 1024 * 1024 * 1024" | bc)
   local NUMA="-XX:-UseNUMA"
+  local GARBAGE_COLLECTOR=""
+  if [[ $GC == "teraheap_g1" || "native_g1" ]]; then
+    GARBAGE_COLLECTOR="-XX:+UseG1GC"
+  elif [[ $GC == "teraheap_ps" || "native_ps" ]]; then
+    GARBAGE_COLLECTOR="-XX:+UseParallelGC"
+  else
+    GARBAGE_COLLECTOR="-XX:+UseG1GC"
+  fi
+
   if [[ $USE_NUMA == true ]]; then
     NUMA="-XX:+UseNUMA"
   fi
+  
   local PARALLEL_H2_PRECOMPACT="-XX:-EnableParallelH2PreCompact"
   if [[ $ENABLE_PARALLEL_H2_PRECOMPACT == true ]]; then
     PARALLEL_H2_PRECOMPACT="-XX:+EnableParallelH2PreCompact"
@@ -72,32 +85,33 @@ update_spark_defaults() {
   if [[ $ENABLE_PARALLEL_H2_COMPACT == true ]]; then
     PARALLEL_H2_COMPACT="-XX:+EnableParallelH2Compact"
   fi
+  
 
+  local DEBUG_FLAGS=""
+  #local DEBUG_FLAGS="-XX:+UnlockExperimentalVMOptions -XX:+PrintAssembly -XX:+PrintInterpreter -XX:+PrintNMethods"
   local extra_java_opts="spark.executor.extraJavaOptions -server "
-  extra_java_opts+="-XX:-ClassUnloading -XX:DEVICE_H2=${DEV_H2} -XX:+UseParallelGC ${PARALLEL_H2_PRECOMPACT} ${PARALLEL_H2_COMPACT} ${NUMA} -XX:ParallelGCThreads=${GC_THREADS} "
+  extra_java_opts+="${DEBUG_FLAGS} "
+  #extra_java_opts+="-XX:-ClassUnloading -XX:DEVICE_H2=${DEV_H2} ${GARBAGE_COLLECTOR} ${PARALLEL_H2_PRECOMPACT} ${PARALLEL_H2_COMPACT} ${NUMA} -XX:ParallelGCThreads=${GC_THREADS} "
+  extra_java_opts+="${GARBAGE_COLLECTOR} -XX:ParallelGCThreads=${GC_THREADS} -XX:ConcGCThreads=$((GC_THREADS / 4)) ${PARALLEL_H2_PRECOMPACT} ${PARALLEL_H2_COMPACT} "
   extra_java_opts+="-XX:+EnableTeraHeap -XX:TeraHeapSize=${TH_BYTES} -Xms${H1_SIZE}g "
-  extra_java_opts+="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers "
+  extra_java_opts+="-XX:-ClassUnloading -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:-ClassUnloadingWithConcurrentMark "
+  #extra_java_opts+="-XX:G1HeapWastePercent=0 -XX:G1MixedGCLiveThresholdPercent=100 -XX:InitiatingHeapOccupancyPercent=10 -XX:-G1UseAdaptiveIHOP -XX:G1OldCSetRegionThresholdPercent=100 -XX:-ClassUnloadingWithConcurrentMark "
 
   if $ENABLE_STATS; then
     extra_java_opts+="-XX:+TeraHeapStatistics -Xlogth:teraHeap.txt "
   fi
-  extra_java_opts+="-XX:TeraHeapWritePolicy=\"${TERAHEAP_WRITE_POLICY}\" "
+  #extra_java_opts+="-XX:TeraHeapWritePolicy=\"${TERAHEAP_WRITE_POLICY}\" "
   extra_java_opts+="-XX:TeraHeapPolicy=\"${TERAHEAP_POLICY}\" -XX:TeraStripeSize=${STRIPE_SIZE} "
   extra_java_opts+="-XX:+ShowMessageBoxOnError "
 
   local H2_FILE_SZ_BYTES=$(echo "${H2_FILE_SZ} * 1024 * 1024 * 1024" | bc)
   local H2_PATH="${MNT_H2//\//\\/}\/"
-  extra_java_opts+="-XX:AllocateH2At=\"${H2_PATH}\" -XX:H2FileSize=${H2_FILE_SZ_BYTES} "
+  extra_java_opts+="-XX:AllocateH2At=\"${H2_PATH}\" -XX:H2FileSize=${H2_FILE_SZ_BYTES} -XX:H2MaxPartitions=${NUM_OF_PARTITIONS} "
 
   echo "[DEBUGGING] ENABLE_FLEXHEAP=$ENABLE_FLEXHEAP"
   if ${ENABLE_FLEXHEAP}; then
     local MEM_BUDGET_BYTES=$(echo "${MEM_BUDGET%G} * 1024 * 1024 * 1024" | bc)
     MEM_BUDGET_BYTES=$(echo "${MEM_BUDGET_BYTES} / ${NUM_EXECUTORS}" | bc)
-    : '
-    if [[ $ALLOCATION_MODE == 2 ]]; then
-      extra_java_opts+="-XX:+AllocateH2H1 "
-    fi
-    '
     extra_java_opts+="-XX:+DynamicHeapResizing -XX:TeraDRAMLimit=${MEM_BUDGET_BYTES} "
     extra_java_opts+="-XX:TeraResizingPolicy=${FLEXHEAP_POLICY} -XX:TeraCPUStatsPolicy=${CPU_STATS_POLICY} "
   fi
@@ -111,6 +125,12 @@ update_spark_defaults() {
   sed -i '/^spark\.executor\.extraJavaOptions/s/.*/'"${extra_java_opts}"'/' spark-defaults.conf
   # Change the spark.memory.fraction
   sed -i '/storageFraction/c\spark.memory.storageFraction '"${MEM_FRACTION}" spark-defaults.conf
+  
+  #FIXME
+  # Change the spark.executor.memory
+  sed -i '/memory/c\spark.executor.memory '"${H1_SIZE}g" spark-defaults.conf 
+  # Change the spark.executor.memoryOverhead
+  sed -i '/memoryOverHead/c\spark.executor.memoryOverhead '"${MEM_OVERHEAD}" spark-defaults.conf
 }
 
 update_spark_bench() {
@@ -123,6 +143,14 @@ update_spark_bench() {
   sed -i '/SPARK_EXECUTOR_INSTANCES/c\SPARK_EXECUTOR_INSTANCES='"${NUM_EXECUTORS}" env.sh
   sed -i '/STORAGE_LEVEL/c\STORAGE_LEVEL='"${S_LEVEL}" env.sh
   sed -i '/NUM_OF_PARTITIONS/c\NUM_OF_PARTITIONS='"${NUM_OF_PARTITIONS}" env.sh
+}
+
+update_spark_benchmarks(){
+ for BENCHMARK in "${BENCHMARKS[@]}"; do
+     cd "./configs/workloads/${DATA_SIZE}/${BENCHMARK}/"
+     sed -i '/NUM_OF_PARTITIONS/c\NUM_OF_PARTITIONS='"${NUM_OF_PARTITIONS}" env.sh
+     cd - >/dev/null || exit
+ done
 }
 
 # Check for the input arguments
@@ -152,6 +180,7 @@ update_spark_defaults
 cd - >/dev/null || exit
 
 if [ "${CUSTOM_BENCHMARK}" == "false" ]; then
+  update_spark_benchmarks
   # Enter the spark-bechmarks
   cd "${SPARK_BENCH_DIR}"/conf/ || exit
 

@@ -16,6 +16,7 @@ ERRORS[NOT_AN_INTEGER]=4
 ERRORS[PROGRAMMING_ERROR]=5
 
 BENCHMARKS=(ConnectedComponent LinearRegression LogisticRegression PageRank)
+NUM_EXECUTORS=1
 EXEC_CORES=16
 GC_THREADS=10
 H2_MOUNT_POINT=
@@ -23,7 +24,7 @@ SHUFFLE_MOUNT_POINT=
 MASTER=
 SLAVE=
 SUDOGROUP=
-
+sed -i "s/^NUM_EXECUTORS=(.*)/NUM_EXECUTORS=( $NUM_EXECUTORS )/" conf.sh
 sed -i "s/^EXEC_CORES=(.*)/EXEC_CORES=( $EXEC_CORES )/" conf.sh
 sed -i "s/^GC_THREADS=.*/GC_THREADS=$GC_THREADS/" conf.sh
 sed -i "s/^H1_SIZE=(.*)/H1_SIZE=( 200 )/" conf.sh
@@ -142,7 +143,7 @@ parse_script_arguments "$@"
 for BENCHMARK in "${BENCHMARKS[@]}"; do
   sed -i "s/^BENCHMARKS=(.*)/BENCHMARKS=( \"$BENCHMARK\" )/" conf.sh
   echo "Checking for dataset $MNT_BENCHMARK_DATASETS/SparkBench/$BENCHMARK"
-
+  echo "DATASET: $MNT_BENCHMARK_DATASETS/SparkBench/$BENCHMARK"
   if [[ -d "$MNT_BENCHMARK_DATASETS/SparkBench/$BENCHMARK" ]]; then
     echo "$BENCHMARK dataset has already been generated."
   else

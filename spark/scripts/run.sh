@@ -24,9 +24,11 @@ ERRORS[PROGRAMMING_ERROR]=5
 #### Global Variables ####
 CUSTOM_BENCHMARK=false
 RUN_TPCDS=false
+PROFILER=false
 PROFILER_PATH=
-#TH=false
-#SERDES=false
+TH=false
+SERDES=false
+PERF_TOOL=false
 # Print error/usage script message
 usage() {
   echo
@@ -86,10 +88,15 @@ build_async_profiler() {
       tar xf async-profiler-2.9-linux-x64.tar.gz >>"${BENCH_LOG}" 2>&1
       mv async-profiler-2.9-linux-x64 async-profiler
       '
-    elif [ $cpu_arch == aarch64 ]; then
+    elif [ $cpu_arch == aarch64 ]; then 
+      wget https://github.com/async-profiler/async-profiler/releases/download/v4.1/async-profiler-4.1-linux-arm64.tar.gz >>"${BENCH_LOG}" 2>&1
+      tar xf async-profiler-4.1-linux-arm64.tar.gz >>"${BENCH_LOG}" 2>&1
+      mv async-profiler-4.1-linux-arm64 async-profiler
+      : '
       wget https://github.com/async-profiler/async-profiler/releases/download/v3.0/async-profiler-3.0-linux-arm64.tar.gz >>"${BENCH_LOG}" 2>&1
       tar xf async-profiler-3.0-linux-arm64.tar.gz >>"${BENCH_LOG}" 2>&1
       mv async-profiler-3.0-linux-arm64 async-profiler
+      '
       : '
       wget https://github.com/async-profiler/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-arm64.tar.gz >>"${BENCH_LOG}" 2>&1
       tar xf async-profiler-2.9-linux-arm64.tar.gz >>"${BENCH_LOG}" 2>&1
@@ -130,7 +137,7 @@ run_cgexec() {
 ##
 start_spark() {
   if [[ $USE_CGROUPS == true ]]; then
-    setup_cgroup
+    #setup_cgroup
     run_cgexec "${SPARK_DIR}"/sbin/start-all.sh >>"${BENCH_LOG}" 2>&1
   else
     "${SPARK_DIR}"/sbin/start-all.sh >>"${BENCH_LOG}" 2>&1
@@ -250,11 +257,19 @@ printStartMsg() {
   echo "      WORKLOAD   : $1"
   echo "      EXECUTORS  : $2"
   echo "      MUTATORS   : $3"
+  local GARBAGE_COLLECTOR=""
+  if [[ $GC == "teraheap_g1" ]]; then
+    GARBAGE_COLLECTOR="G1"
+  elif [[ $GC == "teraheap_ps" ]]; then
+    GARBAGE_COLLECTOR="Parallel Scavenge"
+  fi
+  echo "      GC         : $GARBAGE_COLLECTOR"
   echo "      GC_THREADS : $4"
   echo "      H1_SIZE    : $5G"
   echo "      H1_H2_SIZE : $6G"
   echo "      MEM_BUDGET : $7G"
-  echo -n "      ITERATION: "
+  echo "      ITERATION  : $8"
+  echo
 }
 
 ##
@@ -278,7 +293,7 @@ printEndMsg() {
 }
 
 gen_config_files() {
-  if [ "$SERDES" ]; then
+  if [[ $SERDES == "true" ]]; then
     cp ./configs/native/spark-defaults.conf "${SPARK_DIR}"/conf
   else
     cp ./configs/teraheap/spark-defaults.conf "${SPARK_DIR}"/conf
@@ -295,57 +310,6 @@ kill_watch() {
   kill -9 "$(pgrep -f "mem_usage.sh")" >/dev/null 2>&1
 }
 
-: '
-# Check for the input arguments
-while getopts ":i:o:ktspjfbqh" opt; do
-  case "${opt}" in
-  i)
-    ITER=${OPTARG}
-    ;;
-  o)
-    OUTPUT_PATH="${OPTARG}"
-    ;;
-  k)
-    kill_back_process
-    exit 1
-    ;;
-  t)
-    TH=true
-    if [ $ENABLE_FLEXHEAP ]; then
-        # Replace "NATIVE" with "FLEXHEAP"
-        OUTPUT_PATH="${OUTPUT_PATH}/FLEXHEAP"
-    else
-        # Replace "NATIVE" with "TERAHEAP"
-        OUTPUT_PATH="${OUTPUT_PATH}/TERAHEAP"
-    fi 
-    ;; 
-  s)
-    SERDES=true
-    ;;
-  p)
-    PERF_TOOL=true
-    ;;
-  j)
-    JIT=true
-    ;;
-  f)
-    PROFILER=true
-    ;;
-  b)
-    CUSTOM_BENCHMARK=true
-    ;;
-  q)
-    RUN_TPCDS=true
-    ;;
-  h)
-    usage
-    ;;
-  *)
-    usage
-    ;;
-  esac
-done
-'
 function parse_script_arguments() {
   local OPTIONS=i:o:e:kpjfbqh
   local LONGOPTIONS=iterations:,output:,execution:,kill-background-process,perf-tool,jit,profiler,custom-benchmark,run-tpcds,help
@@ -456,25 +420,28 @@ build_async_profiler
 
 # Run each benchmark
 for benchmark in "${BENCHMARKS[@]}"; do
-  printStartMsg "${benchmark}" "${NUM_EXECUTORS}" "${EXEC_CORES}" "${GC_THREADS}" "${H1_SIZE}" "${H1_H2_SIZE}" "${MEM_BUDGET}"
+  #printStartMsg "${benchmark}" "${NUM_EXECUTORS}" "${EXEC_CORES}" "${GC_THREADS}" "${H1_SIZE}" "${H1_H2_SIZE}" "${MEM_BUDGET}" "${i}"
   STARTTIME=$(date +%s)
   major_gc_phases_plot_title="${benchmark}_PARTITIONS=${NUM_OF_PARTITIONS}_REGIONSIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G"
   mkdir -p "${OUT}/${benchmark}/PARTITIONS=${NUM_OF_PARTITIONS}_REGION_SIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G_${TIME}"
 
   # For every iteration
   for ((i = 0; i < ITER; i++)); do
+    printStartMsg "${benchmark}" "${NUM_EXECUTORS}" "${EXEC_CORES}" "${GC_THREADS}" "${H1_SIZE}" "${H1_H2_SIZE}" "${MEM_BUDGET}" "${i}"
     mkdir -p "${OUT}/${benchmark}/PARTITIONS=${NUM_OF_PARTITIONS}_REGION_SIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G_${TIME}/run${i}"
     # For every configuration
     for ((j = 0; j < TOTAL_CONFS; j++)); do
       mkdir -p "${OUT}/${benchmark}/PARTITIONS=${NUM_OF_PARTITIONS}_REGION_SIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G_${TIME}/run${i}/conf${j}"
       RUN_DIR="${OUT}/${benchmark}/PARTITIONS=${NUM_OF_PARTITIONS}_REGION_SIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G_${TIME}/run${i}/conf${j}"
       # Set configuration
-      if [ $SERDES ]; then
+      if [[ $SERDES == "true" ]]; then
         ./update_conf.sh -b "${CUSTOM_BENCHMARK}"
       else
         ./update_conf_th.sh -b "${CUSTOM_BENCHMARK}"
       fi
 
+      setup_cgroup
+      
       start_spark
 
       if [ -z "$JIT" ]; then
@@ -488,16 +455,16 @@ for benchmark in "${BENCHMARKS[@]}"; do
       # Monitor memory
       ./mem_usage.sh "${RUN_DIR}"/mem_usage.txt "${NUM_EXECUTORS}" &
 
-      if [ $PERF_TOOL ]; then
+      if [[ $PERF_TOOL == "true" ]]; then
         # Count total cache references, misses and pagefaults
         ./perf.sh ${RUN_DIR}/perf ${NUM_EXECUTORS} &
       fi
 
       #./serdes.sh ${RUN_DIR}/serdes ${NUM_EXECUTORS} &
-      #./serdes.sh ${RUN_DIR}/serdes ${NUM_EXECUTORS} ${PROFILER_PATH}/bin/asprof &
+      ./serdes.sh ${RUN_DIR}/serdes ${NUM_EXECUTORS} ${PROFILER_PATH}/bin/asprof &
 
       # Enable profiler
-      if [ ${PROFILER} ]; then
+      if [[ $PROFILER == "true" ]]; then
         #./profiler.sh ${RUN_DIR}/profile.svg ${NUM_EXECUTORS} ${PROFILER_PATH}/bin/asprof &
         #./profiler.sh ${RUN_DIR}/profile.html ${NUM_EXECUTORS} ${PROFILER_PATH}/bin/asprof &
 	./profiler.sh ${RUN_DIR}/serdes ${NUM_EXECUTORS} ${PROFILER_PATH}/bin/asprof &
@@ -514,15 +481,15 @@ for benchmark in "${BENCHMARKS[@]}"; do
       # System statistics start
       ./system_util/start_statistics.sh -d "${RUN_DIR}"
 
-      if [ $CUSTOM_BENCHMARK == "true" ]; then
-        if [ $RUN_TPCDS == "true" ]; then
+      if [[ $CUSTOM_BENCHMARK == "true" ]]; then
+        if [[ $RUN_TPCDS == "true" ]]; then
           run_cgexec ./run_tpcds.sh "${RUN_DIR}" "${H1_SIZE[$j]}" "${benchmark}"
         else
           run_cgexec ./custom_benchmarks.sh "${RUN_DIR}" "$SERDES"
         fi
       else
         # Run benchmark and save output to tmp_out.txt
-        if [ "$USE_CGROUPS" == true ]; then
+        if [[ "$USE_CGROUPS" == true ]]; then
           run_cgexec "${SPARK_BENCH_DIR}"/"${benchmark}"/bin/run.sh >"${RUN_DIR}"/tmp_out.txt 2>&1
         else
           "${SPARK_BENCH_DIR}"/"${benchmark}"/bin/run.sh >"${RUN_DIR}"/tmp_out.txt 2>&1
@@ -542,12 +509,12 @@ for benchmark in "${BENCHMARKS[@]}"; do
 
       stop_spark
 
-      #delete_cgroup
+      delete_cgroup
 
-      if [ $SERDES ]; then
+      if [[ $SERDES == "true" ]]; then
         # Parse cpu and disk statistics results
         ./system_util/extract-data.sh -r "${RUN_DIR}" -d "${DEV_SHFL}" -d "${DEV_H2}" >>"${BENCH_LOG}" 2>&1
-      elif [ $TH ]; then
+      elif [[ $TH == "true" ]]; then
         # Parse cpu and disk statistics results
         ./system_util/extract-data.sh -r "${RUN_DIR}" -d "${DEV_H2}" -d "${DEV_SHFL}" >>"${BENCH_LOG}" 2>&1
       fi
@@ -560,18 +527,24 @@ for benchmark in "${BENCHMARKS[@]}"; do
         tail -n 1 "${SPARK_BENCH_DIR}"/num/bench-report.dat >>"${RUN_DIR}"/total_time.txt
       fi
 
-      if [ $PERF_TOOL ]; then
+      if [[ $PERF_TOOL == "true" ]]; then
         # Stop perf monitor
         stop_perf
       fi
 
+      METRICS_DIR=$(ls -td "${SPARK_DIR}"/work/* | head -n 1)
+      # Copy the gc log to the directory with the results
+      cp "${METRICS_DIR}"/0/gc.log "${RUN_DIR}"/
+
       # Parse results
-      if [ $TH ]; then
-        TH_METRICS=$(ls -td "${SPARK_DIR}"/work/* | head -n 1)
-        cp "${TH_METRICS}"/0/teraHeap.txt "${RUN_DIR}"/
-        ./parse_results.sh -p "${major_gc_phases_plot_title}" -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -g "${GC_THREADS}" -t
+      if [[ $TH == "true" ]]; then
+	cp "${METRICS_DIR}"/0/teraHeap.txt "${RUN_DIR}"/
+        ./parse_results_g1.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -t
+	#./parse_results_g1.sh -d "${RUN_DIR}" -t
+        #./parse_results.sh -p "${major_gc_phases_plot_title}" -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -g "${GC_THREADS}" -t
       else
-        ./parse_results.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -s
+        #./parse_results_g1.sh -d "${RUN_DIR}" -s
+        ./parse_results_g1.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -s
       fi
     done
   done

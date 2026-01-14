@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #set -x
-
+. ./conf.sh
 # Declare an associative array used for error handling
 declare -A ERRORS
 
@@ -12,7 +12,7 @@ ERRORS[OUT_OF_RANGE]=3
 ERRORS[NOT_AN_INTEGER]=4
 ERRORS[PROGRAMMING_ERROR]=5
 
-BENCHMARKS=("LinearRegression" "LogisticRegression" "ConnectedComponent" "PageRank")
+#BENCHMARKS=("LinearRegression" "LogisticRegression" "ConnectedComponent" "PageRank")
 EXECUTOR_CORES=(80 40 20 10)
 #EXECUTOR_CORES=(160 80 40 32 20 16 8 4 2 1)
 #STORAGE_LEVELS=("MEMORY_ONLY" "MEMORY_AND_DISK")
@@ -25,80 +25,19 @@ SHUFFLE_MOUNT_POINT=
 ITERATIONS=1
 #H2_ALLOCATOR_MODE=0 #0:Serial, 1:Parallel_H2PreCompact, 2:Paralell_H2Compact, 3:Parallel_H2PreCompact + Parallel_H2Compact
 CONFIG_FILE=
-JAVA_BUILD="release"
 MASTER=
 SLAVE=
 EXECUTION="t" #t|teraheap f|flexheap n|native
+TERAHEAP_HOME=
 JDK_PATH=
-PROFILER=
-
+PROFILER=false
 # Define a "delimiter" to simulate multidimensional associative arrays
 delimiter=":"
 
 # Define mappings for H1_SIZE and MEM_BUDGET for each benchmark and EXEC_CORES
 # ["BENCHMARK:CORES"]="H1_SIZE:MEM_BUDGET"
-declare -A CONFIG_MAP=(
-  ["LinearRegression${delimiter}1"]="160:200"
-  ["LinearRegression${delimiter}2"]="160:200"
-  ["LinearRegression${delimiter}4"]="160:200"
-  ["LinearRegression${delimiter}8"]="160:200"
-  ["LinearRegression${delimiter}10"]="160:200"
-  ["LinearRegression${delimiter}16"]="160:200"
-  ["LinearRegression${delimiter}20"]="160:200"
-  ["LinearRegression${delimiter}32"]="160:200"
-  ["LinearRegression${delimiter}40"]="160:200"
-  ["LinearRegression${delimiter}60"]="160:200"
-  ["LinearRegression${delimiter}80"]="160:200"
-  ["LinearRegression${delimiter}100"]="160:200"
-  ["LinearRegression${delimiter}120"]="160:200"
-  ["LinearRegression${delimiter}140"]="160:200"
-  ["LinearRegression${delimiter}160"]="160:200"
-  ["LogisticRegression${delimiter}1"]="160:200"
-  ["LogisticRegression${delimiter}2"]="160:200"
-  ["LogisticRegression${delimiter}4"]="160:200"
-  ["LogisticRegression${delimiter}8"]="160:200"
-  ["LogisticRegression${delimiter}10"]="160:200"
-  ["LogisticRegression${delimiter}16"]="160:200"
-  ["LogisticRegression${delimiter}20"]="160:200"
-  ["LogisticRegression${delimiter}32"]="160:200"
-  ["LogisticRegression${delimiter}40"]="160:200"
-  ["LogisticRegression${delimiter}60"]="160:200"
-  ["LogisticRegression${delimiter}80"]="160:200"
-  ["LogisticRegression${delimiter}100"]="160:200"
-  ["LogisticRegression${delimiter}120"]="160:200"
-  ["LogisticRegression${delimiter}140"]="160:200"
-  ["LogisticRegression${delimiter}160"]="160:200"
-  ["PageRank${delimiter}1"]="160:200"
-  ["PageRank${delimiter}2"]="160:200"
-  ["PageRank${delimiter}4"]="160:200"
-  ["PageRank${delimiter}8"]="160:200"
-  ["PageRank${delimiter}10"]="160:200"
-  ["PageRank${delimiter}16"]="160:200"
-  ["PageRank${delimiter}20"]="160:200"
-  ["PageRank${delimiter}32"]="160:200"
-  ["PageRank${delimiter}40"]="160:200"
-  ["PageRank${delimiter}60"]="160:200"
-  ["PageRank${delimiter}80"]="160:200"
-  ["PageRank${delimiter}100"]="160:200"
-  ["PageRank${delimiter}120"]="160:200"
-  ["PageRank${delimiter}140"]="160:200"
-  ["PageRank${delimiter}160"]="160:200"
-  ["ConnectedComponent${delimiter}1"]="160:200"
-  ["ConnectedComponent${delimiter}2"]="160:200"
-  ["ConnectedComponent${delimiter}4"]="160:200"
-  ["ConnectedComponent${delimiter}8"]="160:200"
-  ["ConnectedComponent${delimiter}10"]="160:200"
-  ["ConnectedComponent${delimiter}16"]="160:200"
-  ["ConnectedComponent${delimiter}20"]="160:200"
-  ["ConnectedComponent${delimiter}32"]="160:200"
-  ["ConnectedComponent${delimiter}40"]="160:200"
-  ["ConnectedComponent${delimiter}60"]="160:200"
-  ["ConnectedComponent${delimiter}80"]="160:200"
-  ["ConnectedComponent${delimiter}100"]="160:200"
-  ["ConnectedComponent${delimiter}120"]="160:200"
-  ["ConnectedComponent${delimiter}140"]="160:200"
-  ["ConnectedComponent${delimiter}160"]="160:200"
-)
+
+declare -A CONFIG_MAP=()
 
 # Backup original conf.sh
 #cp conf.sh conf.sh.backup
@@ -142,6 +81,8 @@ function usage() {
 }
 
 function run_benchmarks() {
+  sed -i "s|^TERAHEAP_HOME=.*|TERAHEAP_HOME=${TERAHEAP_HOME}|" conf.sh
+  export TERAHEAP_HOME=$TERAHEAP_HOME
   sed -i "s|^MY_JAVA_HOME=.*|MY_JAVA_HOME=${JDK_PATH}|" conf.sh
   export MY_JAVA_HOME=$JDK_PATH
 
@@ -156,51 +97,90 @@ function run_benchmarks() {
   # Outer loop - BENCHMARKS
   for BENCHMARK in "${BENCHMARKS[@]}"; do
     sed -i "s/^BENCHMARKS=(.*)/BENCHMARKS=(\"$BENCHMARK\")/" conf.sh
+    echo "BENCHMARK:$BENCHMARK"
+    cd "./configs/workloads/${DATA_SIZE}/${BENCHMARK}/" || exit
+    sed -i '/NUM_OF_PARTITIONS/c\NUM_OF_PARTITIONS='"$NUM_OF_PARTITIONS" env.sh
+    sed -i '/SPARK_STORAGE_MEMORYFRACTION/c\SPARK_STORAGE_MEMORYFRACTION='"$MEM_FRACTION" env.sh
+    cd - >/dev/null || exit
+
+    if [[ $BENCHMARK == "PageRank" || $BENCHMARK == "ConnectedComponent" ]]; then
+        sed -i 's/^H1_MEM_REGION_SIZE=.*/H1_MEM_REGION_SIZE=16/' conf.sh
+    elif [[ $BENCHMARK == "LinearRegression" || $BENCHMARK == "LogisticRegression" ]]; then
+	sed -i 's/^H1_MEM_REGION_SIZE=.*/H1_MEM_REGION_SIZE=8/' conf.sh
+    fi   
+ 
     # Middle loop - STORAGE_LEVELS
     for STORAGE_LEVEL in "${STORAGE_LEVELS[@]}"; do
       sed -i "s/^S_LEVEL=(.*)/S_LEVEL=(\"$STORAGE_LEVEL\")/" conf.sh
+      : '
+      for EXECUTORS in "${NUM_EXECUTORS[@]}"; do
+      '
+              # Inner loop - EXECUTOR_CORES
+	      
+	      for MUTATOR_THREADS in "${EXECUTOR_CORES[@]}"; do
+		cd "$DISABLE_CORES_DIR" || exit
+		sudo ./disable_cpus.sh -f 1 -e
+		sudo ./disable_cpus.sh -f $MUTATOR_THREADS -d
+		cd - >/dev/null || exit
+		
+		if [[ $STORAGE_LEVEL == "MEMORY_AND_DISK" && $MUTATOR_THREADS -gt 40 ]]; then
+		  continue
+		fi
+              
+		# Construct the key for fetching the configuration
+		key="${BENCHMARK}${delimiter}${MUTATOR_THREADS}"
+                #key="${BENCHMARK}${delimiter}${EXECUTORS}"
+		# Fetch the configuration using the constructed key
+		config="${CONFIG_MAP[$key]}"
+		# Split the configuration into H1_SIZE and MEM_BUDGET
+		IFS=':' read -r H1_SIZE MEM_BUDGET <<<"$config"
+		#IFS=':' read -r MUTATOR_THREADS H1_SIZE <<<"$config"
+		# Update H1_SIZE, MEM_BUDGET, BENCHMARKS and EXEC_CORES in conf.sh
+		sed -i "s/^H1_SIZE=(.*)/H1_SIZE=( $H1_SIZE )/" conf.sh
+		sed -i "s/^MEM_BUDGET=.*/MEM_BUDGET=${MEM_BUDGET}G/" conf.sh
+		sed -i "s/^EXEC_CORES=(.*)/EXEC_CORES=($MUTATOR_THREADS)/" conf.sh
 
-      # Inner loop - EXECUTOR_CORES
-      for MUTATOR_THREADS in "${EXECUTOR_CORES[@]}"; do
-        if [[ $STORAGE_LEVEL == "MEMORY_AND_DISK" && $MUTATOR_THREADS -gt 40 ]]; then
-          continue
-        fi
+                # per-executor "soft" budget in GB (heap + overhead)
+                #PER_EXEC_BUDGET="$(( H1_SIZE + MEM_OVERHEAD ))"
+	        #MEM_BUDGET="$(( EXECUTORS * PER_EXEC_BUDGET ))"
+	        #sed -i "s/^MEM_BUDGET=.*/MEM_BUDGET=${MEM_BUDGET}G/" conf.sh
 
-        # Construct the key for fetching the configuration
-        key="${BENCHMARK}${delimiter}${MUTATOR_THREADS}"
-        # Fetch the configuration using the constructed key
-        config="${CONFIG_MAP[$key]}"
-        # Split the configuration into H1_SIZE and MEM_BUDGET
-        IFS=':' read -r H1_SIZE MEM_BUDGET <<<"$config"
-        # Update H1_SIZE, MEM_BUDGET, BENCHMARKS and EXEC_CORES in conf.sh
-        sed -i "s/^H1_SIZE=(.*)/H1_SIZE=( $H1_SIZE )/" conf.sh
-        sed -i "s/^MEM_BUDGET=.*/MEM_BUDGET=${MEM_BUDGET}G/" conf.sh
-        sed -i "s/^EXEC_CORES=(.*)/EXEC_CORES=($MUTATOR_THREADS)/" conf.sh
+		if [[ $MUTATOR_THREADS -le 8 ]]; then
+		  GC_THREADS=$MUTATOR_THREADS
+		else
+		  # Compute GC_THREADS based on MUTATOR_THREADS using bc, properly rounding to the nearest integer
+		  GC_THREADS=$(echo "$MUTATOR_THREADS * 5 / 8" | bc -l)
+		  # Round the result by adding 0.5 and then truncating the decimal part
+		  GC_THREADS=$(echo "$GC_THREADS + 0.5" | bc)
+		  # Since bc does not automatically drop the decimal part when scale is not set, explicitly truncate the decimal part
+		  GC_THREADS=$(echo "$GC_THREADS / 1" | bc)
+		fi
+		sed -i "s/^GC_THREADS=.*/GC_THREADS=$GC_THREADS/" conf.sh
 
-        if [[ $MUTATOR_THREADS -le 8 ]]; then
-          GC_THREADS=$MUTATOR_THREADS
-        else
-          # Compute GC_THREADS based on MUTATOR_THREADS using bc, properly rounding to the nearest integer
-          GC_THREADS=$(echo "$MUTATOR_THREADS * 5 / 8" | bc -l)
-          # Round the result by adding 0.5 and then truncating the decimal part
-          GC_THREADS=$(echo "$GC_THREADS + 0.5" | bc)
-          # Since bc does not automatically drop the decimal part when scale is not set, explicitly truncate the decimal part
-          GC_THREADS=$(echo "$GC_THREADS / 1" | bc)
-        fi
-        sed -i "s/^GC_THREADS=.*/GC_THREADS=$GC_THREADS/" conf.sh
-
-        # Execute run.sh with conditional flags based on EXECUTION
-        #./run.sh -i $ITERATIONS -o $RESULTS_PATH "-$EXECUTION" "-$PROFILER"
-        ./run.sh -i $ITERATIONS -o $RESULTS_PATH -e $EXECUTION "-$PROFILER"
-      done
+		# Execute run.sh with conditional flags based on EXECUTION
+		if [[ $PROFILER == "true" ]]; then
+		#./run.sh -i $ITERATIONS -o $RESULTS_PATH "-$EXECUTION" "-$PROFILER"
+		    ./run.sh -i $ITERATIONS -o $RESULTS_PATH -e $EXECUTION "-f"
+	        else
+		    ./run.sh -i $ITERATIONS -o $RESULTS_PATH -e $EXECUTION	
+		fi
+	      done
+      #done
     done
   done
   sed -i "s/^USE_CGROUPS=.*/USE_CGROUPS=false/" conf.sh
+  
+  cd "$DISABLE_CORES_DIR" || exit
+  sudo ./disable_cpus.sh -f 1 -e
+  cd - >/dev/null || exit
 }
 
 function parse_script_arguments() {
-  local OPTIONS=t:g:m:s:e:b:j:f:p:d:r:l:i:w:a:ncoh
-  local LONGOPTIONS=teraheap-home:,sudo-group:,master:,slave:,execution:,build:,jdk:,h2-dir:,shuffle-dir:,datasets:,results:,load-config:,iterations:,write-to-h2-policy:,h2-allocator:,numa,cgroups,profiler,help
+  #local OPTIONS=t:g:m:s:e:b:j:f:p:d:r:l:i:w:a:ncoh
+  #local LONGOPTIONS=teraheap-home:,sudo-group:,master:,slave:,execution:,build:,jdk:,h2-dir:,shuffle-dir:,datasets:,results:,load-config:,iterations:,write-to-h2-policy:,h2-allocator:,numa,cgroups,profiler,help
+  local OPTIONS=g:m:s:e:j:f:p:t:d:r:l:i:w:a:ncoh
+  local LONGOPTIONS=sudo-group:,master:,slave:,execution:,jdk:,h2-dir:,shuffle-dir:,tasks:,datasets:,results:,load-config:,iterations:,write-to-h2-policy:,h2-allocator:,numa,cgroups,profiler,help
+
 
   # Use getopt to parse the options
   local PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS --name "$0" -- "$@")
@@ -215,11 +195,6 @@ function parse_script_arguments() {
 
   while true; do
     case "$1" in
-    -t | --teraheap-home)
-      TERAHEAP_HOME="$2"
-      sed -i "s|^TERAHEAP_HOME=.*|TERAHEAP_HOME=${TERAHEAP_HOME}|" conf.sh
-      shift 2
-      ;;
     -g | --sudo-group)
       SUDOGROUP="$2"
       sed -i "s|^SUDOGROUP=.*|SUDOGROUP=${SUDOGROUP}|" conf.sh
@@ -240,39 +215,31 @@ function parse_script_arguments() {
         EXECUTION="f"
 	#sed -i "s|^ENABLE_FLEXHEAP=.*|ENABLE_FLEXHEAP=true|" conf.sh
         sed -i "s/^ENABLE_FLEXHEAP=.*/ENABLE_FLEXHEAP=true/" conf.sh
-      elif [[ "$2" == "t" || "$2" == "teraheap" ]]; then
-        EXECUTION="t"
+      elif [[ "$2" == "teraheap_g1" || "$2" == "teraheap_ps" ]]; then
+	sed -i "s/^GC=.*/GC="$2"/" conf.sh 
+	EXECUTION="t"
         #sed -i "s|^ENABLE_FLEXHEAP=.*|ENABLE_FLEXHEAP=false|" conf.sh
 	sed -i "s/^ENABLE_FLEXHEAP=.*/ENABLE_FLEXHEAP=false/" conf.sh
-      elif [[ "$2" == "n" || "$2" == "native" ]]; then
-        EXECUTION="s"
+      elif [[ "$2" == "native_g1" || "$2" == "native_ps" ]]; then
+	sed -i "s/^GC=.*/GC="$2"/" conf.sh 
+	EXECUTION="s"
         sed -i "s/^ENABLE_FLEXHEAP=.*/ENABLE_FLEXHEAP=false/" conf.sh
       else
-        echo "Invalid execution mode; Please provide: [f|flexheap] | [t|teraheap] [n|native]"
-        exit ${ERRORS[INVALID_OPTION]}
-      fi
-      shift 2
-      ;;
-    -b | --build)
-      JAVA_BUILD="$2"
-      if [[ "$2" == "r" || "$2" == "release" ]]; then
-        JAVA_BUILD=$TERA_JDK17_AARCH64_RELEASE
-      elif [[ "$2" == "f" || "$2" == "fastdebug" ]]; then
-        JAVA_BUILD=$TERA_JDK17_AARCH64_FASTDEBUG
-      else
-        echo "Invalid java build; Please provide r|release or f|fastdebug"
+        echo "Invalid execution mode; Please provide: [f|flexheap] | [teraheap_g1|teraheap_ps] [native_g1]"
         exit ${ERRORS[INVALID_OPTION]}
       fi
       shift 2
       ;;
     -j | --jdk)
-      if [[ -f "$2"/bin/java ]]; then
-        JDK_PATH="$2"
-      elif [[ -f $TERAHEAP_HOME/"$2"/bin/java ]]; then
-        JDK_PATH=$TERAHEAP_HOME/"$2"
+      # Only initialize if bin/java exists and is executable
+      if [ -x "$2/bin/java" ]; then
+	 JDK_PATH="$2"
+	 # Strip everything from the first "/jdk..." onward → leaves ".../teraheap"
+	 TERAHEAP_HOME="${JDK_PATH%%/jdk*}"
+	 echo "JDK_PATH=$JDK_PATH"
+	 echo "TERAHEAP_HOME=$TERAHEAP_HOME"
       else
-        echo "Error: '$TERAHEAP_HOME/$JDK_PATH/bin/java' does not exist."
-        exit 1
+	 echo "bin/java not found under '$2' – not setting JDK_PATH/TERAHEAP_HOME" >&2
       fi
       shift 2
       ;;
@@ -294,6 +261,10 @@ function parse_script_arguments() {
       sed -i "s|^DEV_SHFL=.*|DEV_SHFL=${DEVICE_NAME}|" conf.sh
       # Update the conf.sh script with the mount point for MNT_SHFL
       sed -i "s|^MNT_SHFL=.*|MNT_SHFL=${SHUFFLE_MOUNT_POINT}|" conf.sh
+      shift 2
+      ;;
+    -t | --tasks)
+      sed -i "s/^NUM_OF_PARTITIONS=.*/NUM_OF_PARTITIONS=$2/" conf.sh
       shift 2
       ;;
     -d | --datasets)
@@ -320,6 +291,7 @@ function parse_script_arguments() {
 
         # Load the configuration into a local variable
         local config_string=$(load_config)
+	echo "config_string:$config_string"
         # Parse the configuration string and populate the associative array
         while IFS== read -r key value; do
           NEW_CONFIG_MAP["$key"]="$value"
@@ -376,7 +348,7 @@ function parse_script_arguments() {
       shift
       ;;
     -o | --profiler)
-      PROFILER="f"
+      PROFILER=true
       shift
       ;;
     -h | --help)
@@ -418,6 +390,3 @@ function validateIterations() {
 parse_script_arguments "$@"
 run_benchmarks
 
-# Restore the original conf.sh to leave no side effects
-#cp conf.sh.backup conf.sh
-#rm conf.sh.backup

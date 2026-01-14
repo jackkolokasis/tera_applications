@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 #TERAHEAP_HOME=$HOME/teraheap
+#TERAHEAP_HOME=/spare/s1/perpap/csd/teraheap
+TERAHEAP_HOME=/spare/s1/perpap/melidonis_g1/teraheap
 export LIBRARY_PATH=$TERAHEAP_HOME/allocator/lib:$TERAHEAP_HOME/tera_malloc/lib:$LIBRARY_PATH
 export LD_LIBRARY_PATH=$TERAHEAP_HOME/allocator/lib:$TERAHEAP_HOME/tera_malloc/lib:$LD_LIBRARY_PATH
 #export PATH=$TERAHEAP_HOME/allocator/include:$TERAHEAP_HOME/tera_malloc/include:$PATH
