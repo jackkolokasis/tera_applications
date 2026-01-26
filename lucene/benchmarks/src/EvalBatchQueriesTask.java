@@ -51,19 +51,26 @@ public class EvalBatchQueriesTask extends Thread {
   private ConcurrentHashMap<Integer, Long> qTime;
   private int startQueryNo;
   private int numWorkers;
+  private long startTime;
 
   // Constructor to initialize all the parameters
   public EvalBatchQueriesTask(String queriesFile,
                               IndexSearcher searcher,
                               int noOfResults,
                               ConcurrentHashMap<Integer, Long> qExecTimes,
-                              int startQueryNo, int numWorkers) {
+                              int startQueryNo, int numWorkers, long startTime) {
     this.qFile = queriesFile;
     this.search = searcher;
     this.numResults = noOfResults;
     this.qTime = qExecTimes;
     this.startQueryNo = startQueryNo;
     this.numWorkers = numWorkers;
+    this.startTime = startTime;
+  }
+  
+  public void logTimestamp(String phaseName) {
+    long elapsedMillis = System.currentTimeMillis() - startTime;
+    System.err.println(phaseName + "," + elapsedMillis);
   }
   
   @Override
@@ -103,10 +110,16 @@ public class EvalBatchQueriesTask extends Thread {
     int qNo = startQNo;
     int currentBatchSize = 0;
     int batchSize = 2000;
+    boolean enableLogging = true;
     
     while ((query = queriesReader.readLine()) != null) {
       final String currentQuery = query;
       final int currentQNo = qNo;
+
+      if (enableLogging) {
+        logTimestamp("Start Phase");
+        enableLogging = false;
+      }
 
       executorService.submit(() -> {
         try {
@@ -131,6 +144,9 @@ public class EvalBatchQueriesTask extends Thread {
           e.printStackTrace();
           Thread.currentThread().interrupt(); // Preserve interrupt status
         }
+      
+        logTimestamp("End Phase");
+        enableLogging = true;
 
         try {
           Thread.sleep(sleepDuration);
@@ -154,6 +170,8 @@ public class EvalBatchQueriesTask extends Thread {
       e.printStackTrace();
       Thread.currentThread().interrupt(); // Preserve interrupt status
     }
+    logTimestamp("End Phase");
+    enableLogging = true;
   }
 
   // helper fn
