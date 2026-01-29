@@ -51,6 +51,13 @@ setup_cgroup() {
   sudo cgcreate -a ${LOGIN}:${GROUP_ID} -t ${LOGIN}:${GROUP_ID} -g memory:memlim
   cgset -r memory.limit_in_bytes="$MEM_BUDGET" memlim
 
+  if [ ! -f ./run_cgexec.sh ]; then
+    {
+      echo "#!/usr/bin/env bash"
+      echo '"$@"'
+    } > ./run_cgexec.sh
+  fi
+
   clean_exports
 
   # Add the proper exports in the script that we use to execute
