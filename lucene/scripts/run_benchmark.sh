@@ -23,7 +23,7 @@ JAVA_OPTS=""
 set_class_path() {
   local jar_files=""
 
-  cd ${BENCH_DIR}/lucene/lucene9.6.0 
+  cd ${BENCH_DIR}/lucene/lucene9.6.0
 
   # Append jar files
   for j in $(find "$(pwd)" -name "*.jar"); do
@@ -40,17 +40,49 @@ set_class_path() {
 }
 
 run_m1() {
-  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
-    EvaluateQueries \
-    -i "${DATASET}" \
-    -q ${QUERIES_DIR}/HS_ML_LS_HL_MS \
-    -n 50 \
-    -nq 50000 -nq 7000 -nq 500000 -nq 400 -nq 80000 \
-    -r /tmp/queries.txt \
-    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+  case "$CACHE" in
+    "ENABLE")
+      ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+        EvaluateQueriesCacheEnable \
+        -i "${DATASET}" \
+        -q ${QUERIES_DIR}/HS_ML_LS_HL_MS \
+        -n 50 \
+        -nq 50000 -nq 7000 -nq 500000 -nq 400 -nq 80000 \
+        -r /tmp/queries.txt \
+        -c ${QUERY_CACHE} \
+        -e ${CACHE_ENTRIES} \
+        > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+        # ^
+        # -microFGC \
+    ;;
+    "DISABLE")
+      ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+        EvaluateQueries \
+        -i "${DATASET}" \
+        -q ${QUERIES_DIR}/HS_ML_LS_HL_MS \
+        -n 50 \
+        -nq 50000 -nq 7000 -nq 500000 -nq 400 -nq 80000 \
+        -r /tmp/queries.txt \
+        > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+    ;;
+  esac
 }
 
 run_m2() {
+	case "$CACHE" in
+    "ENABLE")
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+   EvaluateQueriesCacheEnable \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/HS_HL \
+    -n 50 \
+    -nq 50000 -nq 400 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    -c ${QUERY_CACHE} \
+    -e ${CACHE_ENTRIES}\
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+      ;;
+     "DISABLE")
   ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
     EvaluateQueries \
     -i "${DATASET}" \
@@ -58,10 +90,28 @@ run_m2() {
     -n 50 \
     -nq 50000 -nq 400 -nq 0 -nq 0 -nq 0 \
     -r /tmp/queries.txt \
+    -c ${QUERY_CACHE} \
+    -e ${CACHE_ENTRIES}\
     > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+      ;;
+	esac
 }
 
 run_m3() {
+	case "$CACHE" in
+    "ENABLE")
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+   EvaluateQueriesCacheEnable \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/MS_ML \
+    -n 50 \
+    -nq 80000 -nq 7000 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    -c ${QUERY_CACHE} \
+    -e ${CACHE_ENTRIES}\
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+      ;;
+     "DISABLE")
   ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
     EvaluateQueries \
     -i "${DATASET}" \
@@ -69,7 +119,11 @@ run_m3() {
     -n 50 \
     -nq 80000 -nq 7000 -nq 0 -nq 0 -nq 0 \
     -r /tmp/queries.txt \
+    -c ${QUERY_CACHE} \
+    -e ${CACHE_ENTRIES}\
     > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+      ;;
+	esac
 }
 
 run_m4() {
@@ -79,6 +133,8 @@ run_m4() {
     -q ${QUERIES_DIR}/HS -q ${QUERIES_DIR}/ML_HL \
     -n 50 -n 500000 \
     -nq 50000 -nq 7400 -nq 0 -nq 0 -nq 0 \
+    -c ${QUERY_CACHE} \
+    -e ${CACHE_ENTRIES}\
     > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
 }
 
@@ -89,6 +145,8 @@ run_m5() {
     -q ${QUERIES_DIR}/MS -q ${QUERIES_DIR}/ML_HL \
     -n 50 -n 500000 \
     -nq 80000 -nq 7400 \
+    -c ${QUERY_CACHE} \
+    -e ${CACHE_ENTRIES}\
     > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
 }
 
@@ -99,6 +157,115 @@ run_m6() {
     -q ${QUERIES_DIR}/LS -q ${QUERIES_DIR}/ML_HL \
     -n 50 -n 500000 \
     -nq 500000 -nq 7400 \
+    -c ${QUERY_CACHE} \
+    -e ${CACHE_ENTRIES}\
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
+
+run_m7() {
+	case "$CACHE" in
+    "ENABLE")
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+   EvaluateQueriesCacheEnable \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/LS \
+    -n 50 \
+    -nq 500000 -nq 0 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    -c ${QUERY_CACHE} \
+    -e ${CACHE_ENTRIES}\
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+      ;;
+     "DISABLE")
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueries \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/LS \
+    -n 50 \
+    -nq 500000 -nq 0 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    -c ${QUERY_CACHE} \
+    -e ${CACHE_ENTRIES}\
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+      ;;
+	esac
+}
+
+run_m8() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueriesPerPhase \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/ML_HL \
+    -n 50 \
+    -nq 7000 -nq 400 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    -c ${QUERY_CACHE} \
+    -e ${CACHE_ENTRIES}\
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
+
+run_m9() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueriesPerPhase \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/HS_HL \
+    -n 50 \
+    -nq 50000 -nq 400 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    -c ${QUERY_CACHE} \
+    -e ${CACHE_ENTRIES}\
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
+
+run_m10() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueriesPerPhase \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/ML_HS_LS_HL \
+    -n 50 \
+    -nq 7000 -nq 50000 -nq 500000 -nq 400 -nq 0 \
+    -r /tmp/queries.txt \
+    -c ${QUERY_CACHE} \
+    -e ${CACHE_ENTRIES}\
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+  }
+
+run_m11() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueriesPerPhase \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/ML_HL \
+    -n 50 \
+    -nq 7000 -nq 400 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    -c ${QUERY_CACHE} \
+    -e ${CACHE_ENTRIES}\
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+  }
+
+run_m12() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueriesPerPhase \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/HS_LS \
+    -n 50 \
+    -nq 50000 -nq 500000 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    -c ${QUERY_CACHE} \
+    -e ${CACHE_ENTRIES}\
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+  }
+
+# For benchmarks
+run_m15() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    MultiTenantEvaluateQueriesWithBatching \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/LS -q ${QUERIES_DIR}/MS -q ${QUERIES_DIR}/HS -q ${QUERIES_DIR}/ML_HL \
+    -n 50 -n 50 -n 50 -n 500000 \
+    -nq 500000 -nq 80000 -nq 50000 -nq 7400 \
+    -c ${QUERY_CACHE} \
+    -e ${CACHE_ENTRIES}\
     > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
 }
 
@@ -187,45 +354,41 @@ export_env_variables() {
   export LIBRARY_PATH=${TERAHEAP_REPO}/tera_malloc/lib:$LIBRARY_PATH
   export LD_LIBRARY_PATH=${TERAHEAP_REPO}/tera_malloc/lib:$LD_LIBRARY_PATH
   export PATH=${TERAHEAP_REPO}/tera_malloc/include/:$PATH
+  export LD_LIBRARY_PATH=/home1/public/$(whoami)/hsdis/build/linux-amd64/:$LD_LIBRARY_PATH
 }
 
 set_java_opts() {
   case "$SETUP" in
     "NATIVE")
-      # These are the runtime arguments for runs with vanilla JVM
-      JAVA_OPTS="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers \
-        -XX:+UseParallelGC -XX:ParallelGCThreads=${GC_THREADS} -XX:+AlwaysPreTouch \
+      JAVA_OPTS="-XX:-ClassUnloading -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:-ResizePLAB \
+        -XX:+UseG1GC -XX:ParallelGCThreads=${GC_THREADS} \
+        -Xlog:gc*:file=\"${RUN_DIR}/gc.log\" \
+        -XX:MaxGCPauseMillis=400 \
         -Xmx${H1_SIZE}g -Xms${H1_SIZE}g"
-      # JAVA_OPTS="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers \
-      #   -XX:+UseG1GC -XX:ConcGCThreads=5 -XX:ParallelGCThreads=${GC_THREADS} -XX:+AlwaysPreTouch \
-      #   -Xmx${H1_SIZE}g -Xms${H1_SIZE}g"
-      ;;
-    "FLEXHEAP")
-      # These are the runtime arguments for running with FlexHeap
-      MEM_VALUE=$(echo $MEM_BUDGET | grep -oP '\d+')
-      MEM_UNIT=$(echo $MEM_BUDGET | grep -oP '[A-Za-z]+')
-
-      # Convert to bytes (assuming the unit is 'G' for gigabytes)
-      if [ "$MEM_UNIT" == "G" ]; then
-        DRAMLIMIT=$((MEM_VALUE * 1024 * 1024 * 1024))
-      else
-        DRAMLIMIT=$((MEM_VALUE * 1024 * 1024))
-      fi
-
-      JAVA_OPTS="-XX:-UseCompressedOops -XX:-UseCompressedClassPointers \
-        -XX:+UseParallelGC -XX:ParallelGCThreads=${GC_THREADS} -XX:+EnableFlexHeap \
-        -XX:FlexResizingPolicy=${FLEXHEAP_POLICY} -XX:+ShowMessageBoxOnError \
-        -XX:FlexDRAMLimit=${DRAMLIMIT} -Xmx${H1_SIZE}g -XX:+AdaptiveResizingStep -XX:ResizingStep=${RESIZING_STEP} "
       ;;
     "TERAHEAP")
       # These are the runtime arguments for running with TeraHeap
-      tc_size=$(( (900 - H1_SIZE) * 1024 * 1024 * 1024 ))
-      h2_file_size=$((H2_FILE_SZ * 1024 * 1024 * 1024))
+      tc_size=$(( (800 - H1_SIZE) * 1024 * 1024 * 1024 ))
+      local H2_FILE_SZ_BYTES=$(echo "${H2_FILE_SZ} * 1024 * 1024 * 1024" | bc)
+      local H2_PATH="${MNT_H2}/"
 
-      JAVA_OPTS="-XX:-ClassUnloading -XX:+UseParallelGC -XX:ParallelGCThreads=${GC_THREADS} -XX:+EnableTeraHeap \
-        -XX:TeraHeapSize=${tc_size} -Xmx=900g -Xms${H1_SIZE}g -XX:-UseCompressedOops -XX:-UseCompressedClassPointers \
-        -XX:+TeraHeapStatistics -Xlogth:teraHeap.txt -XX:TeraHeapPolicy="DefaultPolicy" -XX:TeraStripeSize=${STRIPE_SIZE} \
-        -XX:+ShowMessageBoxOnError -XX:AllocateH2At="${MNT_H2}/" -XX:H2FileSize=${h2_file_size} -XX:TeraCPUStatsPolicy=${CPU_STATS_POLICY}"
+      JAVA_OPTS="-XX:-ClassUnloading -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:-ResizePLAB \
+        -XX:+EnableTeraHeap \
+        -XX:AllocateH2At=${H2_PATH} -XX:H2FileSize=${H2_FILE_SZ_BYTES} \
+        -XX:+UseG1GC -XX:ParallelGCThreads=${GC_THREADS} \
+        -XX:TeraStripeSize=${STRIPE_SIZE} \
+        -Xlog:gc*:file=\"${RUN_DIR}/gc.log\" \
+        -Xmx800g \
+        -XX:TeraHeapSize=${tc_size} \
+        -Xms${H1_SIZE}g \
+        -XX:MaxGCPauseMillis=400 \
+        -XX:+TeraHeapStatistics -Xlogth:teraHeap.txt "
+        # Additional flags occasionally useful:
+        # -XX:G1PeriodicGCInterval=10000 -XX:-G1PeriodicGCInvokesConcurrent \
+        # -XX:+ShowMessageBoxOnError \
+        # -XX:NativeMemoryTracking=detail \
+        # -XX:+UnlockDiagnosticVMOptions -XX:+PrintAssembly \
+        # -XX:MaxGCPauseMillis=10000 \
       ;;
   esac
 }
@@ -275,4 +438,9 @@ case "$QUERY" in
     ;;
 esac
 
+if [ $SETUP == "TERAHEAP" ]; then
+  mv teraHeap.txt ${RUN_DIR}/teraheap.txt
+fi
+
 cd - > /dev/null || exit
+

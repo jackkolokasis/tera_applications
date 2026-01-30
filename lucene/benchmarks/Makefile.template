@@ -1,0 +1,5 @@
+SOURCES := $(shell find src -name *.java)
+CLASSPATH= # will be filled by build script
+
+all: $(SOURCES)
+	javac -cp $(CLASSPATH) $(SOURCES) -d out

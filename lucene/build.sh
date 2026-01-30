@@ -28,18 +28,6 @@ check () {
 }
 
 build_lucene() {
-  wget https://github.com/apache/lucene/archive/refs/tags/releases/lucene/9.6.0.tar.gz >> "${COMPILE_OUT}" 2>&1
-  retValue=$?
-  message="Download Lucene" 
-  check ${retValue} "${message}"
-
-  tar xf 9.6.0.tar.gz >> "${COMPILE_OUT}" 2>&1
-  retValue=$?
-  message="Extract Lucene" 
-  check ${retValue} "${message}"
-
-  mv lucene-releases-lucene-9.6.0/ lucene9.6.0/
-
   cd lucene9.6.0/ || exit
   ./gradlew >> "${COMPILE_OUT}" 2>&1
   retValue=$?
@@ -53,7 +41,7 @@ build_lucene() {
 
   cd - > /dev/null || exit
 }
-      
+
 # Print error/usage script message
 usage() {
     echo
@@ -89,6 +77,7 @@ build_benchmarks() {
   cd - > /dev/null || exit
 
   # Change the classpath variable in the make file
+  cp ${BENCHMARKS_REPO}/Makefile.template ${BENCHMARKS_REPO}/Makefile
   sed -i "s|^CLASSPATH=.*|CLASSPATH=${jar_files}|" ${BENCHMARKS_REPO}/Makefile
 
   cd ${BENCHMARKS_REPO}
@@ -100,7 +89,7 @@ build_benchmarks() {
 
   cd - > /dev/null || exit
 }
-  
+
 echo "-----------------------------------"
 echo "Compilation output messages are here: ${COMPILE_OUT}"
 echo "-----------------------------------"

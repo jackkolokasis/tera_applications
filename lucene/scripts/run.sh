@@ -12,8 +12,10 @@
 #
 ###################################################
 
-. ./conf.sh
+BENCHMARKS=( "M1" )
+
 SETUP="NATIVE"
+GEN_ARGS=()
 
 # Print error/usage script message
 usage() {
@@ -24,24 +26,40 @@ usage() {
   echo "Options:"
   echo "      -n  Number of Runs"
   echo "      -o  Output Path"
-  echo "      -f  Enable FlexHeap"
   echo "      -t  Enable TeraHeap"
+  echo "      -g  Number of GC Threads"
+  echo "          [Default: 16]"
+  echo "      -m  Memory Budget"
+  echo "          [20G, 40G, 60G, 208G | Default: 60G]"
+  echo "      -D  Disable QueryCache"
+  echo "      -e  Number of QueryCache entries"
+  echo "          [Default: 3000000]"
+  echo "      -s  Enable statistics"
+  echo "      -k  Kill background processes"
   echo "      -h  Show usage"
   echo
-
-  exit 1
 }
+
+LOGIN=$(whoami)
+GROUP_ID="sudo"
 
 ##
 # Description:
 #   Create a cgroup
 setup_cgroup() {
 	# Change user/group IDs to your own
-	sudo cgcreate -a ${LOGIN}:${GROUP_ID} -t ${LOGIN}:${GROUP_ID} -g memory:memlim
-	cgset -r memory.limit_in_bytes="$MEM_BUDGET" memlim
+  sudo cgcreate -a ${LOGIN}:${GROUP_ID} -t ${LOGIN}:${GROUP_ID} -g memory:memlim
+  cgset -r memory.limit_in_bytes="$MEM_BUDGET" memlim
+
+  if [ ! -f ./run_cgexec.sh ]; then
+    {
+      echo "#!/usr/bin/env bash"
+      echo '"$@"'
+    } > ./run_cgexec.sh
+  fi
 
   clean_exports
-  
+
   # Add the proper exports in the script that we use to execute
   # processes under cgroups
   sed -i '2i\
@@ -51,7 +69,12 @@ setup_cgroup() {
     export PATH='${TERAHEAP_REPO}'/allocator/include/:$PATH\
     export LIBRARY_PATH='${TERAHEAP_REPO}'/tera_malloc/lib:$LIBRARY_PATH\
     export LD_LIBRARY_PATH='${TERAHEAP_REPO}'/tera_malloc/lib:$LD_LIBRARY_PATH\
+    export LD_LIBRARY_PATH=/home1/public/'${LOGIN}'/hsdis/build/linux-amd64/:$LD_LIBRARY_PATH\
     export PATH='${TERAHEAP_REPO}'/tera_malloc/include/:$PATH' ./run_cgexec.sh
+}
+
+run_cgexec() {
+  cgexec -g memory:memlim --sticky ./run_cgexec.sh "$@"
 }
 
 ##
@@ -59,10 +82,6 @@ setup_cgroup() {
 #   Delete a cgroup
 delete_cgroup() {
 	sudo cgdelete memory:memlim > /dev/null 2>&1
-}
-
-run_cgexec() {
-  cgexec -g memory:memlim --sticky ./run_cgexec.sh "$@"
 }
 
 ##
@@ -105,9 +124,14 @@ printMsgIteration() {
 # Descrition:
 #   Download third party repos if does not exist
 download_third_party() {
+  
   if [ ! -d "system_util" ]
   then
-    git clone git@github.com:jackkolokasis/system_util.git >> "${BENCH_LOG}" 2>&1
+    # subprocess to limit variable scope from `conf.tmpl.sh`
+    (
+      . ./conf.tmpl.sh # for BENCH_LOG var
+      git clone https://github.com/jackkolokasis/system_util.git >> "${BENCH_LOG}" 2>&1
+    )
   fi
 }
 
@@ -163,8 +187,18 @@ clean_exports() {
   chmod +x ./run_cgexec.sh
 }
 
+prologue() {
+  echo "--------------------------"
+  echo "- TeraHeap:         $ENABLE_TERAHEAP"
+  echo "- GC Threads:       $GC_THREADS"
+  echo "- H1 Size:          $H1_SIZE"
+  echo "- Memory Budget:    $MEM_BUDGET"
+  echo "- QueryCache Size:  $QUERY_CACHE"
+  echo "-------------------------"
+}
+
 # Check for the input arguments
-while getopts ":n:o:ktfh" opt
+while getopts "n:o:kthg:m:De:s" opt
 do
   case "${opt}" in
     n)
@@ -179,15 +213,23 @@ do
       ;;
     t)
       SETUP="TERAHEAP"
+      GEN_ARGS+=( "-t" )
       ;;
-    f)
-      SETUP="FLEXHEAP"
+    # Generate Conf flags
+    g|m|e)
+      GEN_ARGS+=( "-$opt" "$OPTARG" )
       ;;
+    D|s)
+      GEN_ARGS+=( "-$opt" )
+      ;;
+    # -------------------
     h)
       usage
+      exit 0
       ;;
     *)
       usage
+      exit 1
       ;;
   esac
 done
@@ -204,6 +246,12 @@ download_third_party
 # Run each benchmark
 for benchmark in "${BENCHMARKS[@]}"
 do
+  ./gen-conf.sh ${GEN_ARGS[@]}
+  . ./conf.sh
+  TOTAL_CONFS=1
+
+  prologue
+
   printStartMsg "${benchmark}"
   STARTTIME=$(date +%s)
 
@@ -213,7 +261,7 @@ do
   for ((i=0; i<ITER; i++))
   do
     mkdir -p "${OUT}/${benchmark}/run${i}"
-      
+
     # For every configuration
     for ((j=0; j<TOTAL_CONFS; j++))
     do
@@ -245,6 +293,16 @@ do
       delete_cgroup
 
       ./system_util/extract-data.sh -r "${RUN_DIR}" -d "${DEV_DATASET}" >> "${BENCH_LOG}" 2>&1
+
+      # Parse results
+      if [ $SETUP == "TERAHEAP" ]
+      then
+        ./parse_results.sh -d "${RUN_DIR}" -b "${benchmark}" -H ${H1_SIZE} -m ${MEM_BUDGET} -t
+      else
+        ./parse_results.sh -d "${RUN_DIR}" -b "${benchmark}" -H ${H1_SIZE} -m ${MEM_BUDGET}
+      fi
+
+      cp ./conf.sh "${RUN_DIR}/conf.sh"
     done
   done
 

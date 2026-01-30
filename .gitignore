@@ -1,11 +1,23 @@
-giraph/compile.out
+compile.out
+system_util
+
+# Giraph
 giraph/hadoop-2.4.0/
 giraph/ldbc_graphalytics/
 giraph/graphalytics-platforms-giraph/
 giraph/scripts/system_util/
 giraph/scripts/zookeeper.out
 giraph/zookeeper-3.4.1/
+giraph/Giraph_TeraHeap/
+
+# Spark
 spark/scripts/log.out
 spark/spark-3.3.0/logs/*
 spark/spark-3.3.0/work/*
-giraph/Giraph_TeraHeap/
+
+# Lucene
+lucene/scripts/run_cgexec.sh
+lucene/scripts/conf.sh
+lucene/scripts/log.out
+lucene/benchmarks/out
+lucene/*results
