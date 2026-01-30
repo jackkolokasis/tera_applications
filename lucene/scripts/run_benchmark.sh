@@ -269,6 +269,83 @@ run_m15() {
     > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
 }
 
+run_m7() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueries \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/LS \
+    -n 50 \
+    -nq 500000 -nq 0 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
+
+run_m8() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueriesPerPhase \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/ML_HL \
+    -n 50 \
+    -nq 7000 -nq 400 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
+
+run_m9() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueriesPerPhase \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/HS_HL \
+    -n 50 \
+    -nq 50000 -nq 400 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
+
+run_m10() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueriesPerPhase \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/ML_HS_LS_HL \
+    -n 50 \
+    -nq 7000 -nq 50000 -nq 500000 -nq 400 -nq 0 \
+    -r /tmp/queries.txt \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+  }
+
+run_m11() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueriesPerPhase \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/ML_HL \
+    -n 50 \
+    -nq 7000 -nq 400 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+  }
+
+run_m12() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    EvaluateQueriesPerPhase \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/HS_LS \
+    -n 50 \
+    -nq 50000 -nq 500000 -nq 0 -nq 0 -nq 0 \
+    -r /tmp/queries.txt \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+  }
+
+# For benchmarks
+run_m15() {
+  ${JAVA_PATH}/bin/java -cp "${CLASSPATH}" ${JAVA_OPTS} \
+    MultiTenantEvaluateQueriesWithBatching \
+    -i "${DATASET}" \
+    -q ${QUERIES_DIR}/LS -q ${QUERIES_DIR}/MS -q ${QUERIES_DIR}/HS -q ${QUERIES_DIR}/ML_HL \
+    -n 50 -n 50 -n 50 -n 500000 \
+    -nq 500000 -nq 80000 -nq 50000 -nq 7400 \
+    > "${RUN_DIR}"/tmp.out 2> "${RUN_DIR}"/tmp.err
+}
+
 export_env_variables() {
   export JAVA_HOME=${JAVA_PATH}
   export LIBRARY_PATH=${TERAHEAP_REPO}/allocator/lib:$LIBRARY_PATH

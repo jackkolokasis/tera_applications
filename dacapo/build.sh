@@ -12,6 +12,8 @@
 #
 ###################################################
 
+COMPILE_OUT="log.txt"
+
 # Check if the last command executed succesfully
 #
 # if executed succesfully, print SUCCEED

@@ -1,0 +1,7 @@
+lucene9.6.0/
+compile.out
+scripts/log.out
+scripts/system_util/
+scripts/queries/
+benchmarks/out/
+lucene_benchmarks

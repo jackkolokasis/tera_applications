@@ -238,6 +238,7 @@ done
 TIME=$(date +"%T-%d-%m-%Y")
 
 OUT="${OUTPUT_PATH}_${TIME}"
+OUT=$(pwd)/${OUT} 
 mkdir -p "${OUT}"
 
 download_third_party
