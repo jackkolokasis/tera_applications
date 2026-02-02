@@ -73,11 +73,11 @@ TOTAL_TIME=$(grep "Actual run" ${RESULT_DIR}/tmp.out | grep -oP "(\d+) ms" | awk
 FULL_GC_C=$(grep -c "Pause Full.*ms" ${RESULT_DIR}/gc.log)
 FULL_GC_T=$(grep "Pause Full.*ms" ${RESULT_DIR}/gc.log | grep -oP '(\d+\.\d+)ms$' | awk '{ sum += $1 } END { print sum/1000.0 }')
 
-YOUNG_GC_C=$(grep "Young.*ms" ${RESULT_DIR}/gc.log | grep -vc "(Mixed)|(Prepare Mixed)")
-YOUNG_GC_T=$(grep "Young.*ms" ${RESULT_DIR}/gc.log | grep -v "(Mixed)|(Prepare Mixed)" | grep -oP '(\d+\.\d+)ms$' | awk '{ sum += $1 } END { print sum/1000.0 }')
+YOUNG_GC_C=$(grep "Young.*ms" ${RESULT_DIR}/gc.log | grep -vc "(Mixed)\|(Prepare Mixed)")
+YOUNG_GC_T=$(grep "Young.*ms" ${RESULT_DIR}/gc.log | grep -v "(Mixed)\|(Prepare Mixed)" | grep -oP '(\d+\.\d+)ms$' | awk '{ sum += $1 } END { print sum/1000.0 }')
 
-MIX_GC_C=$(grep -c "(Mixed).*ms|(Prepare Mixed).*ms" ${RESULT_DIR}/gc.log)
-MIX_GC_T=$(grep "(Mixed).*ms|(Prepare Mixed).*ms" ${RESULT_DIR}/gc.log | grep -oP '(\d+\.\d+)ms$' | awk '{ sum += $1 } END { print sum/1000.0 }')
+MIX_GC_C=$(grep -c "(Mixed).*ms\|(Prepare Mixed).*ms" ${RESULT_DIR}/gc.log)
+MIX_GC_T=$(grep "(Mixed).*ms\|(Prepare Mixed).*ms" ${RESULT_DIR}/gc.log | grep -oP '(\d+\.\d+)ms$' | awk '{ sum += $1 } END { print sum/1000.0 }')
 
 #remark phase cm stw
 REMARK_GC_C=$(grep "Pause Remark" ${RESULT_DIR}/gc.log | wc -l)
