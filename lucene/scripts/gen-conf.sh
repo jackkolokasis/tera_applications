@@ -67,7 +67,7 @@ do
   esac
 done
 
-if [[ $ENABLE_TERAHEAP ]]; then
+if $ENABLE_TERAHEAP; then
   # TERAHEAP CONF
 
   case "${MEM_BUDGET}" in
