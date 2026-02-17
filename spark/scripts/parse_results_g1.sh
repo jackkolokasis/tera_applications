@@ -57,11 +57,11 @@ TOTAL_TIME=$(tail -n 1 ${RESULT_DIR}/total_time.txt | awk '{split($0,a,","); pri
 FULL_GC_C=$(grep -c "Pause Full.*ms" ${RESULT_DIR}/gc.log)
 FULL_GC_T=$(grep "Pause Full" ${RESULT_DIR}/gc.log | grep -oP '(\d+\.\d+)ms$' | awk '{ sum += $1 } END { print sum/1000.0 }')
 
-YOUNG_GC_C=$(grep "Young.*ms" ${RESULT_DIR}/gc.log | grep -vc "(Mixed)")
-YOUNG_GC_T=$(grep "Young" ${RESULT_DIR}/gc.log | grep -v "(Mixed)" | grep -oP '(\d+\.\d+)ms$' | awk '{ sum += $1 } END { print sum/1000.0 }')
+YOUNG_GC_C=$(grep "Young.*ms" ${RESULT_DIR}/gc.log | grep -vc "Mixed")
+YOUNG_GC_T=$(grep "Young" ${RESULT_DIR}/gc.log | grep -v "Mixed" | grep -oP '(\d+\.\d+)ms$' | awk '{ sum += $1 } END { print sum/1000.0 }')
 
-MIX_GC_C=$(grep -c "(Mixed).*ms" ${RESULT_DIR}/gc.log)
-MIX_GC_T=$(grep "(Mixed)" ${RESULT_DIR}/gc.log | grep -oP '(\d+\.\d+)ms$' | awk '{ sum += $1 } END { print sum/1000.0 }')
+MIX_GC_C=$(grep -c "Mixed.*ms" ${RESULT_DIR}/gc.log)
+MIX_GC_T=$(grep "Mixed" ${RESULT_DIR}/gc.log | grep -oP '(\d+\.\d+)ms$' | awk '{ sum += $1 } END { print sum/1000.0 }')
 
 CM_TIME=$(tail -n 1 "${RESULT_DIR}"/jstat_0.txt | awk '{print $12}')
 
@@ -154,6 +154,8 @@ done
 
   echo "YOUNG_GC,$YOUNG_GC_C,$YOUNG_GC_T"
   echo "CM_TIME,$CM_STW ($CM_TIME)"
+  echo "CM_REMARK,$REMARK_GC_C,$REMARK_GC_T"
+  echo "CM_CLEANUP,$CLEANUP_GC_C,$CLEANUP_GC_T"
   echo "MIXED_GC,$MIX_GC_C,$MIX_GC_T"
   echo "FULL_GC,$FULL_GC_C,$FULL_GC_T"
 
@@ -221,5 +223,5 @@ IOW_TIME=$( echo "${TOTAL_TIME} * ${IO_UTIL_PER} / 100" | bc -l )
   fi
 
   echo
-  echo "$TOTAL_TIME $TOTAL_GC_TIME $YOUNG_GC_T $CM_STW $MIX_GC_T $FULL_GC_T $PHASE1 $PHASE2 $PHASE3 $PHASE4 ${SERDES[0]}"
+  echo "$TOTAL_TIME $TOTAL_GC_TIME $YOUNG_GC_T $CM_STW $REMARK_GC_T $CLEANUP_GC_T $MIX_GC_T $FULL_GC_T $TC_CT_TRAVERSAL $HEAP_CT_TRAVERSAL $PHASE1 $PHASE2 $PHASE3 $PHASE4 ${SERDES[0]}"
 } >> "${RESULT_DIR}"/result.csv

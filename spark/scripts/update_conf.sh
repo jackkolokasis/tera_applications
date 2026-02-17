@@ -67,10 +67,8 @@ update_spark_defaults() {
   fi
   
   local extra_java_opts="spark.executor.extraJavaOptions -server "  
-  #extra_java_opts+="-XX:-ClassUnloading -XX:+UseParallelGC ${NUMA} -XX:ParallelGCThreads=${GC_THREADS} "
   extra_java_opts+="${GARBAGE_COLLECTOR} -XX:ParallelGCThreads=${GC_THREADS} -XX:ConcGCThreads=$((GC_THREADS / 4)) "
-  extra_java_opts+="-XX:-ResizeTLAB -XX:-ClassUnloading -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:-ClassUnloadingWithConcurrentMark "
-  #extra_java_opts+="-XX:G1HeapWastePercent=0 -XX:G1MixedGCLiveThresholdPercent=100 -XX:InitiatingHeapOccupancyPercent=10 -XX:-G1UseAdaptiveIHOP -XX:G1OldCSetRegionThresholdPercent=100 -XX:-ClassUnloadingWithConcurrentMark  "
+  extra_java_opts+="-XX:-ResizeTLAB -XX:-ClassUnloading -XX:-UseCompressedOops -XX:-UseCompressedClassPointers "
   extra_java_opts+=${USER_EXTRA_JAVA_OPTS}
 
   # Change the spark.log.dir
@@ -79,7 +77,6 @@ update_spark_defaults() {
   sed -i '/spark.metrics.conf/c\spark.metrics.conf '"${MASTER_METRIC_FILE}" spark-defaults.conf
   # Change the spark.executor.extraJavaOptions
   sed -i '/^spark\.executor\.extraJavaOptions/s/.*/'"${extra_java_opts}"'/' spark-defaults.conf
-  #sed -i '/spark\.executor\.extraJavaOptions/c\spark\.executor\.extraJavaOptions '"${extra_java_opts}" spark-defaults.conf
   
   # Change the spark.memory.storageFraction
   sed -i '/storageFraction/c\spark.memory.storageFraction '"${MEM_FRACTION}" spark-defaults.conf

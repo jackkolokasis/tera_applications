@@ -24,7 +24,6 @@ usage() {
   echo -n "      $0 [option ...] [-k][-h]"
   echo
   echo "Options:"
-  #echo "      -a  allocation_mode    [0: H1, 1: H1H2, 2: H2H1]"
   echo "      -i  Minimum Heap Size"
   echo "      -b  Custom Benchmark"
   echo "      -h  Show usage"
@@ -45,7 +44,6 @@ update_spark_env() {
   # Update JAVA_HOME
   sed -i '/JAVA_HOME/c\JAVA_HOME='"${MY_JAVA_HOME}" spark-env.sh
   SPARK_WORKER_MEMORY=$((H1_H2_SIZE * NUM_EXECUTORS))
-  #SPARK_WORKER_MEMORY=$H1_H2_SIZE
   SPARK_WORKER_CORES=$((EXEC_CORES * NUM_EXECUTORS))
   # Change the worker cores
   sed -i '/SPARK_WORKER_CORES/c\SPARK_WORKER_CORES='"${SPARK_WORKER_CORES}" spark-env.sh
@@ -77,30 +75,16 @@ update_spark_defaults() {
     NUMA="-XX:+UseNUMA"
   fi
   
-  local PARALLEL_H2_PRECOMPACT="-XX:-EnableParallelH2PreCompact"
-  if [[ $ENABLE_PARALLEL_H2_PRECOMPACT == true ]]; then
-    PARALLEL_H2_PRECOMPACT="-XX:+EnableParallelH2PreCompact"
-  fi
-  local PARALLEL_H2_COMPACT="-XX:-EnableParallelH2Compact"
-  if [[ $ENABLE_PARALLEL_H2_COMPACT == true ]]; then
-    PARALLEL_H2_COMPACT="-XX:+EnableParallelH2Compact"
-  fi
-  
-
   local DEBUG_FLAGS=""
-  #local DEBUG_FLAGS="-XX:+UnlockExperimentalVMOptions -XX:+PrintAssembly -XX:+PrintInterpreter -XX:+PrintNMethods"
   local extra_java_opts="spark.executor.extraJavaOptions -server "
   extra_java_opts+="${DEBUG_FLAGS} "
-  #extra_java_opts+="-XX:-ClassUnloading -XX:DEVICE_H2=${DEV_H2} ${GARBAGE_COLLECTOR} ${PARALLEL_H2_PRECOMPACT} ${PARALLEL_H2_COMPACT} ${NUMA} -XX:ParallelGCThreads=${GC_THREADS} "
-  extra_java_opts+="${GARBAGE_COLLECTOR} -XX:ParallelGCThreads=${GC_THREADS} -XX:ConcGCThreads=$((GC_THREADS / 4)) ${PARALLEL_H2_PRECOMPACT} ${PARALLEL_H2_COMPACT} "
+  extra_java_opts+="${GARBAGE_COLLECTOR} -XX:ParallelGCThreads=${GC_THREADS} -XX:ConcGCThreads=$((GC_THREADS / 4)) "
   extra_java_opts+="-XX:+EnableTeraHeap -XX:TeraHeapSize=${TH_BYTES} -Xms${H1_SIZE}g "
-  extra_java_opts+="-XX:-ClassUnloading -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:-ClassUnloadingWithConcurrentMark "
-  #extra_java_opts+="-XX:G1HeapWastePercent=0 -XX:G1MixedGCLiveThresholdPercent=100 -XX:InitiatingHeapOccupancyPercent=10 -XX:-G1UseAdaptiveIHOP -XX:G1OldCSetRegionThresholdPercent=100 -XX:-ClassUnloadingWithConcurrentMark "
+  extra_java_opts+="-XX:-ClassUnloading -XX:-UseCompressedOops -XX:-UseCompressedClassPointers "
 
   if $ENABLE_STATS; then
     extra_java_opts+="-XX:+TeraHeapStatistics -Xlogth:teraHeap.txt "
   fi
-  #extra_java_opts+="-XX:TeraHeapWritePolicy=\"${TERAHEAP_WRITE_POLICY}\" "
   extra_java_opts+="-XX:TeraHeapPolicy=\"${TERAHEAP_POLICY}\" -XX:TeraStripeSize=${STRIPE_SIZE} "
   extra_java_opts+="-XX:+ShowMessageBoxOnError "
 

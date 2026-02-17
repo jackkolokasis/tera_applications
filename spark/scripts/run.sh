@@ -42,7 +42,6 @@ usage() {
   echo "      -s, --spark-native       Enable serialization/deserialization"
   echo "      -p, --perf-tool          Enable perf tool"
   echo "      -f, --profiler           Enable profiler tool"
-  #echo "      -a  Run experiments with high bench"
   echo "      -b, --custom-benchmark   Run experiments with custom benchmark"
   echo "      -q, --run-tpcds          Run experiments with TPC-DS workloads"
   echo "      -j, --jit                Enable metrics for JIT compiler"
@@ -117,7 +116,6 @@ setup_cgroup() {
   # Change user/group IDs to your own
   sudo cgcreate -a $USER:$SUDOGROUP -t $USER:$SUDOGROUP -g memory:memlim
   cgset -r memory.limit_in_bytes="$MEM_BUDGET" memlim
-  #sudo cgset -r memory.numa_stat=0 memlim
 }
 
 ##
@@ -235,8 +233,8 @@ printMsgIteration() {
 #   Download third party repos if does not exist
 download_third_party() {
   if [ ! -d "system_util" ]; then
-    #git clone https://github.com/jackkolokasis/system_util.git >> "${BENCH_LOG}" 2>&1
-    git clone https://github.com/perpap/system_util.git >>"${BENCH_LOG}" 2>&1
+    git clone https://github.com/jackkolokasis/system_util.git >> "${BENCH_LOG}" 2>&1
+    #git clone https://github.com/perpap/system_util.git >>"${BENCH_LOG}" 2>&1
   fi
 }
 
@@ -329,7 +327,6 @@ function parse_script_arguments() {
     case "$1" in
     -i | --iterations)
       ITER="$2"
-      #validateIterations
       shift 2
       ;;
     -o | --ouput)
@@ -389,7 +386,6 @@ parse_script_arguments "$@"
 
 # Create directory for the results if do not exist
 TIME=$(date +"%d-%m-%Y-%T")
-#. conf.sh
 
 if [[ $TH == "true" ]]; then
     if [[ $ENABLE_FLEXHEAP == "true" ]]; then
@@ -400,9 +396,6 @@ if [[ $TH == "true" ]]; then
 else
     OUTPUT_PATH="${OUTPUT_PATH}/NATIVE"
 fi 
-
-#echo "OUTPUT_PATH=$OUTPUT_PATH"
-#exit 1
 
 OUT="${OUTPUT_PATH}"
 echo "Create directory OUT=$OUT"
@@ -420,7 +413,6 @@ build_async_profiler
 
 # Run each benchmark
 for benchmark in "${BENCHMARKS[@]}"; do
-  #printStartMsg "${benchmark}" "${NUM_EXECUTORS}" "${EXEC_CORES}" "${GC_THREADS}" "${H1_SIZE}" "${H1_H2_SIZE}" "${MEM_BUDGET}" "${i}"
   STARTTIME=$(date +%s)
   major_gc_phases_plot_title="${benchmark}_PARTITIONS=${NUM_OF_PARTITIONS}_REGIONSIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G"
   mkdir -p "${OUT}/${benchmark}/PARTITIONS=${NUM_OF_PARTITIONS}_REGION_SIZE=$((REGION_SIZE / 1024 / 1024))_EXECUTORS=${NUM_EXECUTORS}_MUTATORS=${EXEC_CORES}_GCTHREADS=${GC_THREADS}_MEMBUDGET=${MEM_BUDGET}_H1=${H1_SIZE}G_H1H2=${H1_H2_SIZE}G_${TIME}"
@@ -454,7 +446,8 @@ for benchmark in "${BENCHMARKS[@]}"; do
 
       # Monitor memory
       ./mem_usage.sh "${RUN_DIR}"/mem_usage.txt "${NUM_EXECUTORS}" &
-
+      #python3 ./system_util/plot_memusage.py -i "${RUN_DIR}"/mem_usage.txt -o "${RUN_DIR}"/
+      
       if [[ $PERF_TOOL == "true" ]]; then
         # Count total cache references, misses and pagefaults
         ./perf.sh ${RUN_DIR}/perf ${NUM_EXECUTORS} &
@@ -496,7 +489,7 @@ for benchmark in "${BENCHMARKS[@]}"; do
         fi
       fi
 
-      # Kil watch process
+      # Kill watch process
       kill_watch
 
       if [[ ${DEV_FMAP} == *pmem* ]]; then
@@ -531,7 +524,7 @@ for benchmark in "${BENCHMARKS[@]}"; do
         # Stop perf monitor
         stop_perf
       fi
-
+      
       METRICS_DIR=$(ls -td "${SPARK_DIR}"/work/* | head -n 1)
       # Copy the gc log to the directory with the results
       cp "${METRICS_DIR}"/0/gc.log "${RUN_DIR}"/
@@ -540,10 +533,7 @@ for benchmark in "${BENCHMARKS[@]}"; do
       if [[ $TH == "true" ]]; then
 	cp "${METRICS_DIR}"/0/teraHeap.txt "${RUN_DIR}"/
         ./parse_results_g1.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -t
-	#./parse_results_g1.sh -d "${RUN_DIR}" -t
-        #./parse_results.sh -p "${major_gc_phases_plot_title}" -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -g "${GC_THREADS}" -t
       else
-        #./parse_results_g1.sh -d "${RUN_DIR}" -s
         ./parse_results_g1.sh -d "${RUN_DIR}" -n "${NUM_EXECUTORS}" -s
       fi
     done
