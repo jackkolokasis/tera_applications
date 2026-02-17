@@ -12,18 +12,13 @@ ERRORS[OUT_OF_RANGE]=3
 ERRORS[NOT_AN_INTEGER]=4
 ERRORS[PROGRAMMING_ERROR]=5
 
-#BENCHMARKS=("LinearRegression" "LogisticRegression" "ConnectedComponent" "PageRank")
 EXECUTOR_CORES=(80 40 20 10)
-#EXECUTOR_CORES=(160 80 40 32 20 16 8 4 2 1)
-#STORAGE_LEVELS=("MEMORY_ONLY" "MEMORY_AND_DISK")
-#STORAGE_LEVELS=("MEMORY_AND_DISK")
 STORAGE_LEVELS=("MEMORY_ONLY")
 RESULTS_PATH=
 DATASETS_MOUNT_POINT=
 H2_MOUNT_POINT=
 SHUFFLE_MOUNT_POINT=
 ITERATIONS=1
-#H2_ALLOCATOR_MODE=0 #0:Serial, 1:Parallel_H2PreCompact, 2:Paralell_H2Compact, 3:Parallel_H2PreCompact + Parallel_H2Compact
 CONFIG_FILE=
 MASTER=
 SLAVE=
@@ -35,12 +30,9 @@ PROFILER=false
 delimiter=":"
 
 # Define mappings for H1_SIZE and MEM_BUDGET for each benchmark and EXEC_CORES
-# ["BENCHMARK:CORES"]="H1_SIZE:MEM_BUDGET"
+# ["BENCHMARK:NUTATORS"]="[H1_SIZE:MEM_BUDGET]"
 
 declare -A CONFIG_MAP=()
-
-# Backup original conf.sh
-#cp conf.sh conf.sh.backup
 
 # Function to display usage message
 function usage() {
@@ -52,7 +44,6 @@ function usage() {
   echo "  -m, --master                        Specify the Spark master; eg. ampere."
   echo "  -s, --slave                         Specify the Spark slave; eg. ampere."
   echo "  -e, --execution <execution>         Specify the execution mode; eg. f|flexheap or t|teraheap or n|native "
-  echo "  -b, --build <jvm variant>           Specify the jvm variant for flexheap; r|release, f|fastdebug"
   echo "  -j, --java <path>                   Specify the java path; eg $TERA_JDK17_AARCH64_RELEASE."
   echo "  -f, --h2-dir <path>                 Specify the path of the directory which contains the h2 backing file, eg. /spare2/perpap/fmap"
   echo "  -p, --shuffle-dir <path>            Specify the path of the directory which contains the spark shuffle directory, eg. /spare2/perpap/spark"
@@ -61,7 +52,6 @@ function usage() {
   echo "  -l, --load-config <path>            Specify the path of a script containing the configurations of each benchmark."
   echo "  -i, --iterations                    Specify the number of iterations for running the benchmarks."
   echo "  -w, --write-to-t2-policy <policy>   The available policies are: 'AsyncWritePolicy', 'SyncWritePolicy', 'FmapWritePolicy', 'DefaultWritePolicy'"
-  echo "  -a, --h2-allocator <mode>           The available modes are: [0:Serial, 1:Parallel_H2PreCompact, 2:Paralell_H2Compact, 3:Parallel_H2PreCompact + Parallel_H2Compact]"
   echo "  -n, --numa                          Use NUMA via -XX:+UseNUMA"
   echo "  -c, --cgroups                       Use cgroups"
   echo "  -o, --profiler                      Use profiler"
@@ -88,10 +78,8 @@ function run_benchmarks() {
 
   if [[ $EXECUTION == "s" ]]; then
     STORAGE_LEVELS=("MEMORY_AND_DISK")
-    #sed -i "s|^ENABLE_FLEXHEAP=.*|ENABLE_FLEXHEAP=false|" conf.sh
   else
     STORAGE_LEVELS=("MEMORY_ONLY")
-    #sed -i "s|^ENABLE_FLEXHEAP=.*|ENABLE_FLEXHEAP=true|" conf.sh
   fi
 
   # Outer loop - BENCHMARKS
@@ -112,9 +100,6 @@ function run_benchmarks() {
     # Middle loop - STORAGE_LEVELS
     for STORAGE_LEVEL in "${STORAGE_LEVELS[@]}"; do
       sed -i "s/^S_LEVEL=(.*)/S_LEVEL=(\"$STORAGE_LEVEL\")/" conf.sh
-      : '
-      for EXECUTORS in "${NUM_EXECUTORS[@]}"; do
-      '
               # Inner loop - EXECUTOR_CORES
 	      
 	      for MUTATOR_THREADS in "${EXECUTOR_CORES[@]}"; do
@@ -123,7 +108,7 @@ function run_benchmarks() {
 		sudo ./disable_cpus.sh -f $MUTATOR_THREADS -d
 		cd - >/dev/null || exit
 		
-		if [[ $STORAGE_LEVEL == "MEMORY_AND_DISK" && $MUTATOR_THREADS -gt 40 ]]; then
+		if [[ $STORAGE_LEVEL == "MEMORY_AND_DISK" && $MUTATOR_THREADS -gt 8 ]]; then
 		  continue
 		fi
               
@@ -134,7 +119,6 @@ function run_benchmarks() {
 		config="${CONFIG_MAP[$key]}"
 		# Split the configuration into H1_SIZE and MEM_BUDGET
 		IFS=':' read -r H1_SIZE MEM_BUDGET <<<"$config"
-		#IFS=':' read -r MUTATOR_THREADS H1_SIZE <<<"$config"
 		# Update H1_SIZE, MEM_BUDGET, BENCHMARKS and EXEC_CORES in conf.sh
 		sed -i "s/^H1_SIZE=(.*)/H1_SIZE=( $H1_SIZE )/" conf.sh
 		sed -i "s/^MEM_BUDGET=.*/MEM_BUDGET=${MEM_BUDGET}G/" conf.sh
@@ -159,7 +143,6 @@ function run_benchmarks() {
 
 		# Execute run.sh with conditional flags based on EXECUTION
 		if [[ $PROFILER == "true" ]]; then
-		#./run.sh -i $ITERATIONS -o $RESULTS_PATH "-$EXECUTION" "-$PROFILER"
 		    ./run.sh -i $ITERATIONS -o $RESULTS_PATH -e $EXECUTION "-f"
 	        else
 		    ./run.sh -i $ITERATIONS -o $RESULTS_PATH -e $EXECUTION	
@@ -176,11 +159,8 @@ function run_benchmarks() {
 }
 
 function parse_script_arguments() {
-  #local OPTIONS=t:g:m:s:e:b:j:f:p:d:r:l:i:w:a:ncoh
-  #local LONGOPTIONS=teraheap-home:,sudo-group:,master:,slave:,execution:,build:,jdk:,h2-dir:,shuffle-dir:,datasets:,results:,load-config:,iterations:,write-to-h2-policy:,h2-allocator:,numa,cgroups,profiler,help
-  local OPTIONS=g:m:s:e:j:f:p:t:d:r:l:i:w:a:ncoh
-  local LONGOPTIONS=sudo-group:,master:,slave:,execution:,jdk:,h2-dir:,shuffle-dir:,tasks:,datasets:,results:,load-config:,iterations:,write-to-h2-policy:,h2-allocator:,numa,cgroups,profiler,help
-
+  local OPTIONS=g:m:s:e:j:f:p:t:d:r:l:i:w:ncoh
+  local LONGOPTIONS=sudo-group:,master:,slave:,execution:,jdk:,h2-dir:,shuffle-dir:,tasks:,datasets:,results:,load-config:,iterations:,write-to-h2-policy:,numa,cgroups,profiler,help
 
   # Use getopt to parse the options
   local PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS --name "$0" -- "$@")
@@ -213,15 +193,13 @@ function parse_script_arguments() {
     -e | --execution)
       if [[ "$2" == "f" || "$2" == "flexheap" ]]; then
         EXECUTION="f"
-	#sed -i "s|^ENABLE_FLEXHEAP=.*|ENABLE_FLEXHEAP=true|" conf.sh
         sed -i "s/^ENABLE_FLEXHEAP=.*/ENABLE_FLEXHEAP=true/" conf.sh
       elif [[ "$2" == "teraheap_g1" || "$2" == "teraheap_ps" ]]; then
 	sed -i "s/^GC=.*/GC="$2"/" conf.sh 
 	EXECUTION="t"
-        #sed -i "s|^ENABLE_FLEXHEAP=.*|ENABLE_FLEXHEAP=false|" conf.sh
 	sed -i "s/^ENABLE_FLEXHEAP=.*/ENABLE_FLEXHEAP=false/" conf.sh
       elif [[ "$2" == "native_g1" || "$2" == "native_ps" ]]; then
-	sed -i "s/^GC=.*/GC="$2"/" conf.sh 
+	sed -i "s/^GC=.*|GC="$2"/" conf.sh 
 	EXECUTION="s"
         sed -i "s/^ENABLE_FLEXHEAP=.*/ENABLE_FLEXHEAP=false/" conf.sh
       else
@@ -317,28 +295,6 @@ function parse_script_arguments() {
       sed -i "s/^TERAHEAP_WRITE_POLICY=.*/TERAHEAP_WRITE_POLICY=${WRITE_POLICY}/" conf.sh
       shift 2
       ;;
-    -a | --h2-allocator)
-      #H2_ALLOCATOR_MODE="$2"
-      #validateH2AllocatorMode
-      if [[ "$2" -eq 0 ]]; then
-        sed -i "s/^ENABLE_PARALLEL_H2_PRECOMPACT=.*/ENABLE_PARALLEL_H2_PRECOMPACT=false/" conf.sh
-        sed -i "s/^ENABLE_PARALLEL_H2_COMPACT=.*/ENABLE_PARALLEL_H2_COMPACT=false/" conf.sh
-      elif [[ "$2" -eq 1 ]]; then
-        sed -i "s/^ENABLE_PARALLEL_H2_PRECOMPACT=.*/ENABLE_PARALLEL_H2_PRECOMPACT=true/" conf.sh
-        sed -i "s/^ENABLE_PARALLEL_H2_COMPACT=.*/ENABLE_PARALLEL_H2_COMPACT=false/" conf.sh
-      elif [[ "$2" -eq 2 ]]; then
-        sed -i "s/^ENABLE_PARALLEL_H2_PRECOMPACT=.*/ENABLE_PARALLEL_H2_PRECOMPACT=false/" conf.sh
-        sed -i "s/^ENABLE_PARALLEL_H2_COMPACT=.*/ENABLE_PARALLEL_H2_COMPACT=true/" conf.sh
-      elif [[ "$2" -eq 3 ]]; then
-        sed -i "s/^ENABLE_PARALLEL_H2_PRECOMPACT=.*/ENABLE_PARALLEL_H2_PRECOMPACT=true/" conf.sh
-        sed -i "s/^ENABLE_PARALLEL_H2_COMPACT=.*/ENABLE_PARALLEL_H2_COMPACT=true/" conf.sh
-      else
-        echo "Invalid H2_ALLOCATOR_MODE ; Please provide 0:Serial, 1:Parallel_H2PreCompact, 2:Paralell_H2Compact, 3:Parallel_H2PreCompact + Parallel_H2Compact"
-        exit ${ERRORS[INVALID_OPTION]}
-      fi
-      #sed -i "s/^USE_PARALLEL_H2_ALLOCATOR=.*/USE_PARALLEL_H2_ALLOCATOR=true/" conf.sh
-      shift 2
-      ;;
     -n | --numa)
       sed -i "s/^USE_NUMA=.*/USE_NUMA=true/" conf.sh
       shift
@@ -366,17 +322,7 @@ function parse_script_arguments() {
     esac
   done
 }
-: '
-function validateH2AllocatorMode() {
-  if [[ ! $H2_ALLOCATOR_MODE =~ ^[0-9]+$ ]]; then 
-    echo "H2_ALLOCATOR_MODE:$H2_ALLOCATOR_MODE is not an integer."
-    exit ${ERRORS[NOT_AN_INTEGER]} 
-  elif [[ $H2_ALLOCATOR_MODE -lt 0 || $H2_ALLOCATOR_MODE -gt 3 ]]; then                          
-    echo "H2_ALLOCATOR_MODE:$H2_ALLOCATOR_MODE is not within the range 0 to 3."
-    exit ${ERRORS[OUT_OF_RANGE]} 
-  fi
-}
-'
+
 function validateIterations() {
   if [[ ! $ITERATIONS =~ ^[0-9]+$ ]]; then 
     echo "iterations:$ITERATIONS is not an integer."
