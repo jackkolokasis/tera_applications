@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
 #set -x
-# Backup original conf.sh to restore later
-#cp conf.sh conf.sh.backup
 . ./conf.sh
 
 # Declare an associative array used for error handling
@@ -16,14 +14,15 @@ ERRORS[NOT_AN_INTEGER]=4
 ERRORS[PROGRAMMING_ERROR]=5
 
 BENCHMARKS=(ConnectedComponent LinearRegression LogisticRegression PageRank)
-EXEC_CORES=16
-GC_THREADS=10
+NUM_EXECUTORS=1
+EXEC_CORES=64
+GC_THREADS=40
 H2_MOUNT_POINT=
 SHUFFLE_MOUNT_POINT=
 MASTER=
 SLAVE=
 SUDOGROUP=
-
+sed -i "s/^NUM_EXECUTORS=(.*)/NUM_EXECUTORS=( $NUM_EXECUTORS )/" conf.sh
 sed -i "s/^EXEC_CORES=(.*)/EXEC_CORES=( $EXEC_CORES )/" conf.sh
 sed -i "s/^GC_THREADS=.*/GC_THREADS=$GC_THREADS/" conf.sh
 sed -i "s/^H1_SIZE=(.*)/H1_SIZE=( 200 )/" conf.sh
@@ -51,8 +50,8 @@ function usage() {
 }
 
 function parse_script_arguments() {
-  local OPTIONS=g:m:s:f:p:j:d:h
-  local LONGOPTIONS=sudo-group:,master:,slave:,h2-dir:,shuffle-dir:java:,datasets:,help
+  local OPTIONS=g:m:s:f:p:j:d:t:h
+  local LONGOPTIONS=sudo-group:,master:,slave:,h2-dir:,shuffle-dir:java:,datasets:,tasks:,help
 
   # Use getopt to parse the options
   local PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS --name "$0" -- "$@")
@@ -121,6 +120,10 @@ function parse_script_arguments() {
       sed -i "s|^MNT_BENCHMARK_DATASETS=.*|MNT_BENCHMARK_DATASETS=${DATASETS_MOUNT_POINT}|" conf.sh
       shift 2
       ;;
+    -t | --tasks)
+      sed -i "s|^NUM_OF_PARTITIONS=.*|NUM_OF_PARTITIONS=$2|" conf.sh
+      shift 2
+      ;;
     -h | --help)
       usage
       exit 0
@@ -139,10 +142,15 @@ function parse_script_arguments() {
 
 parse_script_arguments "$@"
 
+cd "$DISABLE_CORES_DIR" || exit
+sudo ./disable_cpus.sh -f 1 -e
+sudo ./disable_cpus.sh -f $EXEC_CORES -d
+cd - >/dev/null || exit
+
 for BENCHMARK in "${BENCHMARKS[@]}"; do
   sed -i "s/^BENCHMARKS=(.*)/BENCHMARKS=( \"$BENCHMARK\" )/" conf.sh
   echo "Checking for dataset $MNT_BENCHMARK_DATASETS/SparkBench/$BENCHMARK"
-
+  echo "DATASET: $MNT_BENCHMARK_DATASETS/SparkBench/$BENCHMARK"
   if [[ -d "$MNT_BENCHMARK_DATASETS/SparkBench/$BENCHMARK" ]]; then
     echo "$BENCHMARK dataset has already been generated."
   else
@@ -152,6 +160,3 @@ for BENCHMARK in "${BENCHMARKS[@]}"; do
   fi
 done
 
-# Restore the original conf.sh to leave no side effects
-#cp conf.sh.backup conf.sh
-#rm conf.sh.backup

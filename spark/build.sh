@@ -12,7 +12,7 @@
 #
 ###################################################
 
-#. ./config.sh
+. ./config.sh
 
 # Declare an associative array used for error handling
 declare -A ERRORS
@@ -105,7 +105,7 @@ usage() {
 
 prepare_certificates() {
   cp -r ../util/certificates/lib "${JAVA_HOME}"/../
-
+  #echo "JAVA_HOME=$JAVA_HOME"
   # Create the security directory if it does not exist
   if [ ! -d "${JAVA_HOME}/lib/security/" ]; then
     mkdir -p "${JAVA_HOME}"/lib/security
@@ -122,8 +122,8 @@ build_spark() {
   cd "${SPARK_DIR}" || exit
   # Do not use parallel compilation. Spark3.3.0 freeze during
   # compilation.
-  ./build/mvn -e -DskipTests clean package >>"${COMPILE_OUT}" 2>&1
-  #mvn -DskipTests clean package >> "${COMPILE_OUT}" 2>&1
+  #./build/mvn -e -DskipTests clean package >>"${COMPILE_OUT}" 2>&1
+  mvn -DskipTests clean package >> "${COMPILE_OUT}" 2>&1
   retValue=$?
   message="Build Spark"
   check ${retValue} "${message}"
@@ -132,8 +132,8 @@ build_spark() {
 
 install_spark() {
   cd "${SPARK_DIR}" || exit
-  ./build/mvn -DskipTests clean install >>"${COMPILE_OUT}" 2>&1
-  #mvn -DskipTests clean install >> "${COMPILE_OUT}" 2>&1
+  #./build/mvn -DskipTests clean install >>"${COMPILE_OUT}" 2>&1
+  mvn -DskipTests clean install >> "${COMPILE_OUT}" 2>&1
   retValue=$?
   message="Install Spark"
   check ${retValue} "${message}"
@@ -176,8 +176,8 @@ build_spark_tpcds() {
 
 clean_all() {
   cd "${SPARK_DIR}" || exit
-  ./build/mvn clean >>"${COMPILE_OUT}" 2>&1
-  #mvn clean >> "${COMPILE_OUT}" 2>&1
+  #./build/mvn clean >>"${COMPILE_OUT}" 2>&1
+  mvn clean >> "${COMPILE_OUT}" 2>&1
 
   retValue=$?
   message="Clean Spark"

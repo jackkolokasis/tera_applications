@@ -46,6 +46,11 @@ dataset will be used as an input file for the specific benchmark.
 ```
 ./gen_dataset.sh
 ```
+## Generate All Datasets
+```
+./gen_dataset_batch.sh -g amperesudo -m ampere -s ampere -f /spare/s1/perpap/fmap -p /spare/s1/perpap/spark -j /spare/s1/perpap/melidonis_g1/teraheap/jdk17/build/linux-aarch64-server-release/jdk -d /spare/s1/perpap/datasets_256
+```
+
 In case of SQL workload you have to run also the following script to
 increase the dataset size.
 ```sh
@@ -61,6 +66,16 @@ increase the dataset size.
 ```sh
 ./run.sh -n 1 -o <path/to/result/directory> -s
 ```
+## Run experiments with G1GC using Teraheap(asplos configuration)
+```
+./run_batch.sh -g amperesudo -m ampere -s ampere -f /spare/s2/perpap/fmap -p /spare/s2/perpap/spark -t 256 -d /spare/s1/perpap/datasets_256 -r /spare/s2/perpap/spark_results -e teraheap_g1 -j /spare/s0/perpap/mel/teraheap/jdk17/build/linux-aarch64-server-release/jdk -l /spare/s1/perpap/tera_applications/spark/scripts/asplos_config.sh -c
+```
+## Run experiments with GIGC using Native(asplos configuration)
+```
+./run_batch.sh -g amperesudo -m ampere -s ampere -f /spare/s2/perpap/fmap -p /spare/s2/perpap/spark -t 256 -d /spare/s1/perpap/datasets_256 -r /spare/s2/perpap/spark_results -e native_g1 -j /spare/s0/perpap/mel/teraheap/jdk17/build/linux-aarch64-server-release/jdk -l /spare/s1/perpap/tera_applications/spark/scripts/asplos_config.sh -c
+```
+
+
 
 ## Kill all background processes
 ```sh
