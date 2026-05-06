@@ -43,12 +43,12 @@ function usage() {
   echo "  -g, --sudo-group                    Specify the sudo group; eg. amperesudo, carvsudo"
   echo "  -m, --master                        Specify the Spark master; eg. ampere."
   echo "  -s, --slave                         Specify the Spark slave; eg. ampere."
-  echo "  -e, --execution <execution>         Specify the execution mode; eg. f|flexheap or t|teraheap or n|native "
-  echo "  -j, --java <path>                   Specify the java path; eg $TERA_JDK17_AARCH64_RELEASE."
-  echo "  -f, --h2-dir <path>                 Specify the path of the directory which contains the h2 backing file, eg. /spare2/perpap/fmap"
-  echo "  -p, --shuffle-dir <path>            Specify the path of the directory which contains the spark shuffle directory, eg. /spare2/perpap/spark"
-  echo "  -d, --datasets <path>               Specify the path of the directory which contains the spark datasets, eg. /spare2/perpap/datasets"
-  echo "  -r, --results <path>                Specify the path of SparkBench's results. eg. /spare/perpap/spark_results"
+  echo "  -e, --execution <execution>         Specify the execution mode; eg. teraheap_g1|teraheap_ps or native_g1|native_ps "
+  echo "  -j, --java <path>                   Specify the java path; eg /spare/s0/perpap/mel/teraheap/jdk17/build/linux-aarch64-server-release/jdk."
+  echo "  -f, --h2-dir <path>                 Specify the path of the directory which contains the h2 backing file, eg. /spare/s2/perpap/fmap"
+  echo "  -p, --shuffle-dir <path>            Specify the path of the directory which contains the spark shuffle directory, eg. /spare/s2/perpap/spark"
+  echo "  -d, --datasets <path>               Specify the path of the directory which contains the spark datasets, eg. /spare/s1/perpap/datasets_256"
+  echo "  -r, --results <path>                Specify the path of SparkBench's results. eg. /spare/s2/perpap/spark_results"
   echo "  -l, --load-config <path>            Specify the path of a script containing the configurations of each benchmark."
   echo "  -i, --iterations                    Specify the number of iterations for running the benchmarks."
   echo "  -w, --write-to-t2-policy <policy>   The available policies are: 'AsyncWritePolicy', 'SyncWritePolicy', 'FmapWritePolicy', 'DefaultWritePolicy'"
@@ -59,15 +59,7 @@ function usage() {
   echo
   echo "Examples:"
   echo
-  echo "./run_batch.sh                                            "
-  echo "./run_batch.sh -i 3                                       "
-  echo "./run_batch.sh -r /spare/s1/perpap/spark_results              "
-  echo "./run_batch.sh -r /spare/s1/perpap/spark_results -i 3              "
-  echo "./run_batch.sh -f /spare/s0/perpap/fmap -p /spare/s1/perpap/spark -d /spare/s1/perpap/datasets -r /spare/s1/perpap/spark_results -i 3"
-  echo "./run_batch.sh -m ampere -s ampere -b r -f /spare/s0/perpap/fmap -p /spare/s1/perpap/spark -d /spare/s1/perpap/datasets -r /spare/s1/perpap/spark_results -c"
-  echo "./run_batch.sh -g amperesudo -m ampere -s ampere -b r -f /spare/s0/perpap/fmap -p /spare/s1/perpap/spark -d /spare/s1/perpap/datasets -r /spare/s1/perpap/spark_results -l asplos_config.sh -c"
-  echo "./run_batch.sh -g amperesudo -m ampere -s ampere -b r -f /spare/s0/perpap/fmap -p /spare/s1/perpap/spark -d /spare/s1/perpap/datasets -r /spare/s1/perpap/spark_results -l asplos_config.sh -n -c"
-  echo "./run_batch.sh -t /spare/s1/perpap/teraheap -g amperesudo -m ampere -s ampere -b r -f /spare/s0/perpap/fmap -p /spare/s1/perpap/spark -d /spare/s1/perpap/datasets -r /spare/s1/perpap/spark_results -e n -j $TERA_JDK17_AARCH64_RELEASE -l asplos_config.sh -c"
+  echo "./run_batch.sh -g amperesudo -m ampere -s ampere -f /spare/s2/perpap/fmap -p /spare/s2/perpap/spark -t 256 -d /spare/s1/perpap/datasets_256 -r /spare/s2/perpap/spark_results -e teraheap_g1 -j /spare/s0/perpap/mel/teraheap/jdk17/build/linux-aarch64-server-release/jdk -l /spare/s1/perpap/tera_applications/spark/scripts/asplos_config.sh -c"
 }
 
 function run_benchmarks() {
@@ -111,19 +103,29 @@ function run_benchmarks() {
 		if [[ $STORAGE_LEVEL == "MEMORY_AND_DISK" && $MUTATOR_THREADS -gt 8 ]]; then
 		  continue
 		fi
-              
+  
 		# Construct the key for fetching the configuration
 		key="${BENCHMARK}${delimiter}${MUTATOR_THREADS}"
                 #key="${BENCHMARK}${delimiter}${EXECUTORS}"
 		# Fetch the configuration using the constructed key
 		config="${CONFIG_MAP[$key]}"
 		# Split the configuration into H1_SIZE and MEM_BUDGET
-		IFS=':' read -r H1_SIZE MEM_BUDGET <<<"$config"
-		# Update H1_SIZE, MEM_BUDGET, BENCHMARKS and EXEC_CORES in conf.sh
-		sed -i "s/^H1_SIZE=(.*)/H1_SIZE=( $H1_SIZE )/" conf.sh
-		sed -i "s/^MEM_BUDGET=.*/MEM_BUDGET=${MEM_BUDGET}G/" conf.sh
-		sed -i "s/^EXEC_CORES=(.*)/EXEC_CORES=($MUTATOR_THREADS)/" conf.sh
+		#IFS=':' read -r H1_SIZE MEM_BUDGET <<<"$config"
+		IFS=":" read -r H1_SIZE MEM_BUDGET NUM_OF_PARTITIONS <<<"$config"
+                # Update H1_SIZE, MEM_BUDGET, MEM_OVERHEAD, EXEC_CORES in conf.sh
+		#sed -i "s/^H1_SIZE=(.*)/H1_SIZE=( $H1_SIZE )/" conf.sh
+		#sed -i "s/^MEM_BUDGET=.*/MEM_BUDGET=${MEM_BUDGET}G/" conf.sh
+		#sed -i "s/^EXEC_CORES=(.*)/EXEC_CORES=($MUTATOR_THREADS)/" conf.sh
 
+                # compute overhead in GB
+                MEM_OVERHEAD=$(( ${MEM_BUDGET%G} - H1_SIZE ))
+                sed -i "s/^H1_SIZE=(.*)/H1_SIZE=($H1_SIZE)/" conf.sh
+		sed -i -E "s/^MEM_BUDGET=.*/MEM_BUDGET=${MEM_BUDGET}G/" conf.sh
+                sed -i -E "s/^MEM_OVERHEAD=.*/MEM_OVERHEAD=${MEM_OVERHEAD}/" conf.sh
+                sed -i "s/^EXEC_CORES=(.*)/EXEC_CORES=($MUTATOR_THREADS)/" conf.sh
+                sed -i -E "s/^NUM_OF_PARTITIONS=.*/NUM_OF_PARTITIONS=${NUM_OF_PARTITIONS}/" conf.sh
+                sed -i "s|^MNT_BENCHMARK_DATASETS=.*|MNT_BENCHMARK_DATASETS=${DATASETS_MOUNT_POINT}_${NUM_OF_PARTITIONS}|" conf.sh
+	        
                 # per-executor "soft" budget in GB (heap + overhead)
                 #PER_EXEC_BUDGET="$(( H1_SIZE + MEM_OVERHEAD ))"
 	        #MEM_BUDGET="$(( EXECUTORS * PER_EXEC_BUDGET ))"
@@ -195,11 +197,13 @@ function parse_script_arguments() {
         EXECUTION="f"
         sed -i "s/^ENABLE_FLEXHEAP=.*/ENABLE_FLEXHEAP=true/" conf.sh
       elif [[ "$2" == "teraheap_g1" || "$2" == "teraheap_ps" ]]; then
-	sed -i "s/^GC=.*/GC="$2"/" conf.sh 
+	#sed -i "s/^GC=.*/GC="$2"/" conf.sh 
+	sed -i "s|^GC=.*|GC=$2|" conf.sh
 	EXECUTION="t"
 	sed -i "s/^ENABLE_FLEXHEAP=.*/ENABLE_FLEXHEAP=false/" conf.sh
       elif [[ "$2" == "native_g1" || "$2" == "native_ps" ]]; then
-	sed -i "s/^GC=.*|GC="$2"/" conf.sh 
+	#sed -i "s/^GC=.*|GC="$2"/" conf.sh 
+	sed -i "s|^GC=.*|GC=$2|" conf.sh
 	EXECUTION="s"
         sed -i "s/^ENABLE_FLEXHEAP=.*/ENABLE_FLEXHEAP=false/" conf.sh
       else
@@ -216,6 +220,10 @@ function parse_script_arguments() {
 	 TERAHEAP_HOME="${JDK_PATH%%/jdk*}"
 	 echo "JDK_PATH=$JDK_PATH"
 	 echo "TERAHEAP_HOME=$TERAHEAP_HOME"
+	 sed -i "s|^TERAHEAP_HOME=.*|TERAHEAP_HOME=${TERAHEAP_HOME}|" conf.sh
+         #export TERAHEAP_HOME=$TERAHEAP_HOME
+         sed -i "s|^MY_JAVA_HOME=.*|MY_JAVA_HOME=${JDK_PATH}|" conf.sh
+         #export MY_JAVA_HOME=$JDK_PATH
       else
 	 echo "bin/java not found under '$2' – not setting JDK_PATH/TERAHEAP_HOME" >&2
       fi
@@ -242,15 +250,15 @@ function parse_script_arguments() {
       shift 2
       ;;
     -t | --tasks)
-      sed -i "s/^NUM_OF_PARTITIONS=.*/NUM_OF_PARTITIONS=$2/" conf.sh
+      sed -i "s|^NUM_OF_PARTITIONS=.*|NUM_OF_PARTITIONS=$2/" conf.sh
       shift 2
       ;;
     -d | --datasets)
       DATASETS_MOUNT_POINT="$2"
       # Find the device name using df and process it to remove the /dev/ prefix
-      DEVICE_NAME=$(df "$DATASETS_MOUNT_POINT" | awk 'NR==2 {print $1}' | sed 's|/dev/||')
+      #DEVICE_NAME=$(df "$DATASETS_MOUNT_POINT" | awk 'NR==2 {print $1}' | sed 's|/dev/||')
       # Update the conf.sh script with the device name for DEV_BENCHMARK_DATASETS
-      sed -i "s|^DEV_BENCHMARK_DATASETS=.*|DEV_BENCHMARK_DATASETS=${DEVICE_NAME}|" conf.sh
+      #sed -i "s|^DEV_BENCHMARK_DATASETS=.*|DEV_BENCHMARK_DATASETS=${DEVICE_NAME}|" conf.sh
       # Update the conf.sh script with the mount point for MNT_BENCHMARK_DATASETS
       sed -i "s|^MNT_BENCHMARK_DATASETS=.*|MNT_BENCHMARK_DATASETS=${DATASETS_MOUNT_POINT}|" conf.sh
       shift 2
