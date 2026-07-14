@@ -47,3 +47,16 @@ You can pass the following flags to `run.sh` to modify the configuration
 ```sh
 ./run.sh -k 
 ```
+
+## Extract GC pause times
+
+To extract the GC pauses from the median run of two configurations in a single csv file:
+
+```
+python3 ./extract_pause_times.py -c Native=<path/to/native/results> -c TeraHeap=<path/to/teraheap/results> -o <path/to/generated/output.csv>
+```
+
+The CSV will have a `Native` and a `TeraHeap` column for Native and TeraHeap GCs, respectively, in order.
+If a configuration has fewer GCs, the respective column will be filled with blank.
+Note that both paths should point to the directory that contains the `run*/` sub-directories to be able to find the median run.
+You can add additional configurations following the same pattern by adding `-c CONF-NAME=PATH`

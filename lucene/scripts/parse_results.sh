@@ -145,8 +145,11 @@ IOW_TIME=$( echo "${TOTAL_TIME} * ${IO_UTIL_PER} / 100" | bc -l )
 # Lucene Results
 USED_CACHE_SIZE=$(grep "Total memory used" "$RESULT_DIR"/tmp.out | grep -oP "(\d+\.\d+)")
 EVICT=$(grep "removed from cache" "$RESULT_DIR"/tmp.out | grep -oP "(\d+)")
-PER99=$(grep "99th percentile" "$RESULT_DIR"/tmp.out | grep -oP "(\d+) mil" | awk '{ print $1 }')
-PER95=$(grep "95th percentile" "$RESULT_DIR"/tmp.out | grep -oP "(\d+) mil" | awk '{ print $1 }')
+PER99_9=$(grep "99.9th percentile" "$RESULT_DIR"/tmp.out | grep -oP "(\d+\.\d+) mil" | awk '{ print $1 }')
+PER99=$(grep "99th percentile" "$RESULT_DIR"/tmp.out | grep -oP "(\d+\.\d+) mil" | awk '{ print $1 }')
+PER95=$(grep "95th percentile" "$RESULT_DIR"/tmp.out | grep -oP "(\d+\.\d+) mil" | awk '{ print $1 }')
+PER90=$(grep "90th percentile" "$RESULT_DIR"/tmp.out | grep -oP "(\d+\.\d+) mil" | awk '{ print $1 }')
+PER50=$(grep "50th percentile" "$RESULT_DIR"/tmp.out | grep -oP "(\d+\.\d+) mil" | awk '{ print $1 }')
 QPS=$(grep -oP "QPS (\d+\.\d+)" "$RESULT_DIR"/tmp.out | awk '{ print $2 }')
 
 {
@@ -155,8 +158,11 @@ QPS=$(grep -oP "QPS (\d+\.\d+)" "$RESULT_DIR"/tmp.out | awk '{ print $2 }')
   echo
   echo "USED_CACHE_SIZE(GB),$USED_CACHE_SIZE"
   echo "EVICT,$EVICT"
+  echo "99.9th(ms),$PER99_9"
   echo "99th(ms),$PER99"
   echo "95th(ms),$PER95"
+  echo "90th(ms),$PER90"
+  echo "50th(ms),$PER50"
   echo "QPS,$QPS"
 } >> "${RESULT_DIR}"/result.csv
 
@@ -173,5 +179,5 @@ QPS=$(grep -oP "QPS (\d+\.\d+)" "$RESULT_DIR"/tmp.out | awk '{ print $2 }')
   fi
 
   echo
-  echo "$RUN_NAME $TOTAL_TIME $STW $YOUNG_GC_T $CM_STW $MIX_GC_T $FULL_GC_T $PHASE1 $PHASE2 $PHASE3 $PHASE4 $USED_CACHE_SIZE $EVICT $PER99 $PER95 $QPS"
+  echo "$RUN_NAME $TOTAL_TIME $STW $YOUNG_GC_T $CM_STW $MIX_GC_T $FULL_GC_T $PHASE1 $PHASE2 $PHASE3 $PHASE4 $USED_CACHE_SIZE $EVICT $PER99_9 $PER99 $PER95 $PER90 $PER50 $QPS"
 } >> "${RESULT_DIR}"/result.csv
