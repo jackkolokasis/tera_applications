@@ -202,7 +202,7 @@ prologue() {
 }
 
 # Check for the input arguments
-while getopts "n:o:kthg:m:De:s" opt
+while getopts "n:o:kthg:m:De:sH:Q:" opt
 do
   case "${opt}" in
     n)
