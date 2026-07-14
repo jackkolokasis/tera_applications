@@ -34,10 +34,13 @@ You can pass the following flags to `run.sh` to modify the configuration
 
 ```
 -g  Number of GC Threads            [Default: 16]
--m  Memory Budget                   [20G, 40G, 60G, 208G | Default: 60G]
+-m  Memory Budget                   [<x>G where x is a number | Default: 60G]
+-t  Enable TeraHeap
 -D  Disable QueryCache
 -e  Number of QueryCache entries    [Default: 3000000]
 -s  Enable statistics
+-H  Ratio (%) Heap/PageCache (TH)   [Default: 55]
+-Q  Ratio (%) QueryCache/Heap (N)   [Default: 50]
 ```
 
 ## Kill all background processes

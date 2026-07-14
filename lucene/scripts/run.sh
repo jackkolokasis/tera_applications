@@ -30,11 +30,15 @@ usage() {
   echo "      -g  Number of GC Threads"
   echo "          [Default: 16]"
   echo "      -m  Memory Budget"
-  echo "          [20G, 40G, 60G, 208G | Default: 60G]"
+  echo "          [<x>G where x is a number  | Default: 60G]"
   echo "      -D  Disable QueryCache"
   echo "      -e  Number of QueryCache entries"
   echo "          [Default: 3000000]"
   echo "      -s  Enable statistics"
+  echo "      -H  Ratio (%) Heap/PageCache (TeraHeap configuration)"
+  echo "          [Default is 55]"
+  echo "      -Q  Ratio (%) QueryCache/Heap (Native configuration)"
+  echo "          [Default is 50]"
   echo "      -k  Kill background processes"
   echo "      -h  Show usage"
   echo
@@ -105,8 +109,8 @@ stop_perf() {
 #   Kill running background processes (jstat, serdes)
 ##
 kill_back_process() {
-  pkill -f "bash ./mem_usage.sh"
-  pkill -f "bash ./jstat.sh"
+  pkill -u $LOGIN -f "bash ./mem_usage.sh"
+  pkill -u $LOGIN -f "bash ./jstat.sh"
 }
 
 ##
@@ -216,7 +220,7 @@ do
       GEN_ARGS+=( "-t" )
       ;;
     # Generate Conf flags
-    g|m|e)
+    g|m|e|H|Q)
       GEN_ARGS+=( "-$opt" "$OPTARG" )
       ;;
     D|s)
