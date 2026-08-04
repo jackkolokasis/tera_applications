@@ -251,9 +251,10 @@ public class EvaluateQueriesCacheEnable {
       executorService.submit(() -> {
         // long startTime = System.currentTimeMillis();
         final int currentNumResults = determineResultLimit(nqValues, currentQNo);
+        double startTime_ns = System.nanoTime();
 
         try {
-          evalQuery(currentQuery, currentQNo, searcher, resultsWriter, disableScoring, currentNumResults);
+          evalQuery(currentQuery, currentQNo, searcher, resultsWriter, disableScoring, currentNumResults, startTime_ns);
         } catch (IOException e) {
           Thread.currentThread().interrupt();
           e.printStackTrace();
@@ -348,9 +349,7 @@ public class EvaluateQueriesCacheEnable {
     IndexSearcher searcher, 
     BufferedWriter resultsWriter,
     boolean disableScoring,
-    int noOfResults) throws IOException {
-
-    long startTime = System.currentTimeMillis();
+    int noOfResults, double startTime_ns) throws IOException {
 
     // build the query
     BooleanQuery.Builder b = new BooleanQuery.Builder();
@@ -431,13 +430,13 @@ public class EvaluateQueriesCacheEnable {
       }
     }
 
-    long endTime = System.currentTimeMillis();
+    double endTime_ns = System.nanoTime();
     // System.out.println("eval");
 
 
-    long duration = endTime - startTime;
+    double duration_ns = endTime_ns - startTime_ns;
     if (noOfResults == 50) {
-      queryExecutionTimes.put(qNo, duration);
+      queryExecutionTimes.put(qNo, duration_ns / 1_000_000.0);
     }
   }
 
