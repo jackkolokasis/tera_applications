@@ -30,6 +30,16 @@ usage() {
     exit 1
 }
 
+fix_scientific() {
+  local val="$1"
+  local name="$2"
+  if [[ "$val" =~ [eE][+-]?[0-9]+$ ]]; then
+    val=$(awk -v x="$val" 'BEGIN { printf "%.14f", x }' | sed -E 's/0+$//; s/\.$/.0/')
+    echo "[WARNING] scientific notation found ($name)! [$1] replaced with [$val]" >&2
+  fi
+  echo $val
+}
+
 # Check for the input arguments
 while getopts "b:H:m:d:th" opt
 do
@@ -82,10 +92,12 @@ MIX_GC_T=$(grep "(Mixed).*ms\|(Prepare Mixed).*ms" ${RESULT_DIR}/gc.log | grep -
 #remark phase cm stw
 REMARK_GC_C=$(grep "Pause Remark" ${RESULT_DIR}/gc.log | wc -l)
 REMARK_GC_T=$(grep "Pause Remark" ${RESULT_DIR}/gc.log | grep -oP '(\d+\.\d+)ms$' | awk '{ sum += $1 } END { print sum/1000.0 }')
+REMARK_GC_T=$(fix_scientific "$REMARK_GC_T" "REMARK_GC_T")
 
 #cleanup phase cm stw
 CLEANUP_GC_C=$(grep "Pause Cleanup" ${RESULT_DIR}/gc.log | wc -l)
 CLEANUP_GC_T=$(grep "Pause Cleanup" ${RESULT_DIR}/gc.log | grep -oP '(\d+\.\d+)ms$' | awk '{ sum += $1 } END { print sum/1000.0 }')
+CLEANUP_GC_T=$(fix_scientific "$CLEANUP_GC_T" "CLEANUP_GC_T")
 
 CM_STW=$(echo "${REMARK_GC_T} + ${CLEANUP_GC_T}" | bc -l) 
 
