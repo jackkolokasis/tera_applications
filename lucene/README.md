@@ -23,3 +23,6 @@ export TERA_APPS_REPO=/path/to/teraapplication/directory
 ```sh
 ./build.sh -b
 ``` 
+
+### Run benchmarks
+Read `scripts` directory.

@@ -30,6 +30,16 @@ usage() {
     exit 1
 }
 
+fix_scientific() {
+  local val="$1"
+  local name="$2"
+  if [[ "$val" =~ [eE][+-]?[0-9]+$ ]]; then
+    val=$(awk -v x="$val" 'BEGIN { printf "%.14f", x }' | sed -E 's/0+$//; s/\.$/.0/')
+    echo "[WARNING] scientific notation found ($name)! [$1] replaced with [$val]" >&2
+  fi
+  echo $val
+}
+
 # Check for the input arguments
 while getopts "b:H:m:d:th" opt
 do
@@ -82,10 +92,12 @@ MIX_GC_T=$(grep "(Mixed).*ms\|(Prepare Mixed).*ms" ${RESULT_DIR}/gc.log | grep -
 #remark phase cm stw
 REMARK_GC_C=$(grep "Pause Remark" ${RESULT_DIR}/gc.log | wc -l)
 REMARK_GC_T=$(grep "Pause Remark" ${RESULT_DIR}/gc.log | grep -oP '(\d+\.\d+)ms$' | awk '{ sum += $1 } END { print sum/1000.0 }')
+REMARK_GC_T=$(fix_scientific "$REMARK_GC_T" "REMARK_GC_T")
 
 #cleanup phase cm stw
 CLEANUP_GC_C=$(grep "Pause Cleanup" ${RESULT_DIR}/gc.log | wc -l)
 CLEANUP_GC_T=$(grep "Pause Cleanup" ${RESULT_DIR}/gc.log | grep -oP '(\d+\.\d+)ms$' | awk '{ sum += $1 } END { print sum/1000.0 }')
+CLEANUP_GC_T=$(fix_scientific "$CLEANUP_GC_T" "CLEANUP_GC_T")
 
 CM_STW=$(echo "${REMARK_GC_T} + ${CLEANUP_GC_T}" | bc -l) 
 
@@ -145,8 +157,11 @@ IOW_TIME=$( echo "${TOTAL_TIME} * ${IO_UTIL_PER} / 100" | bc -l )
 # Lucene Results
 USED_CACHE_SIZE=$(grep "Total memory used" "$RESULT_DIR"/tmp.out | grep -oP "(\d+\.\d+)")
 EVICT=$(grep "removed from cache" "$RESULT_DIR"/tmp.out | grep -oP "(\d+)")
-PER99=$(grep "99th percentile" "$RESULT_DIR"/tmp.out | grep -oP "(\d+) mil" | awk '{ print $1 }')
-PER95=$(grep "95th percentile" "$RESULT_DIR"/tmp.out | grep -oP "(\d+) mil" | awk '{ print $1 }')
+PER99_9=$(grep "99.9th percentile" "$RESULT_DIR"/tmp.out | grep -oP "(\d+\.\d+) mil" | awk '{ print $1 }')
+PER99=$(grep "99th percentile" "$RESULT_DIR"/tmp.out | grep -oP "(\d+\.\d+) mil" | awk '{ print $1 }')
+PER95=$(grep "95th percentile" "$RESULT_DIR"/tmp.out | grep -oP "(\d+\.\d+) mil" | awk '{ print $1 }')
+PER90=$(grep "90th percentile" "$RESULT_DIR"/tmp.out | grep -oP "(\d+\.\d+) mil" | awk '{ print $1 }')
+PER50=$(grep "50th percentile" "$RESULT_DIR"/tmp.out | grep -oP "(\d+\.\d+) mil" | awk '{ print $1 }')
 QPS=$(grep -oP "QPS (\d+\.\d+)" "$RESULT_DIR"/tmp.out | awk '{ print $2 }')
 
 {
@@ -155,8 +170,11 @@ QPS=$(grep -oP "QPS (\d+\.\d+)" "$RESULT_DIR"/tmp.out | awk '{ print $2 }')
   echo
   echo "USED_CACHE_SIZE(GB),$USED_CACHE_SIZE"
   echo "EVICT,$EVICT"
+  echo "99.9th(ms),$PER99_9"
   echo "99th(ms),$PER99"
   echo "95th(ms),$PER95"
+  echo "90th(ms),$PER90"
+  echo "50th(ms),$PER50"
   echo "QPS,$QPS"
 } >> "${RESULT_DIR}"/result.csv
 
@@ -173,5 +191,5 @@ QPS=$(grep -oP "QPS (\d+\.\d+)" "$RESULT_DIR"/tmp.out | awk '{ print $2 }')
   fi
 
   echo
-  echo "$RUN_NAME $TOTAL_TIME $STW $YOUNG_GC_T $CM_STW $MIX_GC_T $FULL_GC_T $PHASE1 $PHASE2 $PHASE3 $PHASE4 $USED_CACHE_SIZE $EVICT $PER99 $PER95 $QPS"
+  echo "$RUN_NAME $TOTAL_TIME $STW $YOUNG_GC_T $CM_STW $MIX_GC_T $FULL_GC_T $PHASE1 $PHASE2 $PHASE3 $PHASE4 $USED_CACHE_SIZE $EVICT $PER99_9 $PER99 $PER95 $PER90 $PER50 $QPS"
 } >> "${RESULT_DIR}"/result.csv
