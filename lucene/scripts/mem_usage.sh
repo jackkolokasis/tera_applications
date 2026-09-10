@@ -13,9 +13,10 @@
 
 # Output file name
 OUTPUT=$1        
+allBencmarks=$(ls ../benchmarks/src/*.java | xargs -n 1 basename -s .java | paste -sd '|')
 
 # Loop until the workload starts
-while [ $(jps | grep -c -E "MultiTenantEvaluateQueries|EvaluateQueries") -ne 1 ]; do
+while [ $(jps | grep -c -E "$allBencmarks") -ne 1 ]; do
   # No op
   :
 done
