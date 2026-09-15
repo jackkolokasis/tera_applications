@@ -24,12 +24,14 @@ OUTPUT=$1
 processId=""
 numOfExecutors=0
 
+allBencmarks=$(ls ../benchmarks/src/*.java | xargs -n 1 basename -s .java | paste -sd '|')
+
 # Loop until the workload starts
-while [ $(jps | grep -c -E "MultiTenantEvaluateQueries|EvaluateQueries") -ne 1 ]; do
+while [ $(jps | grep -c -E "$allBencmarks") -ne 1 ]; do
   # No op
   :
 done
 
-processId=$(jps | grep -E "MultiTenantEvaluateQueries|EvaluateQueries" | awk '{print $1}')
+processId=$(jps | grep -E "$allBencmarks" | awk '{print $1}')
 
 jstat -gcutil "${processId}" 1000 > "${OUTPUT}.txt" &

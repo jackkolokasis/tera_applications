@@ -16,12 +16,14 @@
 # - H1_SIZE: Heap size '-Xms' is in GB e.g., 54 -> 54GB
 #
 # Arguments:
-# - g: # of gc threads          [Default is 16]
-# - m: Memory budget            [20G, 40G, 60G, 208G]
-# - t: Enable TeraHeap          [Native will run if not passed]
-# - D: Disable the QueryCache   [Default is enabled]
-# - e: # of QueryCache entries  [Default is 3000000]
-# - s: Enable statistics        [Default is disabled]
+# - g: # of gc threads                  [Default is 16]
+# - m: Memory budget xG (x is a number) [Default is 60G]
+# - t: Enable TeraHeap                  [Native will run if not passed]
+# - D: Disable the QueryCache           [Default is enabled]
+# - e: # of QueryCache entries          [Default is 3000000]
+# - s: Enable statistics                [Default is disabled]
+# - H: Ratio (%) Heap/PageCache (TH)    [Default is 55]
+# - Q: Ratio (%) QueryCache/Heap (N)    [Default is 50]
 # -----------------
 
 ##### Default Configuration:
@@ -36,10 +38,14 @@ CACHE=ENABLE
 CACHE_ENTRIES=3000000
 # Enable statistics
 ENABLE_STATS=false
+# Ratio (%) of Heap/PageCache for TeraHeap configuration
+TH_HEAP_RATIO=55
+# Ratio (%) of QueryCache/Heap for Native configuration
+N_QCACHE_RATIO=50
 ##### End of Default Configuration
 
 # Check for the input arguments
-while getopts "g:m:tDe:s" opt
+while getopts "g:m:tDe:sH:Q:" opt
 do
   case "${opt}" in
     g)
@@ -60,6 +66,12 @@ do
     s)
       ENABLE_STATS=true
       ;;
+    H)
+      TH_HEAP_RATIO="${OPTARG}"
+      ;;
+    Q)
+      N_QCACHE_RATIO="${OPTARG}"
+      ;;
     *)
       echo "wrong arguments"
       exit 1
@@ -70,48 +82,31 @@ done
 if $ENABLE_TERAHEAP; then
   # TERAHEAP CONF
 
-  case "${MEM_BUDGET}" in
-    "20G")
-      H1_SIZE=( 11 )
-      ;;
-    "40G")
-      H1_SIZE=( 22 )
-      ;;
-    "60G")
-      H1_SIZE=( 33 )
-      ;;
-    "208G")
-      H1_SIZE=( 115 )
-      ;;
-    *)
-      echo "MEM_BUDGET: configuration not recognized - $MEM_BUDGET"
-      exit 1
-  esac
+  if [[ $MEM_BUDGET =~ ^[0-9]+G$ ]]; then
+    memory=${MEM_BUDGET%G}
+    # Rounded down as in general more PageCache --> better performance
+    heap=$(( memory * TH_HEAP_RATIO / 100 ))
+
+    H1_SIZE=( $heap )
+  else
+    echo "MEM_BUDGET: configuration not recognized - $MEM_BUDGET"
+  fi
 
   QUERY_CACHE=200
 else
   # NATIVE CONF
 
-  # In native we reserve 8GB for Page Cache and the rest for H1
-  case "${MEM_BUDGET}" in
-    "20G")
-      H1_SIZE=( 12 )
-      ;;
-    "40G")
-      H1_SIZE=( 32 )
-      ;;
-    "60G")
-      H1_SIZE=( 52 )
-      ;;
-    "208G")
-      H1_SIZE=( 200 )
-      ;;
-    *)
-      echo "MEM_BUDGET: configuration not recognized - $MEM_BUDGET"
-      exit 1
-  esac
+  if [[ $MEM_BUDGET =~ ^[0-9]+G$ ]]; then
+    memory=${MEM_BUDGET%G}
+    # In native we reserve 8GB for Page Cache and the rest for H1
+    heap=$(( memory - 8 ))
 
-  QUERY_CACHE=$(( $H1_SIZE / 2 ))
+    H1_SIZE=( $heap )
+  else
+    echo "MEM_BUDGET: configuration not recognized - $MEM_BUDGET"
+  fi
+
+  QUERY_CACHE=$(( $H1_SIZE * N_QCACHE_RATIO / 100 ))
 fi
 
 {

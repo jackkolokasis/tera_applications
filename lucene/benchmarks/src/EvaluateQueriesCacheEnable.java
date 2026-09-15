@@ -60,7 +60,7 @@ public class EvaluateQueriesCacheEnable {
   }
   public static LRUQueryCache queryCache;
   public static List<LeafReaderContext> leafContexts;
-  public static ConcurrentHashMap<Integer, Long> queryExecutionTimes = new ConcurrentHashMap<>();
+  public static ConcurrentHashMap<Integer, Double> queryExecutionTimes = new ConcurrentHashMap<>();
   public static ReentrantLock lock = new ReentrantLock();
   // For FGC Benchmarking
   public static boolean should_trigger_fgc = false;
@@ -195,7 +195,7 @@ public class EvaluateQueriesCacheEnable {
     long timeMs = (end - start)/1000000;
 
     System.out.println(String.format("Actual run: Searched %d queries in %d ms, QPS %.2f", qNo, timeMs, ((float) qNo)/(((float) timeMs)/1000)));
-    System.out.println("Query Cache size is: "+queryCache.getCacheSize());
+    System.out.println("Query Cache size is (entries): " + queryCache.getCacheSize());
     System.out.println("UniqueQueries cache size :"+queryCache.uniqueQueries.size());
 
     double totalMemoryUsedGB = queryCache.ramBytesUsed() / (1024.0*1024.0*1024.0);
@@ -203,6 +203,8 @@ public class EvaluateQueriesCacheEnable {
     System.out.printf("Total memory used (GB): %.3f%n", totalMemoryUsedGB);
     System.out.println("Total Transfers to h2 : "+queryCache.transfers);
     System.out.println("Total Cache entries that removed from cache : "+queryCache.getEvictionCount());
+    System.out.println("Total Cache hits:    " + queryCache.getHitCount());
+    System.out.println("Total Cache misses:  " + queryCache.getMissCount());
 
     if (should_trigger_fgc) {
       full_gc_trigger_thread.shutdown();
@@ -249,9 +251,10 @@ public class EvaluateQueriesCacheEnable {
       executorService.submit(() -> {
         // long startTime = System.currentTimeMillis();
         final int currentNumResults = determineResultLimit(nqValues, currentQNo);
+        double startTime_ns = System.nanoTime();
 
         try {
-          evalQuery(currentQuery, currentQNo, searcher, resultsWriter, disableScoring, currentNumResults);
+          evalQuery(currentQuery, currentQNo, searcher, resultsWriter, disableScoring, currentNumResults, startTime_ns);
         } catch (IOException e) {
           Thread.currentThread().interrupt();
           e.printStackTrace();
@@ -278,18 +281,30 @@ public class EvaluateQueriesCacheEnable {
     }
 
     // Calculate tail latency
-    List<Long> latencies = new ArrayList<>(queryExecutionTimes.values());
+    List<Double> latencies = new ArrayList<>(queryExecutionTimes.values());
     Collections.sort(latencies);
 
     // Assuming you want the 99th percentile tail latency
+    int index99_9thPercentile = (int) (latencies.size() * 0.999);
     int index99thPercentile = (int) (latencies.size() * 0.99);
     int index95thPercentile = (int) (latencies.size() * 0.95);
+    int index90thPercentile = (int) (latencies.size() * 0.9);
+    int index50thPercentile = (int) (latencies.size() * 0.5);
 
-    long tailLatency = latencies.get(index99thPercentile - 1);
+    double tailLatency = latencies.get(index99_9thPercentile - 1);
+    System.out.println("99.9th percentile tail latency: " + tailLatency + " milliseconds");
+
+    tailLatency = latencies.get(index99thPercentile - 1);
     System.out.println("99th percentile tail latency: " + tailLatency + " milliseconds");
 
     tailLatency = latencies.get(index95thPercentile - 1);
     System.out.println("95th percentile tail latency: " + tailLatency + " milliseconds");
+
+    tailLatency = latencies.get(index90thPercentile - 1);
+    System.out.println("90th percentile tail latency: " + tailLatency + " milliseconds");
+
+    tailLatency = latencies.get(index50thPercentile - 1);
+    System.out.println("50th percentile tail latency: " + tailLatency + " milliseconds");
 
     System.out.println("-------------");
     System.out.println("Latencies > 99th%");
@@ -334,9 +349,7 @@ public class EvaluateQueriesCacheEnable {
     IndexSearcher searcher, 
     BufferedWriter resultsWriter,
     boolean disableScoring,
-    int noOfResults) throws IOException {
-
-    long startTime = System.currentTimeMillis();
+    int noOfResults, double startTime_ns) throws IOException {
 
     // build the query
     BooleanQuery.Builder b = new BooleanQuery.Builder();
@@ -417,13 +430,13 @@ public class EvaluateQueriesCacheEnable {
       }
     }
 
-    long endTime = System.currentTimeMillis();
+    double endTime_ns = System.nanoTime();
     // System.out.println("eval");
 
 
-    long duration = endTime - startTime;
+    double duration_ns = endTime_ns - startTime_ns;
     if (noOfResults == 50) {
-      queryExecutionTimes.put(qNo, duration);
+      queryExecutionTimes.put(qNo, duration_ns / 1_000_000.0);
     }
   }
 
