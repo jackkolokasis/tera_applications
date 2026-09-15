@@ -1,0 +1,479 @@
+    {
+      "name": "append-no-conflicts",
+      "description": "Indexes the whole document corpus using OpenSearch default settings. We only adjust the number of replicas as we benchmark a single node cluster and Benchmark will only start the benchmark if the cluster turns green. Document ids are unique so all index operations are append only. After that a couple of queries are run.",
+      "default": true,
+      "schedule": [
+        {
+          "operation": "delete-index"
+        },
+        {
+          "operation": {
+            "operation-type": "create-index",
+            "settings": {{index_settings | default({}) | tojson}}
+          }
+        },
+        {
+          "name": "check-cluster-health",
+          "operation": {
+            "operation-type": "cluster-health",
+            "index": "geonames",
+            "request-params": {
+              "wait_for_status": "{{cluster_health | default('green')}}",
+              "wait_for_no_relocating_shards": "true"
+            },
+            "retry-until-success": true
+          }
+        },
+        {
+          "operation": "index-append",
+          "warmup-time-period": 120,
+          "clients": {{bulk_indexing_clients | default(8)}},
+          "ignore-response-error-level": "{{error_level | default('non-fatal')}}"
+        },
+        {
+          "name": "refresh-after-index",
+          "operation": "refresh"
+        },
+        {
+          "operation": {
+            "operation-type": "force-merge",
+            "request-timeout": 7200
+          }
+        },
+        {
+          "name": "refresh-after-force-merge",
+          "operation": "refresh"
+        },
+        {
+          "name": "wait-until-merges-finish",
+          "operation": {
+            "operation-type": "index-stats",
+            "index": "_all",
+            "condition": {
+              "path": "_all.total.merges.current",
+              "expected-value": 0
+            },
+            "retry-until-success": true,
+            "include-in-reporting": false
+          }
+        },
+        {
+          "operation": "index-stats",
+          "warmup-iterations": {{ index_stats_warmup_iterations or warmup_iterations | default(500) | tojson }},
+          "iterations": {{ index_stats_iterations or iterations | default(1000) | tojson }},
+          "target-throughput": {{ index_stats_target_throughput or target_throughput | default(90) | tojson }},
+          "clients": {{ index_stats_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "node-stats",
+          "warmup-iterations": {{ node_stats_warmup_iterations or warmup_iterations | default(100) | tojson }},
+          "iterations": {{ node_stats_iterations or iterations | default(1000) | tojson }},
+          "target-throughput": {{ node_stats_target_throughput or target_throughput | default(90) | tojson }},
+          "clients": {{ node_stats_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "default",
+          "warmup-iterations": {{ default_warmup_iterations or warmup_iterations | default(500) | tojson }},
+          "iterations": {{ default_iterations or iterations | default(1000) | tojson }},
+          "target-throughput": {{ default_target_throughput or target_throughput | default(50) | tojson }},
+          "clients": {{ default_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "term",
+          "warmup-iterations": {{ term_warmup_iterations or warmup_iterations | default(500) | tojson }},
+          "iterations": {{ term_iterations or iterations | default(1000) | tojson }},
+          "target-throughput": {{ term_target_throughput or target_throughput | default(100) | tojson }},
+          "clients": {{ term_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "phrase",
+          "warmup-iterations": {{ phrase_warmup_iterations or warmup_iterations | default(500) | tojson }},
+          "iterations": {{ phrase_iterations or iterations | default(1000) | tojson }},
+          "target-throughput": {{ phrase_target_throughput or target_throughput | default(110) | tojson }},
+          "clients": {{ phrase_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "country_agg_uncached",
+          "warmup-iterations": {{ country_agg_uncached_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ country_agg_uncached_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ country_agg_uncached_target_throughput or target_throughput | default(3) | tojson }},
+          "clients": {{ country_agg_uncached_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "country_agg_cached",
+          "warmup-iterations": {{ country_agg_cached_warmup_iterations or warmup_iterations | default(1000) | tojson }},
+          "iterations": {{ country_agg_cached_iterations or iterations | default(1000) | tojson }},
+          "target-throughput": {{ country_agg_cached_target_throughput or target_throughput | default(100) | tojson }},
+          "clients": {{ country_agg_cached_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "scroll",
+          "warmup-iterations": {{ scroll_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ scroll_iterations or iterations | default(100) | tojson }},
+          "#COMMENT": "Throughput is considered per request. So we issue one scroll request per second which will retrieve 25 pages",
+          "target-throughput": {{ scroll_target_throughput or target_throughput | default(0.8) | tojson }},
+          "clients": {{ scroll_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "expression",
+          "warmup-iterations": {{ expression_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ expression_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ expression_target_throughput or target_throughput | default(1.5) | tojson }},
+          "clients": {{ expression_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "painless_static",
+          "warmup-iterations": {{ painless_static_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ painless_static_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ painless_static_target_throughput or target_throughput | default(1.5) | tojson }},
+          "clients": {{ painless_static_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "painless_dynamic",
+          "warmup-iterations": {{ painless_dynamic_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ painless_dynamic_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ painless_dynamic_target_throughput or target_throughput | default(1.5) | tojson }},
+          "clients": {{ painless_dynamic_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "decay_geo_gauss_function_score",
+          "warmup-iterations": {{ decay_geo_gauss_function_score_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ decay_geo_gauss_function_score_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ decay_geo_gauss_function_score_target_throughput or target_throughput | default(1) | tojson }},
+          "clients": {{ decay_geo_gauss_function_score_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "decay_geo_gauss_script_score",
+          "warmup-iterations": {{ decay_geo_gauss_script_score_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ decay_geo_gauss_script_score_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ decay_geo_gauss_script_score_target_throughput or target_throughput | default(1) | tojson }},
+          "clients": {{ decay_geo_gauss_script_score_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "field_value_function_score",
+          "warmup-iterations": {{ field_value_function_score_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ field_value_function_score_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ field_value_function_score_target_throughput or target_throughput | default(1.5) | tojson }},
+          "clients": {{ field_value_function_score_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "field_value_script_score",
+          "warmup-iterations": {{ field_value_script_score_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ field_value_script_score_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ field_value_script_score_target_throughput or target_throughput | default(1.5) | tojson }},
+          "clients": {{ field_value_script_score_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "large_terms",
+          "warmup-iterations": {{ large_terms_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ large_terms_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ large_terms_target_throughput or target_throughput | default(1.1) | tojson }},
+          "clients": {{ large_terms_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "large_filtered_terms",
+          "warmup-iterations": {{ large_filtered_terms_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ large_filtered_terms_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ large_filtered_terms_target_throughput or target_throughput | default(1.1) | tojson }},
+          "clients": {{ large_filtered_terms_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "large_prohibited_terms",
+          "warmup-iterations": {{ large_prohibited_terms_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ large_prohibited_terms_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ large_prohibited_terms_target_throughput or target_throughput | default(1.1) | tojson }},
+          "clients": {{ large_prohibited_terms_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "desc_sort_population",
+          "warmup-iterations": {{ desc_sort_population_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ desc_sort_population_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ desc_sort_population_target_throughput or target_throughput | default(1.5) | tojson }},
+          "clients": {{ desc_sort_population_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "asc_sort_population",
+          "warmup-iterations": {{ asc_sort_population_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ asc_sort_population_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ asc_sort_population_target_throughput or target_throughput | default(1.5) | tojson }},
+          "clients": {{ asc_sort_population_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "asc_sort_with_after_population",
+          "warmup-iterations": {{ asc_sort_with_after_population_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ asc_sort_with_after_population_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ asc_sort_with_after_population_target_throughput or target_throughput | default(1.5) | tojson }},
+          "clients": {{ asc_sort_with_after_population_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "desc_sort_geonameid",
+          "warmup-iterations": {{ desc_sort_geonameid_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ desc_sort_geonameid_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ desc_sort_geonameid_target_throughput or target_throughput | default(6) | tojson }},
+          "clients": {{ desc_sort_geonameid_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "desc_sort_with_after_geonameid",
+          "warmup-iterations": {{ desc_sort_with_after_geonameid_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ desc_sort_with_after_geonameid_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ desc_sort_with_after_geonameid_target_throughput or target_throughput | default(6) | tojson }},
+          "clients": {{ desc_sort_with_after_geonameid_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "asc_sort_geonameid",
+          "warmup-iterations": {{ asc_sort_geonameid_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ asc_sort_geonameid_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ asc_sort_geonameid_target_throughput or target_throughput | default(6) | tojson }},
+          "clients": {{ asc_sort_geonameid_search_clients or search_clients | default(1) }}
+        },
+        {
+          "operation": "asc_sort_with_after_geonameid",
+          "warmup-iterations": {{ asc_sort_with_after_geonameid_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ asc_sort_with_after_geonameid_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ asc_sort_with_after_geonameid_target_throughput or target_throughput | default(6) | tojson }},
+          "clients": {{ asc_sort_with_after_geonameid_search_clients or search_clients | default(1) }}
+        }
+      ]
+    },
+    {
+      "name": "append-no-conflicts-index-only",
+      "description": "Indexes the whole document corpus using OpenSearch default settings. We only adjust the number of replicas as we benchmark a single node cluster and Benchmark will only start the benchmark if the cluster turns green. Document ids are unique so all index operations are append only.",
+      "schedule": [
+        {
+          "operation": "delete-index"
+        },
+        {
+          "operation": {
+            "operation-type": "create-index",
+            "settings": {{index_settings | default({}) | tojson}}
+          }
+        },
+        {
+          "name": "check-cluster-health",
+          "operation": {
+            "operation-type": "cluster-health",
+            "index": "geonames",
+            "request-params": {
+              "wait_for_status": "{{cluster_health | default('green')}}",
+              "wait_for_no_relocating_shards": "true"
+            },
+            "retry-until-success": true
+          }
+        },
+        {
+          "operation": "index-append",
+          "warmup-time-period": 120,
+          "clients": {{bulk_indexing_clients | default(8)}},
+          "ignore-response-error-level": "{{error_level | default('non-fatal')}}"
+        },
+        {
+          "operation": {
+            "operation-type": "force-merge",
+            "request-timeout": 7200
+          }
+        },
+        {
+          "name": "wait-until-merges-finish",
+          "operation": {
+            "operation-type": "index-stats",
+            "index": "_all",
+            "condition": {
+              "path": "_all.total.merges.current",
+              "expected-value": 0
+            },
+            "retry-until-success": true,
+            "include-in-reporting": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "append-sorted-no-conflicts",
+      "description": "Indexes the whole document corpus in an index sorted by country_code field in ascending order. Document ids are unique so all index operations are append only.",
+      "schedule": [
+        {
+          "operation": "delete-index"
+        },
+        {
+          "operation": {
+            "operation-type": "create-index",
+            "settings": {%- if index_settings is defined %} {{index_settings | tojson}} {%- else %} {
+              "index.sort.field": ["country_code.raw", "admin1_code.raw"],
+              "index.sort.order": ["asc", "asc"]
+            }{%- endif %}
+          }
+        },
+        {
+          "name": "check-cluster-health",
+          "operation": {
+            "operation-type": "cluster-health",
+            "index": "geonames",
+            "request-params": {
+              "wait_for_status": "{{cluster_health | default('green')}}",
+              "wait_for_no_relocating_shards": "true"
+            },
+            "retry-until-success": true
+          }
+        },
+        {
+          "operation": "index-append",
+          "warmup-time-period": 120,
+          "clients": {{bulk_indexing_clients | default(8)}},
+          "ignore-response-error-level": "{{error_level | default('non-fatal')}}"
+        },
+        {
+          "operation": {
+            "operation-type": "force-merge",
+            "request-timeout": 7200
+          }
+        },
+        {
+          "name": "wait-until-merges-finish",
+          "operation": {
+            "operation-type": "index-stats",
+            "index": "_all",
+            "condition": {
+              "path": "_all.total.merges.current",
+              "expected-value": 0
+            },
+            "retry-until-success": true,
+            "include-in-reporting": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "append-fast-with-conflicts",
+      "description": "Indexes the whole document corpus using a setup that will lead to a larger indexing throughput than the default settings. Benchmark will produce duplicate ids in 25% of all documents (not configurable) so we can simulate a scenario with appends most of the time and some updates in between.",
+      "schedule": [
+        {
+          "operation": "delete-index"
+        },
+        {
+          "operation": {
+            "operation-type": "create-index",
+            "settings": {%- if index_settings is defined %} {{index_settings | tojson}} {%- else %} {
+              "index.refresh_interval": "30s",
+              "index.number_of_shards": {{number_of_shards | default(6)}},
+              "index.translog.flush_threshold_size": "4g"
+            }{%- endif %}
+          }
+        },
+        {
+          "name": "check-cluster-health",
+          "operation": {
+            "operation-type": "cluster-health",
+            "index": "geonames",
+            "request-params": {
+              "wait_for_status": "{{cluster_health | default('green')}}",
+              "wait_for_no_relocating_shards": "true"
+            },
+            "retry-until-success": true
+          }
+        },
+        {
+          "operation": "index-update",
+          "warmup-time-period": 45,
+          "clients": {{bulk_indexing_clients | default(8)}},
+          "ignore-response-error-level": "{{error_level | default('non-fatal')}}"
+        },
+        {
+          "operation": {
+            "operation-type": "force-merge",
+            "request-timeout": 7200
+          }
+        },
+        {
+          "name": "wait-until-merges-finish",
+          "operation": {
+            "operation-type": "index-stats",
+            "index": "_all",
+            "condition": {
+              "path": "_all.total.merges.current",
+              "expected-value": 0
+            },
+            "retry-until-success": true,
+            "include-in-reporting": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "significant-text",
+      "description": "Indexes the whole document corpus using OpenSearch default settings. We only adjust the number of replicas as we benchmark a single node cluster and Benchmark will only start the benchmark if the cluster turns green. Document ids are unique so all index operations are append only.",
+      "schedule": [
+        {
+          "operation": "delete-index"
+        },
+        {
+          "operation": {
+            "operation-type": "create-index",
+            "settings": {{index_settings | default({}) | tojson}}
+          }
+        },
+        {
+          "name": "check-cluster-health",
+          "operation": {
+            "operation-type": "cluster-health",
+            "index": "geonames",
+            "request-params": {
+              "wait_for_status": "{{cluster_health | default('green')}}",
+              "wait_for_no_relocating_shards": "true"
+            },
+            "retry-until-success": true
+          }
+        },
+        {
+          "operation": "index-append",
+          "warmup-time-period": 120,
+          "clients": {{bulk_indexing_clients | default(8)}}
+        },
+        {
+          "operation": {
+            "operation-type": "force-merge",
+            "request-timeout": 7200
+          }
+        },
+        {
+          "name": "wait-until-merges-finish",
+          "operation": {
+            "operation-type": "index-stats",
+            "index": "_all",
+            "condition": {
+              "path": "_all.total.merges.current",
+              "expected-value": 0
+            },
+            "retry-until-success": true,
+            "include-in-reporting": false
+          }
+        },
+        {
+          "operation": "significant_text_selective",
+          "warmup-iterations": {{ significant_text_selective_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ significant_text_selective_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ significant_text_selective_target_throughput or target_throughput | default(2) | tojson }},
+          "clients": {{ significant_text_selective_search_clients or search_clients | default(1) | tojson }}
+        },
+        {
+          "operation": "significant_text_sampled_selective",
+          "warmup-iterations": {{ significant_text_sampled_selective_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ significant_text_sampled_selective_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ significant_text_sampled_selective_target_throughput or target_throughput | default(20) | tojson }},
+          "clients": {{ significant_text_sampled_selective_search_clients or search_clients | default(1) | tojson }}
+        },
+        {
+          "operation": "significant_text_unselective",
+          "warmup-iterations": {{ significant_text_unselective_warmup_iterations or warmup_iterations | default(50) | tojson }},
+          "iterations": {{ significant_text_unselective_iterations or iterations | default(20) | tojson }},
+          "target-throughput": {{ significant_text_unselective_target_throughput or target_throughput | default(0.04) | tojson }},
+          "clients": {{ significant_text_unselective_search_clients or search_clients | default(1) | tojson }}
+        },
+        {
+          "operation": "significant_text_sampled_unselective",
+          "warmup-iterations": {{ significant_text_sampled_unselective_warmup_iterations or warmup_iterations | default(200) | tojson }},
+          "iterations": {{ significant_text_sampled_unselective_iterations or iterations | default(100) | tojson }},
+          "target-throughput": {{ significant_text_sampled_unselective_target_throughput or target_throughput | default(6) | tojson }},
+          "clients": {{ significant_text_sampled_unselective_search_clients or search_clients | default(1) | tojson }}
+        }
+      ]
+    }

@@ -1,0 +1,172 @@
+    {
+      "name": "nested-search-test-procedure",
+      "description": "Indexes the document corpus for an hour using OpenSearch default settings. After that randomized nested queries are run.",
+      "default": true,
+      "schedule": [
+        {
+          "operation": "delete-index"
+        },
+        {
+          "operation": {
+            "operation-type": "create-index",
+            "settings": {{index_settings | default({}) | tojson}}
+          }
+        },
+        {
+          "name": "check-cluster-health",
+          "operation": {
+            "operation-type": "cluster-health",
+            "index": "sonested",
+            "request-params": {
+              "wait_for_status": "{{cluster_health | default('green')}}",
+              "wait_for_no_relocating_shards": "true"
+            },
+            "retry-until-success": true
+          }
+        },
+       {
+          "operation": "index-append",
+          "warmup-time-period": 120,
+          "time-period": 3600,
+          "clients": {{bulk_indexing_clients | default(4)}},
+          "ignore-response-error-level": "{{error_level | default('non-fatal')}}"
+        },
+        {
+          "name": "refresh-after-index",
+          "operation": "refresh"
+        },
+        {
+          "operation": {
+            "operation-type": "force-merge",
+            "request-timeout": 7200
+          }
+        },
+        {
+          "name": "refresh-after-force-merge",
+          "operation": "refresh"
+        },
+        {
+          "name": "wait-until-merges-finish",
+          "operation": {
+            "operation-type": "index-stats",
+            "index": "_all",
+            "condition": {
+              "path": "_all.total.merges.current",
+              "expected-value": 0
+            },
+            "retry-until-success": true,
+            "include-in-reporting": false
+          }
+        },
+        {
+          "operation": "randomized-nested-queries",
+          "warmup-iterations": {{ randomized_nested_queries_warmup_iterations or warmup_iterations | default(500) | tojson }},
+          "iterations": {{ randomized_nested_queries_iterations or iterations | default(1000) | tojson }},
+          "target-throughput": {{ randomized_nested_queries_target_throughput or target_throughput | default(20) | tojson }},
+          "clients": {{ randomized_nested_queries_search_clients or search_clients | default(2) }}
+        },
+        {
+          "operation": "randomized-term-queries",
+          "warmup-iterations": {{ randomized_term_queries_warmup_iterations or warmup_iterations | default(500) | tojson }},
+          "iterations": {{ randomized_term_queries_iterations or iterations | default(200) | tojson }},
+          "target-throughput": {{ randomized_term_queries_target_throughput or target_throughput | default(25) | tojson }},
+          "clients": {{ randomized_term_queries_search_clients or search_clients | default(2) }}
+        },
+        {
+          "operation": "randomized-sorted-term-queries",
+          "warmup-iterations": {{ randomized_sorted_term_queries_warmup_iterations or warmup_iterations | default(500) | tojson }},
+          "iterations": {{ randomized_sorted_term_queries_iterations or iterations | default(200) | tojson }},
+          "target-throughput": {{ randomized_sorted_term_queries_target_throughput or target_throughput | default(16) | tojson }},
+          "clients": {{ randomized_sorted_term_queries_search_clients or search_clients | default(2) }}
+        },
+        {
+          "operation": "match-all",
+          "warmup-iterations": {{ match_all_warmup_iterations or warmup_iterations | default(500) | tojson }},
+          "iterations": {{ match_all_iterations or iterations | default(200) | tojson }},
+          "target-throughput": {{ match_all_target_throughput or target_throughput | default(5) | tojson }},
+          "clients": {{ match_all_search_clients or search_clients | default(2) }}
+        },
+        {
+          "operation": "nested-date-histo",
+          "warmup-iterations": {{ nested_date_histo_warmup_iterations or warmup_iterations | default(100) | tojson }},
+          "iterations": {{ nested_date_histo_iterations or iterations | default(200) | tojson }},
+          "target-throughput": {{ nested_date_histo_target_throughput or target_throughput | default(1) | tojson }},
+          "clients": {{ nested_date_histo_search_clients or search_clients | default(2) }}
+        },
+        {
+          "operation": "randomized-nested-queries-with-inner-hits_default",
+          "warmup-iterations": {{ randomized_nested_queries_with_inner_hits_default_warmup_iterations or warmup_iterations | default(500) | tojson }},
+          "iterations": {{ randomized_nested_queries_with_inner_hits_default_iterations or iterations | default(1000) | tojson }},
+          "target-throughput": {{ randomized_nested_queries_with_inner_hits_default_target_throughput or target_throughput | default(18) | tojson }},
+          "clients": {{ randomized_nested_queries_with_inner_hits_default_search_clients or search_clients | default(2) }}
+        },
+        {
+          "operation": "randomized-nested-queries-with-inner-hits_default_big_size",
+          "warmup-iterations": {{ randomized_nested_queries_with_inner_hits_default_big_size_warmup_iterations or warmup_iterations | default(500) | tojson }},
+          "iterations": {{ randomized_nested_queries_with_inner_hits_default_big_size_iterations or iterations | default(1000) | tojson }},
+          "target-throughput": {{ randomized_nested_queries_with_inner_hits_default_big_size_target_throughput or target_throughput | default(16) | tojson }},
+          "clients": {{ randomized_nested_queries_with_inner_hits_default_big_size_search_clients or search_clients | default(2) }}
+        }
+      ]
+    },
+    {
+      "name": "index-only",
+      "description": "Indexes the document corpus for an hour using OpenSearch default settings.",
+      "schedule": [
+        {
+          "operation": "delete-index"
+        },
+        {
+          "operation": {
+            "operation-type": "create-index",
+            "settings": {{index_settings | default({}) | tojson}}
+          }
+        },
+        {
+          "name": "check-cluster-health",
+          "operation": {
+            "operation-type": "cluster-health",
+            "index": "sonested",
+            "request-params": {
+              "wait_for_status": "{{cluster_health | default('green')}}",
+              "wait_for_no_relocating_shards": "true"
+            },
+            "retry-until-success": true
+          }
+        },
+        {
+          "operation": "index-append",
+          "warmup-time-period": 120,
+          "time-period": 3600,
+          "clients": {{bulk_indexing_clients | default(4)}},
+          "ignore-response-error-level": "{{error_level | default('non-fatal')}}"
+        },
+        {
+        "name": "refresh-after-index",
+        "operation": "refresh"
+        },
+        {
+          "operation": {
+            "operation-type": "force-merge",
+            "request-timeout": 7200
+          }
+        },
+        {
+          "name": "refresh-after-force-merge",
+          "operation": "refresh"
+        },
+        {
+          "name": "wait-until-merges-finish",
+          "operation": {
+            "operation-type": "index-stats",
+            "index": "_all",
+            "condition": {
+              "path": "_all.total.merges.current",
+              "expected-value": 0
+            },
+            "retry-until-success": true,
+            "include-in-reporting": false
+          }
+        }
+      ]
+    }

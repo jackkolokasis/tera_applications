@@ -1,0 +1,8 @@
+{
+  "number_of_shards": 1,
+  "number_of_replicas": 0,
+  "requests_cache_enabled": false,
+  "query_cache_enabled": true,
+  "ingest_percentage": 100,
+  "bulk_indexing_clients": 8
+}
